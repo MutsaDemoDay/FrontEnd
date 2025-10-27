@@ -43,7 +43,7 @@ export const FirstPage = () => {
       <div className="flex flex-row justify-between w-[300px] mt-10 text-sm text-gray-400">
         <p className="">아이디 찾기</p>
         <p className="">비밀번호 찾기</p>
-        <p className="" onClick={handleSignUpClick}>회원가입</p>
+        <p className="cursor-pointer" onClick={handleSignUpClick}>회원가입</p>
       </div>
     </div>
   );
