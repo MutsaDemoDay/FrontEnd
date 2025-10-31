@@ -1,19 +1,5 @@
-// import BackButton from '../../components/BackButton';
-// import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'; // React Native 가정
-
-// export const SignUp = () => {
-//   const navigate = useNavigate();
-
-//   const handleOwnerSignUpClick = () => {
-//     navigate('/signup/owner');
-//   };
-
-//   const handleCustomerSignUpClick = () => {
-//     navigate('/signup/customer');
-//   };
-
 import React from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 import BackButton from '../../components/BackButton';
 import Setting from '../../assets/setting.svg';
@@ -61,7 +47,9 @@ const Header = () => (
   <header className="bg-white p-4 flex justify-between items-center sticky top-0 z-10 border-b border-gray-200">
     {/* <ArrowLeft className="w-6 h-6 text-gray-800" /> */}
     <BackButton />
-    <img src={Setting} alt="Setting" className="w-6 h-6" />
+    <Link to="/mypage/setting">
+      <img src={Setting} alt="Setting" className="w-6 h-6" />
+    </Link>
   </header>
 );
 
