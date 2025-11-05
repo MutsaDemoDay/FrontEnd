@@ -2,9 +2,11 @@ import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 import BackButton from '../../components/BackButton';
+import StampsSection from '../../components/StampSection';
+
 import Setting from '../../assets/setting.svg';
-import Plus from '../../assets/plus.svg';
-import ThreeDots from '../../assets/threedots.svg';
+//import Plus from '../../assets/plus.svg';
+//import ThreeDots from '../../assets/threedots.svg';
 import DownButton from '../../assets/downbutton.svg';
 import FilledStar from '../../assets/filledstar.svg';
 import EmptyStar from '../../assets/emptystar.svg';
@@ -88,50 +90,8 @@ const StatItem = ({ count, label }: { count: number; label: string }) => (
   </div>
 );
 
-// 3. 현재 스탬프 섹션
-const StampsSection = () => (
-  <div className="bg-white rounded-lg p-4">
-    {/* 섹션 헤더 */}
-    <div className="flex justify-between items-center mb-4">
-      <h2 className="font-bold text-lg">현재 스탬프(7)</h2>
-      <div className="flex gap-2 items-center text-gray-400">
-        <img src={Plus} alt="Plus" className="w-6 h-6" />
-        <img src={ThreeDots} alt="ThreeDots" className="w-6 h-6" />
-      </div>
-    </div>
-
-    {/* 스탬프 카드 시각화 */}
-    <div className="relative h-48 flex items-center">
-      {/* 주황색 홀더 */}
-      <div className="absolute left-4 w-10 h-40 bg-orange-500 rounded-lg z-0 shadow-sm"></div>
-
-      {/* 뒷 배경 카드 2 */}
-      <div className="absolute left-10 top-10 w-4/5 h-32 bg-white rounded-lg border border-gray-200 shadow-sm transform -rotate-6"></div>
-      {/* 뒷 배경 카드 1 */}
-      <div className="absolute left-10 top-8 w-4/5 h-32 bg-white rounded-lg border border-gray-200 shadow-sm transform -rotate-3"></div>
-
-      {/* 맨 위 카드 */}
-      <div className="relative z-10 left-12 w-4/5 h-36 bg-white rounded-lg border border-gray-300 shadow-md p-4 flex flex-col justify-between">
-        <div>
-          <h3 className="font-bold text-lg mb-3">카페나무</h3>
-          {/* 스탬프 10개 (5x2) */}
-          <div className="grid grid-cols-5 gap-2">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-7 h-7 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center"
-              >
-                <div className="w-3 h-3 bg-gray-200 rounded-full"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-        {/* 스탬프 게이지 바 */}
-        <div className="h-1.5 bg-gray-200 rounded-full mt-2 w-2/3"></div>
-      </div>
-    </div>
-  </div>
-);
+// [수정 3] 'StampsSection' 컴포넌트 정의 삭제
+// const StampsSection = () => ( ... );
 
 // 4. 뱃지 섹션
 const BadgesSection = () => (
