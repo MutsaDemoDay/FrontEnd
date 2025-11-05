@@ -22,7 +22,7 @@ export const SignUp = () => {
       </div>
 
       {/* 구분선 */}
-      <div className='w-screen h-[1px] mt-3 bg-gray-200'/>
+      <div className='w-screen h-px mt-3 bg-gray-200'/>
 
       {/* 회원가입 선택지 */}
       <div className="flex flex-col mt-32 gap-6">

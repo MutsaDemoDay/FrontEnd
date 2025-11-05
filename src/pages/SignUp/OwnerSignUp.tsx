@@ -73,7 +73,7 @@ export const OwnerSignup = () => {
       </div>
 
       {/* 구분선 */}
-      <div className="w-screen h-[1px] mt-3 bg-gray-200" />
+      <div className="w-screen h-px mt-3 bg-gray-200" />
 
       {/* 입력 폼 */}
       <div className="flex items-start flex-col mt-10 gap-4 w-[332px]">
