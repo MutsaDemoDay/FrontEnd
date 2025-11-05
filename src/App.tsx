@@ -8,6 +8,7 @@ import { CustomerOnboarding } from './pages/Onboarding/CustomerOnboarding';
 import { Layout } from './Layout/LayOut';
 import { MapPage } from './pages/MapPage';
 import { OwnerSuccess } from './pages/SignUp/OwnerSuccess';
+import { CustomerConfirm } from './pages/SignUp/CustomerConfirm';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/signup/customer" element={<CustomerSignup />} />
           <Route path="/onboarding/customer" element={<CustomerOnboarding />} />
           <Route path='/map' element={<MapPage />} />
+          <Route path='/signup/customer-confirm' element={<CustomerConfirm />} />
         </Route>
       </Routes>
     </BrowserRouter>
