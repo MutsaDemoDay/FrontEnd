@@ -1,10 +1,22 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const FirstPage = () => {
+  const [loginData, setLoginData] = useState({
+    id: '',
+    password: '',
+  });
+  
   const navigate = useNavigate();
 
   const handleSignUpClick = () => {
     navigate('/signup');
+  };
+
+  const handleGoToMap = () => {
+    // todo: 로그인 로직 작성
+    console.log('로그인 데이터:', loginData);
+    navigate('/map');
   };
 
   return (
@@ -12,8 +24,8 @@ export const FirstPage = () => {
       {/* 로고, 앱이름, 부가설명 */}
       <div className="flex flex-col w-[200px] h-[300px] items-center">
         <div className="w-[200px] h-[200px] rounded-[50px] bg-gray-300" />
-        <p className="mt-5 font-bold text-[34px]">앱이름</p>
-        <p className="mt-1 text-gray-400 text-[16px]">부가설명</p>
+        <p className="mt-5 font-bold text-[34px]">Dango</p>
+        <p className="mt-1 text-gray-400 text-[16px]">쌓아가는 즐거움, 당고</p>
       </div>
 
       {/* 아이디, 비밀번호 */}
@@ -27,7 +39,8 @@ export const FirstPage = () => {
           placeholder="비밀번호"
           type="password"
         />
-        <button className="bg-[#F3F3F3] text-black rounded-[40px] h-[50px] font-bold">
+        <button className="bg-[#F3F3F3] text-black rounded-[40px] h-[50px] font-bold"
+        onClick={handleGoToMap}>
           로그인
         </button>
       </div>
