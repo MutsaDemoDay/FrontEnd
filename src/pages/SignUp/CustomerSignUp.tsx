@@ -3,8 +3,10 @@ import BackButton from '../../components/BackButton';
 import SignupInput, {
   type CustomerSignupFormData,
 } from '../../components/SignupInput';
+import { useNavigate } from 'react-router-dom';
 
 export const CustomerSignup = () => {
+  const navigate = useNavigate();
   const [errors, setErrors] = useState<Partial<CustomerSignupFormData>>({});
   const [formData, setFormData] = useState<CustomerSignupFormData>({
     id: '',
@@ -13,6 +15,7 @@ export const CustomerSignup = () => {
     phoneNumber: '',
     phoneNumberConfirm: '',
     email: '',
+    address: '',
   });
 
   const validateForm = () => {
@@ -55,7 +58,8 @@ export const CustomerSignup = () => {
 
     if (validateForm()) {
       console.log('가입 데이터:', formData);
-      alert('가입 절차를 진행합니다!');
+      alert('가입이 완료되었습니다!');
+      navigate('/signup/customer-confirm');
     } else {
       console.log(errors, '폼 유효성 검사 실패');
     }
@@ -69,6 +73,11 @@ export const CustomerSignup = () => {
   const handlePhoneConfirm = () => {
     // 여기에 인증번호 확인 로직 추가
     alert('인증번호가 확인되었습니다!');
+  };
+
+  const handleAddressSearch = () => {
+    // 여기에 주소 검색 로직 추가
+    alert('주소 검색 기능은 아직 구현되지 않았습니다.');
   };
 
   return (
@@ -137,6 +146,16 @@ export const CustomerSignup = () => {
             value={formData.email}
             onChange={handleCustomerData}
             error={errors.email}
+          />
+          <SignupInput
+            label="주소지"
+            name="address"
+            type="text"
+            value={formData.address}
+            onChange={handleCustomerData}
+            error={errors.address}
+            variant="address"
+            onButtonClick={handleAddressSearch}
           />
         </div>
       </div>
