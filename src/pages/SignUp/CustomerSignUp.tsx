@@ -3,8 +3,10 @@ import BackButton from '../../components/BackButton';
 import SignupInput, {
   type CustomerSignupFormData,
 } from '../../components/SignupInput';
+import { useNavigate } from 'react-router-dom';
 
 export const CustomerSignup = () => {
+  const navigate = useNavigate();
   const [errors, setErrors] = useState<Partial<CustomerSignupFormData>>({});
   const [formData, setFormData] = useState<CustomerSignupFormData>({
     id: '',
@@ -56,6 +58,7 @@ export const CustomerSignup = () => {
     if (validateForm()) {
       console.log('가입 데이터:', formData);
       alert('가입 절차를 진행합니다!');
+      navigate('/onboarding/customer');
     } else {
       console.log(errors, '폼 유효성 검사 실패');
     }

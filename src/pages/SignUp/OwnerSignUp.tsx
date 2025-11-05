@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import BackButton from '../../components/BackButton';
-// 새로 만든 SignupInput 컴포넌트를 import 합니다.
 import SignupInput, {
   type OwnerSignupFormData,
 } from '../../components/SignupInput';
+import { useNavigate } from 'react-router-dom';
 
 export const OwnerSignup = () => {
+  const navigate = useNavigate();
   const [errors, setErrors] = useState<Partial<OwnerSignupFormData>>({});
   const [formData, setFormData] = useState<OwnerSignupFormData>({
     id: '',
@@ -57,6 +58,7 @@ export const OwnerSignup = () => {
     if (validateForm()) {
       console.log('가입 데이터:', formData);
       alert('가입 절차를 진행합니다!');
+      navigate('/signup/owner-success');
     } else {
       console.log(errors, '폼 유효성 검사 실패');
     }
