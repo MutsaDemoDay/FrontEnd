@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import searchIcon from '../assets/saerchIcon.png';
-import { geoCodeAddress } from '../api/geoCodeAddress.ts';
+import shop_arrow from '../assets/shop_arrow.png';
+import bottom_bar from '../assets/bottom_bar.png';
+import type { KakaoAddress } from '../components/KakaoAddress';
 
+// Kakao Maps SDK가 전역 window 객체에 로드될 때를 위한 타입 선언
 declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    naver: any;
+    kakao: any;
   }
-}
-
-interface NaverAddress {
-  roadAddress: string;
-  jibunAddress: string;
-  x: string; // 경도 (longitude)
-  y: string; // 위도 (latitude)
 }
 
 interface Store {
@@ -22,6 +20,7 @@ interface Store {
   category: string;
   address: string;
   distance?: number;
+  image?: string;
   lat: number;
   lng: number;
   rating: number;
@@ -29,19 +28,30 @@ interface Store {
   description: string;
 }
 
-// 2. BottomModal 컴포넌트 Props 타입 정의
 interface BottomModalProps {
   store: Store | null;
   onClose: () => void;
 }
 
-// 3. BottomModal 컴포넌트 (Props 타입 적용)
-const BottomModal: React.FC<BottomModalProps> = ({ store, onClose }) => {
+interface CurrentPosition {
+  lat: number;
+  lng: number;
+}
+
+const BottomModal: React.FC<BottomModalProps> = ({ store }) => {
+  const navigate = useNavigate();
+
   if (!store) return null;
+
+  const handleNavigate = () => {
+    if (store) {
+      navigate(`/store/${store.id}`);
+    }
+  };
 
   return (
     <div
-      className={`w-[300px] h-[320px] fixed bottom-20 left-0 right-0 p-5 bg-white rounded-t-2xl shadow-lg z-10
+      className={`w-[300px] h-[320px] fixed bottom-30 left-0 right-0 p-5 bg-white rounded-2xl shadow-lg z-10
                   ${store ? 'translate-y-0' : 'translate-y-full'}`}
       style={{
         maxWidth: '640px',
@@ -50,10 +60,11 @@ const BottomModal: React.FC<BottomModalProps> = ({ store, onClose }) => {
       }}
     >
       <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-gray-500"
+        onClick={handleNavigate}
+        className="absolute top-5 right-4 text-gray-500 text-xl font-bold"
+        aria-label="가게 상세 페이지로 이동"
       >
-        X
+        <img src={shop_arrow} alt="" />
       </button>
 
       <div className="flex flex-col">
@@ -69,19 +80,21 @@ const BottomModal: React.FC<BottomModalProps> = ({ store, onClose }) => {
         </div>
       </div>
 
-      <div className="mt-4">
-        <span className="text-yellow-500">⭐ {store.rating.toFixed(1)}</span>
-        <span className="text-gray-400 ml-2">({store.reviewCount})</span>
+      <div className="w-[144px] h-[144px] bg-gray-300 rounded-2xl my-4 pb-10">
+        <img src={store.image} alt="아직 이미지가 등록되지 않았습니다." />
       </div>
-      <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-        <span className="font-semibold text-blue-600">AI 요약:</span>{' '}
+      <div className="mt-1">
+        <span className="text-yellow-500">⭐️ {store.rating.toFixed(1)}</span>
+        <span className="text-gray-400 ml-1">({store.reviewCount})</span>
+      </div>
+      <div className="w-[202px] h-[24px] text-[10px] mt-1 px-4 py-1.5 bg-gray-50 rounded-[20px]">
+        <span className="font-semibold text-black">AI 요약</span>{' '}
         {store.description}
       </div>
     </div>
   );
 };
 
-// 4. 가게 데이터 (Store[] 타입)
 const stores: Store[] = [
   {
     id: 1,
@@ -91,129 +104,208 @@ const stores: Store[] = [
     lat: 37.55506,
     lng: 126.92497,
     rating: 3.0,
-    reviewCount: 67,
-    description: '차분한 감성 가득한 대형 베이커리 카페',
+    reviewCount: 6,
+    description: '활기찬 분위기의 동네 카페',
     distance: 8.5,
   },
   {
     id: 2,
     name: '카페나무',
     category: '카페',
-    address: '서울 마포구 어딘가',
+    address: '서울 마포구 어딘가', // 실제 카카오 API로 검색되는 주소로 변경하면 좋음
     lat: 37.550556,
     lng: 126.925833,
-    rating: 4.5,
-    reviewCount: 120,
+    rating: 3.0,
+    reviewCount: 6,
     description: '활기찬 분위기의 동네 카페',
     distance: 8.3,
   },
+  {
+    id: 3,
+    name: '연세대학교 신촌캠퍼스',
+    category: '대학교',
+    address: '서울 서대문구 연세로 50',
+    lat: 37.56578,
+    lng: 126.93857,
+    rating: 4.5,
+    reviewCount: 120,
+    description: '오랜 역사를 지닌 명문 대학교',
+    distance: 5.0,
+  },
 ];
 
-// 5. MapPage 컴포넌트 (React.FC, useState 타입 명시)
 export const MapPage: React.FC = () => {
-  // 6. state에 타입 명시
-  const [map, setMap] = useState<naver.maps.Map | null>(null);
+  const [map, setMap] = useState<any | null>(null);
+  const geocoderRef = useRef<any | null>(null);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
+  const [center, setCenter] = useState<CurrentPosition>({ lat: 37.5665, lng: 126.978 });
+
+  // 검색창 입력값
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<NaverAddress[]>([]);
-  // 사용자가 검색해서 추가한 마커들을 관리 (선택 사항)
-  const [searchMarkers, setSearchMarkers] = useState<naver.maps.Marker[]>([]);
+
+  // 주소 검색 결과
+  const [addressResults, setAddressResults] = useState<KakaoAddress[]>([]);
+
+  // 가게 검색 결과
+  const [filteredStores, setFilteredStores] = useState<Store[]>([]);
+
+  // 검색된 주소 마커들
+  const [searchMarkers, setSearchMarkers] = useState<any[]>([]);
 
   useEffect(() => {
-    const checkNaverMaps = () => {
-      // window.naver로 접근
-      if (typeof window.naver !== 'undefined' && window.naver.maps) {
-        const mapInstance = new window.naver.maps.Map('map', {
-          center: new window.naver.maps.LatLng(37.550556, 126.925833),
-          zoom: 15,
-          minzoom: 9,
-          zoomControl: true,
-          zoomControlOptions: {
-            position: window.naver.maps.Position.TOP_RIGHT,
-          },
-        });
+    // Kakao Maps SDK 로드 및 지도 초기화
+    if (window.kakao && window.kakao.maps && window.kakao.maps.load) {
+      window.kakao.maps.load(() => {
+        const container = document.getElementById('map');
 
-        mapInstance.setOptions('minZoom', 9);
-        setMap(mapInstance);
-      } else {
-        setTimeout(checkNaverMaps, 100);
-      }
-    };
+        if (container) {
+          const options = {
+            center: new window.kakao.maps.LatLng(center.lat, center.lng),
+            level: 3,
+          };
+          const kakaoMap = new window.kakao.maps.Map(container, options);
+          setMap(kakaoMap); // 지도 state 설정
+          geocoderRef.current = new window.kakao.maps.services.Geocoder();
+        }
+      });
+    }
 
-    checkNaverMaps();
+    navigator.geolocation.getCurrentPosition((position) => {
+      const userLat = position.coords.latitude;
+      const userLng = position.coords.longitude;
+      // 1-3. 위치를 가져오면 'center' state를 업데이트합니다.
+      // 이 state 업데이트가 아래 두 번째 useEffect를 트리거합니다.
+      setCenter({ lat: userLat, lng: userLng });
+    });
   }, []);
 
-  const onSearchMap = async () => {
+  useEffect(() => {
+    // map 객체가 생성되었고, center 값이 (기본 또는 새 값으로) 존재할 때
+    if (map) {
+      // 새 center 좌표로 LatLng 객체 생성
+      const newCenter = new window.kakao.maps.LatLng(center.lat, center.lng);
+      map.panTo(newCenter);
+    }
+  }, [map, center]);
+
+  // 저장된 가게 마커들을 지도에 표시하는 useEffect
+  useEffect(() => {
+    if (!map) return; // 지도가 아직 로드되지 않았다면 아무것도 하지 않음
+
+    stores.forEach((store) => {
+      const markerPosition = new window.kakao.maps.LatLng(store.lat, store.lng);
+      const marker = new window.kakao.maps.Marker({
+        map: map,
+        position: markerPosition,
+        title: store.name, // 마커에 마우스 오버 시 표시될 이름
+      });
+
+      // 마커 클릭 이벤트 리스너
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        setSelectedStore(store);
+        map.panTo(markerPosition); // 클릭한 마커 위치로 지도 이동
+      });
+    });
+
+    // 지도 클릭 시 모달 닫기
+    window.kakao.maps.event.addListener(map, 'click', () => {
+      setSelectedStore(null);
+    });
+  }, [map]); // map 객체가 준비될 때마다 실행
+
+  const onSearchMap = () => {
     if (searchQuery.trim() === '') {
       alert('검색어를 입력해주세요.');
       return;
     }
-
-    try {
-      // 1단계에서 수정한 geoCodeAddress 함수 호출
-      const addresses = await geoCodeAddress(searchQuery);
-
-      if (addresses.length === 0) {
-        alert('검색 결과가 없습니다.');
-        setSearchResults([]); // 결과가 없으면 리스트 비우기
-      } else {
-        // "가장 연관된 주소 3개" (혹은 API가 준 전체)
-        // Naver API는 보통 최대 10개까지 관련 주소를 반환합니다.
-        // 3개만 보여주고 싶다면 .slice(0, 3) 사용
-        setSearchResults(addresses.slice(0, 3));
-      }
-    } catch (error) {
-      console.error(error);
-      alert('주소 검색 중 오류가 발생했습니다.');
+    if (!geocoderRef.current) {
+      alert('지도 검색 기능이 아직 준비되지 않았습니다.');
+      return;
     }
+
+    // 1. (수정) 즉시 검색된 '가게' 결과는 숨김
+    setFilteredStores([]);
+
+    // 2. (유지) 기존 주소 검색 마커 제거
+    searchMarkers.forEach((marker) => marker.setMap(null));
+    setSearchMarkers([]);
+
+    // 3. (유지) Kakao Geocoder API 호출
+    geocoderRef.current.addressSearch(
+      searchQuery,
+      (result: KakaoAddress[], status: any) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          // 4. (수정) '주소' 검색 결과 state에 저장
+          setAddressResults(result.slice(0, 3));
+        } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
+          alert('검색 결과가 없습니다.');
+          setAddressResults([]);
+        } else {
+          alert('주소 검색 중 오류가 발생했습니다.');
+        }
+      }
+    );
   };
 
-  // 5. 검색 결과 리스트에서 항목 클릭 시 실행될 함수 (신규)
-  const handleAddressSelect = (address: NaverAddress) => {
+  // 검색창 입력값 변경 시 실행될 함수
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    setAddressResults([]);
+
+    if (query.trim() === '') {
+      setFilteredStores([]);
+      return;
+    }
+    const matchingStores = stores.filter((store) =>
+      store.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredStores(matchingStores);
+  };
+
+  // 검색 결과 리스트에서 항목 클릭 시 실행될 함수
+  const handleAddressSelect = (address: KakaoAddress) => {
     if (!map) return;
+    const { x, y } = address;
+    const moveLatLon = new window.kakao.maps.LatLng(Number(y), Number(x));
 
-    const { x, y } = address; // x: 경도, y: 위도
-    const newLatLng = new window.naver.maps.LatLng(Number(y), Number(x));
-
-    // 새 마커 생성
-    const newMarker = new window.naver.maps.Marker({
-      position: newLatLng,
+    const newMarker = new window.kakao.maps.Marker({
+      position: moveLatLon,
       map: map,
     });
-
-    // (선택 사항) 새 마커 관리
     setSearchMarkers((prevMarkers) => [...prevMarkers, newMarker]);
+    map.panTo(moveLatLon);
 
-    // 지도를 새 마커 위치로 이동
-    map.panTo(newLatLng);
+    setAddressResults([]);
 
-    // 검색 결과 리스트 숨기기
-    setSearchResults([]);
-    // 검색창에 선택한 주소 표시
-    setSearchQuery(address.roadAddress || address.jibunAddress);
+    setSearchQuery(
+      address.road_address?.address_name ||
+        address.address?.address_name ||
+        address.address_name ||
+        address.x ||
+        address.y
+    );
   };
 
-  useEffect(() => {
-    if (map) {
-      stores.forEach((store) => {
-        const marker = new window.naver.maps.Marker({
-          position: new window.naver.maps.LatLng(store.lat, store.lng),
-          map: map,
-        });
+  const handleStoreSelect = (store: Store) => {
+    if (!map) return;
 
-        // 7. 이벤트 리스너의 반환 타입(any)을 사용하지 않으므로 변수 선언 스킵
-        window.naver.maps.Event.addListener(marker, 'click', () => {
-          setSelectedStore(store);
-          map.panTo(marker.getPosition());
-        });
-      });
+    // 1. 가게 위치로 지도 이동
+    const moveLatLon = new window.kakao.maps.LatLng(store.lat, store.lng);
+    map.panTo(moveLatLon);
 
-      window.naver.maps.Event.addListener(map, 'click', () => {
-        setSelectedStore(null);
-      });
-    }
-  }, [map]); // 'map' state가 변경될 때마다 실행
+    // 2. 하단 모달창 열기
+    setSelectedStore(store);
+
+    // 3. 모든 검색 결과 목록 숨기기
+    setFilteredStores([]);
+    setAddressResults([]);
+
+    // 4. 검색창 값을 가게 이름으로 설정
+    setSearchQuery(store.name);
+  };
 
   return (
     <div className="w-full h-screen flex flex-col justify-center relative overflow-hidden">
@@ -226,10 +318,8 @@ export const MapPage: React.FC = () => {
           type="text"
           className="pl-5 rounded-[10px] w-[316px] h-full bg-gray-100"
           placeholder="지역, 건물, 주소 검색"
-          // 6. input을 state와 연결 (제어 컴포넌트)
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          // 7. Enter 키로도 검색되도록 (선택 사항)
+          onChange={handleSearchChange}
           onKeyDown={(e) => {
             if (e.key === 'Enter') onSearchMap();
           }}
@@ -242,25 +332,38 @@ export const MapPage: React.FC = () => {
         </button>
       </div>
 
-      {/* 8. 검색 결과 리스트 UI (신규) */}
-      {/* 검색창(input)의 부모(div)에 relative를 추가하고 
-        결과 리스트(ul)에 absolute를 주어 검색창 바로 아래에 뜨게 합니다.
-        z-index가 지도(z-0)나 BottomModal(z-10)보다 높아야 합니다.
-      */}
+      {/* --- 💡 수정: 검색 결과 UI --- */}
       <div className="relative w-full flex justify-center px-3 z-20">
-        {searchResults.length > 0 && (
+        {/* 1. '가게' 즉시 검색 결과 렌더링 */}
+        {filteredStores.length > 0 && (
           <ul className="absolute top-1 w-[316px] bg-white rounded-[10px] shadow-lg border border-gray-200 overflow-hidden">
-            {searchResults.map((address, index) => (
+            {filteredStores.map((store) => (
+              <li
+                key={`store-${store.id}`}
+                className="p-3 text-sm cursor-pointer hover:bg-gray-100"
+                onClick={() => handleStoreSelect(store)} // <--- 💡 추가된 핸들러
+              >
+                <div className="font-medium text-gray-800">{store.name}</div>
+                <div className="text-xs text-gray-500">{store.address}</div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* 2. '주소' 검색 결과 렌더링 */}
+        {addressResults.length > 0 && (
+          <ul className="absolute top-1 w-[316px] bg-white rounded-[10px] shadow-lg border border-gray-200 overflow-hidden">
+            {addressResults.map((address, index) => (
               <li
                 key={index}
                 className="p-3 text-sm cursor-pointer hover:bg-gray-100"
                 onClick={() => handleAddressSelect(address)}
               >
                 <div className="font-medium text-gray-800">
-                  {address.roadAddress}
+                  {address.road_address?.address_name || address.address_name}
                 </div>
                 <div className="text-xs text-gray-500">
-                  [지번] {address.jibunAddress}
+                  [지번] {address.address?.address_name || ''}
                 </div>
               </li>
             ))}
@@ -269,15 +372,17 @@ export const MapPage: React.FC = () => {
       </div>
 
       <div className="flex-grow w-full mt-3">
-        {/* z-index 조정 (검색 결과가 위로 와야 함) */}
         <div id="map" className="w-full h-full z-0"></div>
       </div>
 
-      {/* BottomModal은 z-10이므로 검색 결과(z-20)보다 아래에 있습니다. */}
       <BottomModal
         store={selectedStore}
         onClose={() => setSelectedStore(null)}
       />
+
+      <div className="fixed w-screen h-[72px] bottom-3 left-0 right-0 flex justify-center items-center">
+        <img src={bottom_bar} alt="하단바" />
+      </div>
     </div>
   );
 };

@@ -16,6 +16,7 @@ import { MapPage } from './pages/MapPage';
 import { OwnerSuccess } from './pages/SignUp/OwnerSuccess';
 import { CustomerConfirm } from './pages/SignUp/CustomerConfirm';
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -32,7 +33,7 @@ function App() {
           <Route path="/myPage/accountsetting" element={<AccountSetting />} />
           <Route path="/myPage/couponbox" element={<CouponBox />} />
           <Route path="/myPage/coupon" element={<Coupon />} />
-          <Route path="/onboarding/customer" element={<CustomerOnboarding />} />
+          <Route path="/customer/onboarding" element={<CustomerOnboarding />} />
           <Route path='/map' element={<MapPage />} />
           <Route path='/signup/customer-confirm' element={<CustomerConfirm />} />
         </Route>

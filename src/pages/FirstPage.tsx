@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import main_logo from '../assets/main_logo.png';
 
 export const FirstPage = () => {
   const [loginData, setLoginData] = useState({
@@ -23,7 +24,7 @@ export const FirstPage = () => {
     <div className="flex flex-col mt-12 items-center">
       {/* 로고, 앱이름, 부가설명 */}
       <div className="flex flex-col w-[200px] h-[300px] items-center">
-        <div className="w-[200px] h-[200px] rounded-[50px] bg-gray-300" />
+        <img src={main_logo} alt="Main Logo" className="w-[200px] h-[200px] rounded-[50px] bg-gray-300" />
         <p className="mt-5 font-bold text-[34px]">Dango</p>
         <p className="mt-1 text-gray-400 text-[16px]">쌓아가는 즐거움, 당고</p>
       </div>

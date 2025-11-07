@@ -25,11 +25,12 @@ interface SignupInputProps {
   name: keyof OwnerSignupFormData | keyof CustomerSignupFormData;
   type: 'text' | 'password' | 'email';
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   error?: string;
   variant?: 'default' | 'customerPhone' | 'customerPhoneConfirm' | 'address';
   onButtonClick?: () => void;
+  readOnly?: boolean; // <--- 1. 여기에 readOnly prop 타입 추가
 }
 
 const SignupInput = ({
@@ -42,6 +43,7 @@ const SignupInput = ({
   error,
   variant = 'default',
   onButtonClick,
+  readOnly, // <--- 2. props에서 readOnly 분해
 }: SignupInputProps) => {
   return (
     <div className="flex flex-col w-full">
@@ -61,7 +63,8 @@ const SignupInput = ({
               value={value}
               onChange={onChange}
               placeholder={placeholder}
-              className={`border-[1px] border-gray-300 pl-3 rounded-[10px] w-full h-[48px] transition-all
+              readOnly={readOnly} // <--- 3. 'variant' input에 readOnly 적용
+              className={`text-[14px] border border-gray-300 pl-3 rounded-[10px] w-full h-[48px] transition-all
                    }`}
             />
             <button
@@ -87,6 +90,7 @@ const SignupInput = ({
             value={value}
             onChange={onChange}
             placeholder={placeholder}
+            readOnly={readOnly} // <--- 3. 'default' input에 readOnly 적용
             className={`border-none pl-3 bg-gray-200 rounded-[10px] w-full h-[48px] transition-all mb-4
                    }`}
           />
