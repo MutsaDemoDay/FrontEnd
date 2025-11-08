@@ -101,7 +101,7 @@ const stores: Store[] = [
     name: '카페홍문관',
     category: '카페',
     address: '서울 마포구 와우산로 94 홍문관 1층',
-    lat: 37.55506,
+    lat: 37.557434302,
     lng: 126.92497,
     rating: 3.0,
     reviewCount: 6,
@@ -135,11 +135,14 @@ const stores: Store[] = [
 ];
 
 export const MapPage: React.FC = () => {
-  const [map, setMap] = useState<any | null>(null);
+  const mapRef = useRef<any | null>(null);
   const geocoderRef = useRef<any | null>(null);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
-  const [center, setCenter] = useState<CurrentPosition>({ lat: 37.5665, lng: 126.978 });
+  const [center, setCenter] = useState<CurrentPosition>({
+    lat: 37.5665,
+    lng: 126.978,
+  });
 
   // 검색창 입력값
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -154,65 +157,79 @@ export const MapPage: React.FC = () => {
   const [searchMarkers, setSearchMarkers] = useState<any[]>([]);
 
   useEffect(() => {
-    // Kakao Maps SDK 로드 및 지도 초기화
-    if (window.kakao && window.kakao.maps && window.kakao.maps.load) {
-      window.kakao.maps.load(() => {
-        const container = document.getElementById('map');
+    const initializeMap = (initialPosition: CurrentPosition) => {
+      
+      if (window.kakao && window.kakao.maps && window.kakao.maps.load) {
+        window.kakao.maps.load(() => {
+          const container = document.getElementById('map');
 
-        if (container) {
-          const options = {
-            center: new window.kakao.maps.LatLng(center.lat, center.lng),
-            level: 3,
-          };
-          const kakaoMap = new window.kakao.maps.Map(container, options);
-          setMap(kakaoMap); // 지도 state 설정
-          geocoderRef.current = new window.kakao.maps.services.Geocoder();
-        }
-      });
-    }
+          if (container && mapRef.current === null) {
+            
+            const mapCenter = new window.kakao.maps.LatLng(
+              initialPosition.lat,
+              initialPosition.lng
+            );
+            
+            const options = {
+              center: mapCenter,
+              level: 3,
+            };
+            const kakaoMap = new window.kakao.maps.Map(container, options);
 
-    navigator.geolocation.getCurrentPosition((position) => {
-      const userLat = position.coords.latitude;
-      const userLng = position.coords.longitude;
-      // 1-3. 위치를 가져오면 'center' state를 업데이트합니다.
-      // 이 state 업데이트가 아래 두 번째 useEffect를 트리거합니다.
-      setCenter({ lat: userLat, lng: userLng });
-    });
+            mapRef.current = kakaoMap;
+            geocoderRef.current = new window.kakao.maps.services.Geocoder();
+
+            setCenter(initialPosition);
+
+            window.kakao.maps.event.addListener(kakaoMap, 'idle', () => {
+              const newCenter = kakaoMap.getCenter();
+              setCenter({
+                lat: newCenter.getLat(),
+                lng: newCenter.getLng(),
+              });
+            });
+
+            stores.forEach((store) => {
+              const markerPosition = new window.kakao.maps.LatLng(store.lat, store.lng);
+              const marker = new window.kakao.maps.Marker({
+                map: kakaoMap,
+                position: markerPosition,
+                title: store.name,
+              });
+
+              window.kakao.maps.event.addListener(marker, 'click', () => {
+                setSelectedStore(store);
+                kakaoMap.panTo(markerPosition);
+              });
+            });
+
+            window.kakao.maps.event.addListener(kakaoMap, 'click', () => {
+              setSelectedStore(null);
+            });
+          }
+        });
+      }
+    };
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userPosition = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        initializeMap(userPosition);
+      },
+      (err) => {
+        console.warn(`Geolocation ERROR(${err.code}): ${err.message}`);
+        initializeMap(center); 
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 3000,
+        maximumAge: 0
+      }
+    );
+
   }, []);
-
-  useEffect(() => {
-    // map 객체가 생성되었고, center 값이 (기본 또는 새 값으로) 존재할 때
-    if (map) {
-      // 새 center 좌표로 LatLng 객체 생성
-      const newCenter = new window.kakao.maps.LatLng(center.lat, center.lng);
-      map.panTo(newCenter);
-    }
-  }, [map, center]);
-
-  // 저장된 가게 마커들을 지도에 표시하는 useEffect
-  useEffect(() => {
-    if (!map) return; // 지도가 아직 로드되지 않았다면 아무것도 하지 않음
-
-    stores.forEach((store) => {
-      const markerPosition = new window.kakao.maps.LatLng(store.lat, store.lng);
-      const marker = new window.kakao.maps.Marker({
-        map: map,
-        position: markerPosition,
-        title: store.name, // 마커에 마우스 오버 시 표시될 이름
-      });
-
-      // 마커 클릭 이벤트 리스너
-      window.kakao.maps.event.addListener(marker, 'click', () => {
-        setSelectedStore(store);
-        map.panTo(markerPosition); // 클릭한 마커 위치로 지도 이동
-      });
-    });
-
-    // 지도 클릭 시 모달 닫기
-    window.kakao.maps.event.addListener(map, 'click', () => {
-      setSelectedStore(null);
-    });
-  }, [map]); // map 객체가 준비될 때마다 실행
 
   const onSearchMap = () => {
     if (searchQuery.trim() === '') {
@@ -267,16 +284,16 @@ export const MapPage: React.FC = () => {
 
   // 검색 결과 리스트에서 항목 클릭 시 실행될 함수
   const handleAddressSelect = (address: KakaoAddress) => {
-    if (!map) return;
+    if (!mapRef.current) return;
     const { x, y } = address;
     const moveLatLon = new window.kakao.maps.LatLng(Number(y), Number(x));
 
     const newMarker = new window.kakao.maps.Marker({
       position: moveLatLon,
-      map: map,
+      map: mapRef.current,
     });
     setSearchMarkers((prevMarkers) => [...prevMarkers, newMarker]);
-    map.panTo(moveLatLon);
+    mapRef.current.panTo(moveLatLon);
 
     setAddressResults([]);
 
@@ -290,11 +307,11 @@ export const MapPage: React.FC = () => {
   };
 
   const handleStoreSelect = (store: Store) => {
-    if (!map) return;
+    if (!mapRef.current) return;
 
     // 1. 가게 위치로 지도 이동
     const moveLatLon = new window.kakao.maps.LatLng(store.lat, store.lng);
-    map.panTo(moveLatLon);
+    mapRef.current.panTo(moveLatLon);
 
     // 2. 하단 모달창 열기
     setSelectedStore(store);
