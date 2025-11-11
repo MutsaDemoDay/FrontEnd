@@ -3,6 +3,7 @@ import BackButton from '../../components/BackButton';
 import Plus from '../../assets/plus.svg';
 import FilledStar from '../../assets/filledstar.svg';
 import ThreeDots from '../../assets/threedots.svg';
+import { UserBottomBar } from '../../components/UserBottomBar';
 
 // '칭호' 섹션의 아이콘을 위한 임시 컴포넌트
 // 이미지의 로고를 단순한 형태로 대체했습니다.
@@ -149,6 +150,7 @@ const ProfileSetting: React.FC = () => {
           </div>
         </div>
       </main>
+      <UserBottomBar />
     </div>
   );
 };

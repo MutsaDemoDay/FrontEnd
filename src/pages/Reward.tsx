@@ -1,5 +1,6 @@
 import wallet_logo from '../assets/wallet_logo.png';
 import reward_logo from '../assets/reward_logo.png';
+import { UserBottomBar } from '../components/UserBottomBar';
 
 const USERNAME = ['김멋사'];
 const USER_LEVEL = '2';
@@ -67,6 +68,7 @@ export const Reward = () => {
       </div>
 
       <div className='flex flex-col mt-20 font-semibold self-start text-[25px]'>Top Stamper</div>
+      <UserBottomBar />
     </div>
   );
 };

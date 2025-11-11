@@ -11,6 +11,8 @@ import DownButton from '../../assets/downbutton.svg';
 import FilledStar from '../../assets/filledstar.svg';
 import EmptyStar from '../../assets/emptystar.svg';
 
+import { UserBottomBar } from '../../components/UserBottomBar';
+
 // 페이지 전체를 감싸는 컨테이너
 export default function MyPage() {
   return (
@@ -169,5 +171,6 @@ const ReviewItem = () => (
     <p className="text-sm text-gray-700 mt-2">
       집 근처에 즌 카페가 여기라 한번 가봤는데 너무 좋아요
     </p>
+    <UserBottomBar />
   </div>
 );
