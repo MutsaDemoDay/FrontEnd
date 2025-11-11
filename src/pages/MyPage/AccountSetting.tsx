@@ -1,5 +1,6 @@
 import React from 'react';
 import BackButton from '../../components/BackButton';
+import { UserBottomBar } from '../../components/UserBottomBar';
 
 const AccountSetting: React.FC = () => {
   return (
@@ -96,6 +97,7 @@ const AccountSetting: React.FC = () => {
           <button className="w-full mt-5 text-center text-sm text-gray-500 underline">
             회원 탈퇴
           </button>
+          <UserBottomBar />
         </footer>
       </div>
     </div>

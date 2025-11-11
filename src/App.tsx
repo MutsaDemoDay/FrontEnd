@@ -16,7 +16,7 @@ import { MapPage } from './pages/MapPage';
 import { OwnerSuccess } from './pages/SignUp/OwnerSuccess';
 import { CustomerConfirm } from './pages/SignUp/CustomerConfirm';
 import { Reward } from './pages/Reward';
-
+import { StampPage } from './pages/Stamp/StampPage';
 
 function App() {
   return (
@@ -38,6 +38,7 @@ function App() {
           <Route path='/map' element={<MapPage />} />
           <Route path='/signup/customer-confirm' element={<CustomerConfirm />} />
           <Route path='/reward' element={<Reward />} />
+          <Route path='/stamp' element={<StampPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

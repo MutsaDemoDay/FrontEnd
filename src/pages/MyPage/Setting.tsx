@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; // 'Link'가 이미 import 되어 있습니다.
 import BackButton from '../../components/BackButton';
+import { UserBottomBar } from '../../components/UserBottomBar';
 
 export default function Setting() {
   return (
@@ -28,6 +29,7 @@ export default function Setting() {
         <SettingsLinkButton label="점주 계정으로 전환" className="mt-4" />
         <SettingsLinkButton label="로그아웃" />
       </main>
+      <UserBottomBar />
     </div>
   );
 }

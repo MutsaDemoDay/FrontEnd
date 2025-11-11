@@ -3,8 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import searchIcon from '../assets/saerchIcon.png';
 import bottom_bar from '../assets/bottom_bar.png';
 import type { KakaoAddress } from '../components/KakaoAddress';
-
-// 💡 새로운 슬라이더 컴포넌트 임포트
+import { UserBottomBar } from '../components/UserBottomBar';
 import { StoreSlider } from '../components/StoreSlider';
 
 declare global {
@@ -359,7 +358,7 @@ export const MapPage: React.FC = () => {
       />
 
       <div className="fixed w-screen h-[72px] bottom-3 left-0 right-0 flex justify-center items-center">
-        <img src={bottom_bar} alt="하단바" />
+        <UserBottomBar />
       </div>
     </div>
   );

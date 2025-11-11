@@ -1,6 +1,7 @@
 import React from 'react';
 import BackButton from '../../components/BackButton';
 import FilledStar from '../../assets/filledstar.svg';
+import { UserBottomBar } from '../../components/UserBottomBar';
 
 const Coupon: React.FC = () => {
   return (
@@ -36,6 +37,7 @@ const Coupon: React.FC = () => {
         {/* 기한 */}
         <p className="text-sm text-gray-500">기한: 2024.01.01까지</p>
       </div>
+      <UserBottomBar />
     </div>
   );
 };
