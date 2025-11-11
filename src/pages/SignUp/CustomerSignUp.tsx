@@ -147,9 +147,8 @@ export const CustomerSignup = () => {
     id: '',
     password: '',
     passwordConfirm: '',
-    phoneNumber: '',
-    phoneNumberConfirm: '',
     email: '',
+    emailConfirm: '',
     address: '',
   });
 
@@ -237,23 +236,24 @@ export const CustomerSignup = () => {
       <div className="w-screen h-px mt-3 bg-gray-200" />
       <div className="flex items-start flex-col mt-10 w-[332px]">
         <SignupInput
-          label="휴대폰"
-          name="phoneNumber"
-          type="text"
-          value={formData.phoneNumber}
+          label="이메일"
+          name="email"
+          type="email"
+          value={formData.email}
           onChange={handleCustomerData}
-          error={errors.phoneNumber}
-          variant="customerPhone"
+          error={errors.email}
+          variant="email"
           onButtonClick={handlePhoneVerification}
+          placeholder='이메일 주소 입력'
         />
         <SignupInput
           label=""
-          name="phoneNumberConfirm"
+          name="emailConfirm"
           type="text"
-          value={formData.phoneNumberConfirm}
+          value={formData.emailConfirm}
           onChange={handleCustomerData}
-          error={errors.phoneNumberConfirm}
-          variant="customerPhoneConfirm"
+          error={errors.emailConfirm}
+          variant="emailConfirm"
           placeholder="인증번호"
           onButtonClick={handlePhoneConfirm}
         />
@@ -273,6 +273,7 @@ export const CustomerSignup = () => {
             value={formData.password}
             onChange={handleCustomerData}
             error={errors.password}
+            placeholder='10-20자의 영문, 숫자 포함'
           />
           <SignupInput
             label="비밀번호 확인"
@@ -281,14 +282,6 @@ export const CustomerSignup = () => {
             value={formData.passwordConfirm}
             onChange={handleCustomerData}
             error={errors.passwordConfirm}
-          />
-          <SignupInput
-            label="이메일"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleCustomerData}
-            error={errors.email}
           />
           <SignupInput
             label="주소지"
@@ -306,7 +299,7 @@ export const CustomerSignup = () => {
 
       <div className="flex justify-center mt-6">
         <button
-          className="bg-[#F3F3F3] text-black rounded-[40px] w-[316px] h-[50px] font-bold"
+          className="bg-(--main-color) text-white rounded-[40px] w-[316px] h-[50px] font-bold"
           onClick={handleSubmit}
         >
           가입하기

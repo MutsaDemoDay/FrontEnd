@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import searchIcon from '../assets/saerchIcon.png';
-import shop_arrow from '../assets/shop_arrow.png';
 import bottom_bar from '../assets/bottom_bar.png';
 import type { KakaoAddress } from '../components/KakaoAddress';
 
-// Kakao Maps SDK가 전역 window 객체에 로드될 때를 위한 타입 선언
+// 💡 새로운 슬라이더 컴포넌트 임포트
+import { StoreSlider } from '../components/StoreSlider';
+
 declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,72 +28,10 @@ interface Store {
   description: string;
 }
 
-interface BottomModalProps {
-  store: Store | null;
-  onClose: () => void;
-}
-
 interface CurrentPosition {
   lat: number;
   lng: number;
 }
-
-const BottomModal: React.FC<BottomModalProps> = ({ store }) => {
-  const navigate = useNavigate();
-
-  if (!store) return null;
-
-  const handleNavigate = () => {
-    if (store) {
-      navigate(`/store/${store.id}`);
-    }
-  };
-
-  return (
-    <div
-      className={`w-[300px] h-[320px] fixed bottom-30 left-0 right-0 p-5 bg-white rounded-2xl shadow-lg z-10
-                  ${store ? 'translate-y-0' : 'translate-y-full'}`}
-      style={{
-        maxWidth: '640px',
-        margin: '0 auto',
-        boxShadow: '0 -4px 12px rgba(0,0,0,0.1)',
-      }}
-    >
-      <button
-        onClick={handleNavigate}
-        className="absolute top-5 right-4 text-gray-500 text-xl font-bold"
-        aria-label="가게 상세 페이지로 이동"
-      >
-        <img src={shop_arrow} alt="" />
-      </button>
-
-      <div className="flex flex-col">
-        <div className="flex flex-row items-center gap-1">
-          <p className="text-[20px] font-medium">{store.name}</p>
-          <p className="text-[12px] text-gray-500">{store.category}</p>
-        </div>
-        <div className="flex flex-row items-center mt-2 gap-2">
-          <p className="text-[12px] text-gray-500">
-            {store.distance ? `${store.distance}km` : '거리 정보 없음'}
-          </p>
-          <p className="text-[12px] text-gray-500">{store.address}</p>
-        </div>
-      </div>
-
-      <div className="w-[144px] h-[144px] bg-gray-300 rounded-2xl my-4 pb-10">
-        <img src={store.image} alt="아직 이미지가 등록되지 않았습니다." />
-      </div>
-      <div className="mt-1">
-        <span className="text-yellow-500">⭐️ {store.rating.toFixed(1)}</span>
-        <span className="text-gray-400 ml-1">({store.reviewCount})</span>
-      </div>
-      <div className="w-[202px] h-[24px] text-[10px] mt-1 px-4 py-1.5 bg-gray-50 rounded-[20px]">
-        <span className="font-semibold text-black">AI 요약</span>{' '}
-        {store.description}
-      </div>
-    </div>
-  );
-};
 
 const stores: Store[] = [
   {
@@ -132,6 +70,30 @@ const stores: Store[] = [
     description: '오랜 역사를 지닌 명문 대학교',
     distance: 5.0,
   },
+  {
+    id: 4,
+    name: '가게 4',
+    category: '음식점',
+    address: '서울 어딘가 4',
+    lat: 37.56178,
+    lng: 126.93357,
+    rating: 4.2,
+    reviewCount: 50,
+    description: '설명 4',
+    distance: 4.1,
+  },
+  {
+    id: 5,
+    name: '가게 5',
+    category: '편의점',
+    address: '서울 어딘가 5',
+    lat: 37.56878,
+    lng: 126.93157,
+    rating: 3.8,
+    reviewCount: 10,
+    description: '설명 5',
+    distance: 6.2,
+  },
 ];
 
 export const MapPage: React.FC = () => {
@@ -156,20 +118,21 @@ export const MapPage: React.FC = () => {
   // 검색된 주소 마커들
   const [searchMarkers, setSearchMarkers] = useState<any[]>([]);
 
+  // 슬라이더에 표시할 가게 목록 (최대 5개)
+  const [sliderStores, setSliderStores] = useState<Store[]>([]);
+
   useEffect(() => {
     const initializeMap = (initialPosition: CurrentPosition) => {
-      
       if (window.kakao && window.kakao.maps && window.kakao.maps.load) {
         window.kakao.maps.load(() => {
           const container = document.getElementById('map');
 
           if (container && mapRef.current === null) {
-            
             const mapCenter = new window.kakao.maps.LatLng(
               initialPosition.lat,
               initialPosition.lng
             );
-            
+
             const options = {
               center: mapCenter,
               level: 3,
@@ -181,16 +144,17 @@ export const MapPage: React.FC = () => {
 
             setCenter(initialPosition);
 
-            window.kakao.maps.event.addListener(kakaoMap, 'idle', () => {
-              const newCenter = kakaoMap.getCenter();
-              setCenter({
-                lat: newCenter.getLat(),
-                lng: newCenter.getLng(),
-              });
-            });
+            const sortedStores = [...stores]
+              .sort((a, b) => (a.distance || 99) - (b.distance || 99))
+              .slice(0, 5);
+
+            setSliderStores(sortedStores);
 
             stores.forEach((store) => {
-              const markerPosition = new window.kakao.maps.LatLng(store.lat, store.lng);
+              const markerPosition = new window.kakao.maps.LatLng(
+                store.lat,
+                store.lng
+              );
               const marker = new window.kakao.maps.Marker({
                 map: kakaoMap,
                 position: markerPosition,
@@ -220,17 +184,17 @@ export const MapPage: React.FC = () => {
       },
       (err) => {
         console.warn(`Geolocation ERROR(${err.code}): ${err.message}`);
-        initializeMap(center); 
+        initializeMap(center);
       },
       {
         enableHighAccuracy: true,
         timeout: 3000,
-        maximumAge: 0
+        maximumAge: 0,
       }
     );
-
   }, []);
 
+  // 검색 함수
   const onSearchMap = () => {
     if (searchQuery.trim() === '') {
       alert('검색어를 입력해주세요.');
@@ -241,19 +205,18 @@ export const MapPage: React.FC = () => {
       return;
     }
 
-    // 1. (수정) 즉시 검색된 '가게' 결과는 숨김
     setFilteredStores([]);
 
-    // 2. (유지) 기존 주소 검색 마커 제거
+    // 기존 주소 검색 마커 제거
     searchMarkers.forEach((marker) => marker.setMap(null));
     setSearchMarkers([]);
 
-    // 3. (유지) Kakao Geocoder API 호출
+    // Kakao Geocoder API 호출
     geocoderRef.current.addressSearch(
       searchQuery,
       (result: KakaoAddress[], status: any) => {
         if (status === window.kakao.maps.services.Status.OK) {
-          // 4. (수정) '주소' 검색 결과 state에 저장
+          // 주소 검색 결과 state에 저장
           setAddressResults(result.slice(0, 3));
         } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
           alert('검색 결과가 없습니다.');
@@ -309,23 +272,20 @@ export const MapPage: React.FC = () => {
   const handleStoreSelect = (store: Store) => {
     if (!mapRef.current) return;
 
-    // 1. 가게 위치로 지도 이동
     const moveLatLon = new window.kakao.maps.LatLng(store.lat, store.lng);
     mapRef.current.panTo(moveLatLon);
 
-    // 2. 하단 모달창 열기
     setSelectedStore(store);
 
-    // 3. 모든 검색 결과 목록 숨기기
     setFilteredStores([]);
     setAddressResults([]);
 
-    // 4. 검색창 값을 가게 이름으로 설정
     setSearchQuery(store.name);
   };
 
   return (
     <div className="w-full h-screen flex flex-col justify-center relative overflow-hidden">
+      {/* ... (기존 검색창 UI) ... */}
       <div className="mx-5 my-2 text-[25px] font-semibold flex justify-start items-start">
         Map
       </div>
@@ -349,7 +309,7 @@ export const MapPage: React.FC = () => {
         </button>
       </div>
 
-      {/* --- 💡 수정: 검색 결과 UI --- */}
+        {/* 검색 결과 드롭다운 */}
       <div className="relative w-full flex justify-center px-3 z-20">
         {/* 1. '가게' 즉시 검색 결과 렌더링 */}
         {filteredStores.length > 0 && (
@@ -358,7 +318,7 @@ export const MapPage: React.FC = () => {
               <li
                 key={`store-${store.id}`}
                 className="p-3 text-sm cursor-pointer hover:bg-gray-100"
-                onClick={() => handleStoreSelect(store)} // <--- 💡 추가된 핸들러
+                onClick={() => handleStoreSelect(store)}
               >
                 <div className="font-medium text-gray-800">{store.name}</div>
                 <div className="text-xs text-gray-500">{store.address}</div>
@@ -387,14 +347,15 @@ export const MapPage: React.FC = () => {
           </ul>
         )}
       </div>
-
       <div className="flex-grow w-full mt-3">
         <div id="map" className="w-full h-full z-0"></div>
       </div>
 
-      <BottomModal
-        store={selectedStore}
+      <StoreSlider
+        stores={sliderStores}
+        selectedStore={selectedStore}
         onClose={() => setSelectedStore(null)}
+        onStoreSelect={handleStoreSelect}
       />
 
       <div className="fixed w-screen h-[72px] bottom-3 left-0 right-0 flex justify-center items-center">
@@ -403,3 +364,4 @@ export const MapPage: React.FC = () => {
     </div>
   );
 };
+

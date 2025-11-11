@@ -13,3 +13,8 @@
 .swiper-pagination-custom .swiper-pagination-bullet-active {
   @apply bg-blue-500;
 }
+
+@theme{
+  --main-color: #FF6600;
+  --main-color2: #72594B;
+}
