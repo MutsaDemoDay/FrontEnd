@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useRef } from 'react';
 import searchIcon from '../assets/saerchIcon.png';
-import bottom_bar from '../assets/bottom_bar.png';
 import type { KakaoAddress } from '../components/KakaoAddress';
 import { UserBottomBar } from '../components/UserBottomBar';
 import { StoreSlider } from '../components/StoreSlider';
@@ -363,4 +362,3 @@ export const MapPage: React.FC = () => {
     </div>
   );
 };
-
