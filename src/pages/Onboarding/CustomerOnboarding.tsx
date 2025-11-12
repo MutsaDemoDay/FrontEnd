@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; // 1. useState를 임포트합니다.
+import React, { useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, A11y } from 'swiper/modules';
 import 'swiper/css';
@@ -9,25 +9,36 @@ export const CustomerOnboarding = () => {
   const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // 3. 텍스트 콘텐츠를 배열로 분리합니다.
   const slideContents = [
-    <div className="text-center mt-13 text-lg">
-      기존에 적립해뒀던 실물 스탬프를 <p/> 모두 모아서 <span className="font-semibold">앱 스탬프로 전환</span>하세요!
-    </div>,
-    <div className="text-center mt-13 text-lg">
-      스탬프 찍을 때마다 리워드 받기
-    </div>,
-    <div className="text-center mt-13 text-lg">
-      <span className="font-semibold">검증된 단골 손님</span>들의 리뷰를 만나보세요.
-    </div>,
+    {
+      text: (
+        <>
+          스탬프판을 다 완성했다면 <p />{' '}
+          <span className="font-semibold">리워드는 쿠폰함</span>으로 지급돼요.
+        </>
+      ),
+    },
+    {
+      text: (
+        <>
+          <span className="font-semibold">검증된 단골 손님</span>들의 리뷰를
+          만나보세요.
+        </>
+      ),
+    },
+    {
+      text: (
+        <>
+          스탬프 최고 수집가에 <p /> 도전해보세요!
+        </>
+      ),
+    },
   ];
 
   return (
-    <div className="w-full min-w-0 h-[calc(100vh-60px)] flex flex-col">
+    <div className="w-full min-w-0 h-[calc(100vh-60px)] flex flex-col relative">
       <Swiper
-        // 5. h-full을 제거하고, Swiper가 이미지 콘텐츠 크기만큼 차지하도록 합니다.
-        //    (flex-1을 주어 남은 공간을 채우거나, 그냥 두어 콘텐츠 크기만 갖게 할 수 있습니다.)
-        className="w-full"
+        className="w-full h-full"
         modules={[Pagination, A11y]}
         spaceBetween={50}
         slidesPerView={1}
@@ -38,39 +49,35 @@ export const CustomerOnboarding = () => {
           bulletActiveClass:
             'swiper-pagination-bullet-active custom-bullet-active',
         }}
-        onSwiper={(swiper) => console.log(swiper)}
-        // 6. 슬라이드가 변경될 때마다 activeIndex state를 업데이트합니다.
         onSlideChange={(swiper) => {
-          console.log('slide change');
           setActiveIndex(swiper.activeIndex);
         }}
       >
-        <SwiperSlide className="w-full h-full flex flex-col items-center justify-center p-4">
-          <img className="w-full h-[456px] bg-gray-200" src="" alt="" />
-        </SwiperSlide>
-
-        <SwiperSlide className="w-full h-full flex flex-col items-center justify-center p-4">
-          <img className="w-full h-[456px] bg-gray-200" src="" alt="" />
-        </SwiperSlide>
-
-        <SwiperSlide className="w-full h-full flex flex-col items-center justify-center p-4">
-          <img className="w-full h-[456px] bg-gray-200" src="" alt="" />
-        </SwiperSlide>
+        {slideContents.map((slide, index) => (
+          <SwiperSlide key={index} className="w-full h-full flex flex-col p-4">
+            <div className="flex flex-col">
+              <img className="w-full h-[456px] bg-gray-200" alt="" />
+              <div className="p-4 text-center mt-13 text-lg">{slide.text}</div>
+            </div>
+          </SwiperSlide>
+        ))}
       </Swiper>
 
-      <div className="h-3.5 swiper-pagination-custom text-center py-4" />
-
-      <div className="p-4">{slideContents[activeIndex]}</div>
-      {activeIndex === 2 && (
-        <div className="flex grow items-end pb-10 px-4">
-          <button
-            className="bg-[#F3F3F3] text-black text-[20px] rounded-[40px] w-full h-[52px] font-bold"
-            onClick={() => navigate('/map')}
-          >
-            시작하기
-          </button>
-        </div>
-      )}
+        {/* 페이지네이션 */}
+      <div className="h-auto !top-[480px] bottom-auto swiper-pagination-custom text-center py-4 absolute left-0 right-0 z-10 pointer-events-none" />
+      
+      <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col items-center">
+        {activeIndex === slideContents.length - 1 && (
+          <div className="flex justify-center pb-10">
+            <button
+              className="bg-(--main-color) text-white text-[20px] rounded-[40px] w-[316px] h-[52px] font-bold mt-20 cursor-pointer z-10"
+              onClick={() => navigate('/stamp')}
+            >
+              시작하기
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -34,7 +34,7 @@ function App() {
           <Route path="/myPage/accountsetting" element={<AccountSetting />} />
           <Route path="/myPage/couponbox" element={<CouponBox />} />
           <Route path="/myPage/coupon" element={<Coupon />} />
-          <Route path="/customer/onboarding" element={<CustomerOnboarding />} />
+          <Route path="/onboarding/customer" element={<CustomerOnboarding />} />
           <Route path='/map' element={<MapPage />} />
           <Route path='/signup/customer-confirm' element={<CustomerConfirm />} />
           <Route path='/reward' element={<Reward />} />
