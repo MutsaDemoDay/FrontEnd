@@ -7,5 +7,12 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 3000,
+    proxy: {
+      '/api': {
+        target: 'https://daango.store',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });

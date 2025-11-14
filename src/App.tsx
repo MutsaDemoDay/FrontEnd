@@ -17,6 +17,9 @@ import { OwnerSuccess } from './pages/SignUp/OwnerSuccess';
 import { CustomerConfirm } from './pages/SignUp/CustomerConfirm';
 import { Reward } from './pages/Reward';
 import { StampPage } from './pages/Stamp/StampPage';
+import { FindId } from './pages/SignUp/FindId';
+import { FindPassword } from './pages/SignUp/FindPassword';
+import { FindIdConfirm } from './pages/SignUp/FindIdConfirm';
 
 function App() {
   return (
@@ -39,6 +42,9 @@ function App() {
           <Route path='/signup/customer-confirm' element={<CustomerConfirm />} />
           <Route path='/reward' element={<Reward />} />
           <Route path='/stamp' element={<StampPage />} />
+          <Route path='/find-id' element={<FindId />} />
+          <Route path='/find-id-confirm' element={<FindIdConfirm />} />
+          <Route path='/find-password' element={<FindPassword />} />
         </Route>
       </Routes>
     </BrowserRouter>
