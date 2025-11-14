@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import main_logo from '../assets/main_logo.png';
 
 export const FirstPage = () => {
   const [loginData, setLoginData] = useState({
-    id: '',
+    loginId: '',
     password: '',
   });
 
@@ -14,10 +15,55 @@ export const FirstPage = () => {
     navigate('/signup');
   };
 
-  const handleGoToMap = () => {
-    // todo: 로그인 로직 작성
-    console.log('로그인 데이터:', loginData);
-    navigate('/map');
+  const handleFindIdClick = () => {
+    navigate('/find-id');
+  };
+
+  const handlePasswordFindClick = () => {
+    navigate('/find-password');
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setLoginData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URI}/v1/auth/login`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            loginId: loginData.loginId,
+            password: loginData.password,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'
+        );
+      }
+
+      const data = await response.json();
+      console.log('로그인 성공:', data);
+
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      navigate('/stamp');
+    } catch (error: any) {
+      console.error('로그인 오류:', error);
+    }
   };
 
   return (
@@ -41,33 +87,43 @@ export const FirstPage = () => {
       </div>
 
       {/* 아이디, 비밀번호 */}
-      <div className="flex flex-col w-[320px] mt-20">
+      <form className="flex flex-col w-[320px] mt-20" onSubmit={handleLogin}>
         <input
           className="bg-[#F3F3F3] rounded-[40px] h-[50px] pl-5 mb-2"
           placeholder="아이디"
+          value={loginData.loginId}
+          name="loginId"
+          onChange={handleChange}
         />
         <input
           className="bg-[#F3F3F3] rounded-[40px] h-[50px] pl-5 mb-3"
           placeholder="비밀번호"
           type="password"
+          value={loginData.password}
+          name="password"
+          onChange={handleChange}
         />
         <button
-          className="bg-(--main-color) text-white rounded-[40px] h-[50px] font-bold"
-          onClick={handleGoToMap}
+          type="submit"
+          className="bg-(--main-color) text-white rounded-[40px] h-[50px] font-bold cursor-pointer"
         >
           로그인
         </button>
-      </div>
+      </form>
 
       {/* 소셜 로그인 */}
       <div className="flex flex-row justify-center w-[300px] mt-7 space-x-5 text-sm text-gray-400">
-        <p className="">카카오톡 로그인</p>
+        <p className="cursor-pointer">카카오톡 로그인</p>
       </div>
 
       {/* 회원가입, 아이디/비밀번호 찾기 */}
       <div className="flex flex-row justify-between w-[280px] mt-10 text-sm text-gray-400">
-        <p className="">아이디 찾기</p>
-        <p className="">비밀번호 찾기</p>
+        <p className="cursor-pointer" onClick={handleFindIdClick}>
+          아이디 찾기
+        </p>
+        <p className="cursor-pointer" onClick={handlePasswordFindClick}>
+          비밀번호 찾기
+        </p>
         <p className="cursor-pointer" onClick={handleSignUpClick}>
           회원가입
         </p>

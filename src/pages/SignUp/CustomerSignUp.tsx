@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react'; // <--- useEffect 추가
+import { useEffect, useRef, useState } from 'react';
 import BackButton from '../../components/BackButton';
 import SignupInput, {
   type CustomerSignupFormData,
@@ -10,23 +10,19 @@ import road_search_button from '../../assets/road_search_button.png';
 
 type AddressModalProps = {
   onClose: () => void;
-  onSelect: (address: string) => void;
+  onSelect: (data: { address: string; x: string; y: string }) => void;
 };
 
 const AddressModal = ({ onClose, onSelect }: AddressModalProps) => {
   const [searchQuery, setSearchQuery] = useState<string | number>('');
-  const geocoderRef = useRef<any | null>(null); // kakao.maps.services.Geocoder
+  const geocoderRef = useRef<any | null>(null);
   const [searchResults, setSearchResults] = useState<KakaoAddress[]>([]);
 
-  // Geocoder 초기화
   useEffect(() => {
     if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
       geocoderRef.current = new window.kakao.maps.services.Geocoder();
     } else {
       console.error('Kakao Maps script가 로드되지 않았습니다.');
-      alert(
-        '주소 검색 기능을 불러오는 데 실패했습니다. 페이지를 새로고침 해주세요.'
-      );
     }
   }, []);
 
@@ -36,10 +32,7 @@ const AddressModal = ({ onClose, onSelect }: AddressModalProps) => {
       return;
     }
     if (!geocoderRef.current) {
-      alert(
-        '지도 검색 기능이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.'
-      );
-      console.warn('Geocoder is not ready yet.', geocoderRef.current);
+      alert('지도 검색 기능이 아직 준비되지 않았습니다.');
       return;
     }
     geocoderRef.current.addressSearch(
@@ -61,33 +54,30 @@ const AddressModal = ({ onClose, onSelect }: AddressModalProps) => {
 
   const handleAddressSelect = (address: KakaoAddress) => {
     setSearchResults([]);
-    onSelect(
+
+    const addressString =
       address.road_address?.address_name ||
-        address.address?.address_name ||
-        address.address?.region_1depth_name ||
-        address.address?.region_2depth_name ||
-        address.address?.region_3depth_name ||
-        address.address_name ||
-        address.x ||
-        address.y
-    );
-    console.log('Selected address:', address);
+      address.address?.address_name ||
+      address.address_name;
+
+    onSelect({
+      address: addressString,
+      x: address.x, // 경도 (longitude)
+      y: address.y, // 위도 (latitude)
+    });
   };
 
   return (
     <div
       className="fixed inset-0 z-50 backdrop-brightness-75"
-      onClick={onClose} // 밖을 클릭하면 닫기
+      onClick={onClose}
     >
-      {/* 2. 모달 컨텐츠 (Request 2): 화면 하단 70% 차지 */}
       <div
-        className="absolute w-screen bottom-0 top-[30%] // <--- 30% 지점에서 시작
-                   bg-white p-6 flex flex-col rounded-t-xl" // <--- 상단만 둥글게
-        onClick={(e) => e.stopPropagation()} // 모달 안 클릭 시 닫힘 방지
+        className="absolute w-screen bottom-0 top-[30%] bg-white p-6 flex flex-col rounded-t-xl"
+        onClick={(e) => e.stopPropagation()}
       >
         <h2 className="self-start mb-4 text-lg font-bold">주소검색</h2>
 
-        {/* 검색창 (기존과 동일) */}
         <div className="flex items-center w-full gap-2 mb-4 text-gray-500">
           <input
             type="text"
@@ -102,11 +92,11 @@ const AddressModal = ({ onClose, onSelect }: AddressModalProps) => {
           <img
             src={road_search_button}
             onClick={onSearchMap}
-            className="flex shrink-0 text-white rounded-[10px] h-10"
+            className="flex shrink-0 text-white rounded-[10px] h-10 cursor-pointer"
+            alt="검색"
           />
         </div>
 
-        {/* 3. 검색 결과 (레이아웃 개선): 남은 공간을 채우고, 스크롤 가능하게 */}
         <div className="flex-1 w-full overflow-y-auto">
           {searchResults.length > 0 && (
             <ul className="w-full bg-white rounded-[10px] shadow-lg border border-gray-200 overflow-hidden">
@@ -128,7 +118,6 @@ const AddressModal = ({ onClose, onSelect }: AddressModalProps) => {
           )}
         </div>
 
-        {/* 닫기 버튼: 스크롤 영역과 관계없이 항상 하단에 고정 */}
         <button
           onClick={onClose}
           className="px-4 py-2 mt-4 bg-gray-200 rounded hover:bg-gray-300"
@@ -142,7 +131,9 @@ const AddressModal = ({ onClose, onSelect }: AddressModalProps) => {
 
 export const CustomerSignup = () => {
   const navigate = useNavigate();
-  const [errors, setErrors] = useState<Partial<CustomerSignupFormData>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof CustomerSignupFormData, string>>
+  >({});
   const [formData, setFormData] = useState<CustomerSignupFormData>({
     id: '',
     password: '',
@@ -150,12 +141,14 @@ export const CustomerSignup = () => {
     email: '',
     emailConfirm: '',
     address: '',
+    latitude: 0,
+    longitude: 0,
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const validateForm = () => {
-    const newErrors: Partial<CustomerSignupFormData> = {};
+    const newErrors: Partial<Record<keyof CustomerSignupFormData, string>> = {};
     let isValid = true;
 
     for (const key in formData) {
@@ -187,35 +180,65 @@ export const CustomerSignup = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (validateForm()) {
+    if (!validateForm()) {
+      console.log(errors, '폼 유효성 검사 실패');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URI}/auth/user/join`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            loginId: formData.id,
+            password: formData.password,
+            email: formData.email,
+            address: formData.address,
+            latitude: formData.latitude,
+            longitude: formData.longitude,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+      console.error('서버 에러 상세:', errorData);
+      throw new Error(errorData.message || '회원가입 요청이 거절되었습니다.');
+      }
+
       console.log('가입 데이터:', formData);
       alert('가입이 완료되었습니다!');
-      navigate('/signup/customer-confirm');
-    } else {
-      console.log(errors, '폼 유효성 검사 실패');
+      navigate('/signup/customer-confirm'); // 가입 완료 페이지로 이동
+    } catch (error: any) {
+      console.error('회원가입 오류:', error);
+      alert(error.message);
     }
-  };
-
-  const handlePhoneVerification = () => {
-    alert('인증번호가 발송되었습니다!');
-  };
-
-  const handlePhoneConfirm = () => {
-    alert('인증번호가 확인되었습니다!');
-  };
+  }
 
   const handleAddressSearch = () => {
     setIsModalOpen(true);
   };
+  
 
-  const handleAddressSelect = (selectedAddress: string) => {
+  const handleAddressSelect = (data: {
+    address: string;
+    x: string;
+    y: string;
+  }) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
-      address: selectedAddress,
+      address: data.address,
+      longitude: parseFloat(data.x),
+      latitude: parseFloat(data.y),
     }));
+
     setErrors((prevErrors) => ({
       ...prevErrors,
       address: undefined,
@@ -235,6 +258,7 @@ export const CustomerSignup = () => {
       </div>
       <div className="w-screen h-px mt-3 bg-gray-200" />
       <div className="flex items-start flex-col mt-10 w-[332px]">
+        {/* 1. 이메일 입력창 */}
         <SignupInput
           label="이메일"
           name="email"
@@ -243,9 +267,11 @@ export const CustomerSignup = () => {
           onChange={handleCustomerData}
           error={errors.email}
           variant="email"
-          onButtonClick={handlePhoneVerification}
-          placeholder='이메일 주소 입력'
+          // onButtonClick 제거됨 (내부 로직 사용)
+          placeholder="이메일 주소 입력"
         />
+
+        {/* 2. 인증번호 입력창 */}
         <SignupInput
           label=""
           name="emailConfirm"
@@ -254,9 +280,11 @@ export const CustomerSignup = () => {
           onChange={handleCustomerData}
           error={errors.emailConfirm}
           variant="emailConfirm"
+          // onButtonClick 제거됨 (내부 로직 사용)
           placeholder="인증번호"
-          onButtonClick={handlePhoneConfirm}
+          emailForVerification={formData.email} // [중요] 검증할 이메일 주소 전달
         />
+
         <div className="flex flex-col items-start w-full gap-4 mt-10 ">
           <SignupInput
             label="아이디"
@@ -273,7 +301,7 @@ export const CustomerSignup = () => {
             value={formData.password}
             onChange={handleCustomerData}
             error={errors.password}
-            placeholder='10-20자의 영문, 숫자 포함'
+            placeholder="10-20자의 영문, 숫자 포함"
           />
           <SignupInput
             label="비밀번호 확인"
@@ -288,10 +316,10 @@ export const CustomerSignup = () => {
             name="address"
             type="text"
             value={formData.address}
-            readOnly={true} // 직접 입력 방지
+            readOnly={true}
             error={errors.address}
             variant="address"
-            onButtonClick={handleAddressSearch} // 모달 열기
+            onButtonClick={handleAddressSearch} // 주소 찾기는 외부 핸들러 사용
             placeholder="지번, 도로명, 건물명으로 검색"
           />
         </div>

@@ -41,7 +41,7 @@ const navItems = [
 
 export const UserBottomBar = () => {
     return (
-    <nav className="fixed bottom-3 left-0 right-0 z-50 mx-auto flex h-[72px] w-[360px] items-center justify-around bg-white shadow-[0_-1px_5px_rgba(0,0,0,0.08)] rounded-[20px]">
+    <nav className="fixed bottom-5 left-0 right-0 z-50 mx-auto flex h-[72px] w-[360px] items-center justify-around bg-white shadow-[0_-1px_5px_rgba(0,0,0,0.08)] rounded-[20px]">
       {navItems.map((item) => (
         <NavLink
           key={item.id}

@@ -282,8 +282,7 @@ export const MapPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col justify-center relative overflow-hidden">
-      {/* ... (기존 검색창 UI) ... */}
+    <div className="w-full h-screen flex flex-col justify-center relative overflow-scroll srollbar-hide">
       <div className="mx-5 my-2 text-[25px] font-semibold flex justify-start items-start">
         Map
       </div>
@@ -307,7 +306,7 @@ export const MapPage: React.FC = () => {
         </button>
       </div>
 
-        {/* 검색 결과 드롭다운 */}
+      {/* 검색 결과 드롭다운 */}
       <div className="relative w-full flex justify-center px-3 z-20">
         {/* 1. '가게' 즉시 검색 결과 렌더링 */}
         {filteredStores.length > 0 && (
@@ -356,9 +355,7 @@ export const MapPage: React.FC = () => {
         onStoreSelect={handleStoreSelect}
       />
 
-      <div className="fixed w-screen h-[72px] bottom-3 left-0 right-0 flex justify-center items-center">
-        <UserBottomBar />
-      </div>
+      <UserBottomBar />
     </div>
   );
 };
