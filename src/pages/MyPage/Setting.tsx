@@ -6,9 +6,6 @@ import setting_mini from '../../assets/setting_mini.png';
 import profile_mini from '../../assets/user_mini.png';
 
 export default function Setting() {
-  const handleLogout = () => {
-    awai
-  }
   return (
     <div className="w-[399px] min-h-screen bg-white mx-auto border border-gray-300 overflow-y-auto">
       {/* 1. 설정 페이지 헤더 (페이지 전용) */}

@@ -18,10 +18,10 @@ export const OwnerSuccess = () => {
         </p>
         <div className="absolute bottom-10">
           <button
-            className="bg-[#F3F3F3] text-black text-[20px] rounded-[40px] w-[316px] h-[52px] font-bold"
+            className="bg-(--main-color) text-white text-[18px] rounded-[40px] w-[316px] h-[52px] font-semibold"
             onClick={handleClick}
           >
-            확인
+            처음 화면으로 돌아가기
           </button>
         </div>
       </div>

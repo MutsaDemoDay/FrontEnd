@@ -21,6 +21,7 @@ import { FindId } from './pages/SignUp/FindId';
 import { FindPassword } from './pages/SignUp/FindPassword';
 import { FindIdConfirm } from './pages/SignUp/FindIdConfirm';
 import { KakaoCallback } from './KakaoCallback';
+import { OwnerFail } from './pages/SignUp/OwnerFail';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signup/owner" element={<OwnerSignup />} />
           <Route path="/signup/owner-success" element={<OwnerSuccess />} />
+          <Route path="/signup/owner-fail" element={<OwnerFail />} />
           <Route path="/signup/customer" element={<CustomerSignup />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/myPage/setting" element={<Setting />} />
