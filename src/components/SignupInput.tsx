@@ -9,6 +9,8 @@ export interface OwnerSignupFormData {
   email: string;
   businessNumber: string;
   location: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface CustomerSignupFormData {
@@ -170,7 +172,7 @@ const SignupInput = ({
             onChange={onChange}
             placeholder={placeholder}
             readOnly={readOnly}
-            className="border-none pl-3 bg-gray-200 rounded-[10px] w-full h-[48px] transition-all mb-4 text-[14px]"
+            className="border-none pl-4 bg-gray-200 rounded-[10px] w-full h-[48px] transition-all mb-4 text-[14px]"
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
