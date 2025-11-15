@@ -20,6 +20,7 @@ import { StampPage } from './pages/Stamp/StampPage';
 import { FindId } from './pages/SignUp/FindId';
 import { FindPassword } from './pages/SignUp/FindPassword';
 import { FindIdConfirm } from './pages/SignUp/FindIdConfirm';
+import { KakaoCallback } from './KakaoCallback';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
           <Route path='/find-id' element={<FindId />} />
           <Route path='/find-id-confirm' element={<FindIdConfirm />} />
           <Route path='/find-password' element={<FindPassword />} />
+          <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
         </Route>
       </Routes>
     </BrowserRouter>

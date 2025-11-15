@@ -190,7 +190,7 @@ export const CustomerSignup = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URI}/auth/user/join`,
+        `${import.meta.env.VITE_API_URI}/v1/auth/user/join`,
         {
           method: 'POST',
           headers: {
@@ -199,6 +199,7 @@ export const CustomerSignup = () => {
           body: JSON.stringify({
             loginId: formData.id,
             password: formData.password,
+            passwordConfirm: formData.passwordConfirm,
             email: formData.email,
             address: formData.address,
             latitude: formData.latitude,

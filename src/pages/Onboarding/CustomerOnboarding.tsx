@@ -4,6 +4,11 @@ import { Pagination, A11y } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { useNavigate } from 'react-router-dom';
+import CustomerOnboarding_1 from '../../assets/CustomerOnboarding_1.png';
+import CustomerOnboarding_2 from '../../assets/CustomerOnboarding_2.png';
+import CustomerOnboarding_3 from '../../assets/CustomerOnboarding_3.png';
+
+const images = [CustomerOnboarding_1, CustomerOnboarding_2, CustomerOnboarding_3];
 
 export const CustomerOnboarding = () => {
   const navigate = useNavigate();
@@ -55,8 +60,8 @@ export const CustomerOnboarding = () => {
       >
         {slideContents.map((slide, index) => (
           <SwiperSlide key={index} className="w-full h-full flex flex-col p-4">
-            <div className="flex flex-col">
-              <img className="w-full h-[456px] bg-gray-200" alt="" />
+            <div className="flex flex-col justify-center items-center">
+              <img className="w-full h-[456px] lg:w-[400px] bg-gray-200" src={images[index]} alt="" />
               <div className="p-4 text-center mt-13 text-lg">{slide.text}</div>
             </div>
           </SwiperSlide>

@@ -43,7 +43,7 @@ async function sendEmailVerificationCode(email: string) {
   }
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URI}/auth/email/send`,
+      `${import.meta.env.VITE_API_URI}/v1/auth/email/send`,
       {
         method: 'POST',
         headers: {
@@ -69,7 +69,7 @@ async function verifyEmailCode(email: string, code: string) {
   }
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URI}/auth/email/verify`,
+      `${import.meta.env.VITE_API_URI}/v1/auth/email/verify`,
       {
         method: 'POST',
         headers: {
