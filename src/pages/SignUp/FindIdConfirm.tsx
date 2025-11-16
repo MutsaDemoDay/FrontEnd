@@ -1,6 +1,16 @@
+import { useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
 
 export const FindIdConfirm = () => {
+  const navigate = useNavigate();
+
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
+  const handleFindPasswordClick = () => {
+    navigate('/find-password');
+  };
   return (
     <div className="flex flex-col w-full items-center">
       <div className="flex flex-row items-center self-start mt-3 gap-4 px-6">
@@ -35,9 +45,29 @@ export const FindIdConfirm = () => {
       {/* 구분선 */}
       <div className="w-screen h-px mt-3 bg-gray-200" />
 
-      <div className="w-full px-10 flex flex-row gap-45">
-        <div></div>
-        <div></div>
+      <div className="flex flex-row w-full h-[100px] items-center gap-4">
+        <div className="flex items-center justify-center w-1/2">ABCDE1234</div>
+        <div className="flex items-center justify-center w-1/2 text-(--fill-color5)">
+          가입일: 2024-01-01
+        </div>
+      </div>
+
+      {/* 구분선 */}
+      <div className="w-screen h-px mt-3 bg-gray-200" />
+
+      <div className="fixed bottom-10 w-full px-10 gap-3 flex">
+        <button
+          className="w-1/2 h-[60px] bg-(--fill-color1) text-black text-[16px] font-medium rounded-[40px]"
+          onClick={handleFindPasswordClick}
+        >
+          비밀번호 찾기
+        </button>
+        <button
+          className="w-1/2 h-[60px] bg-(--main-color) text-white border border-(--main-color) text-[16px] font-medium rounded-[40px]"
+          onClick={handleLoginClick}
+        >
+          로그인
+        </button>
       </div>
     </div>
   );

@@ -1,8 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
+import { sendEmailVerificationCode, verifyEmailCode } from '../../api/EmailVerify';
+import { useState } from 'react';
 
 export const FindId = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
 
   return (
     <div className="flex flex-col w-full items-center">
@@ -42,8 +47,9 @@ export const FindId = () => {
                 type="email"
                 placeholder="이메일 주소 입력"
                 className="w-full h-[48px] border-gray-400 rounded-[10px] border p-3"
+                onChange={(e) => setEmail(e.target.value)}
               />
-              <button className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] cursor-pointer">
+              <button className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] cursor-pointer" onClick={() => sendEmailVerificationCode(email)}>
                 인증번호 전송
               </button>
             </div>
@@ -53,8 +59,9 @@ export const FindId = () => {
                 type="text"
                 placeholder="인증번호 입력"
                 className="w-full h-[48px] border-gray-400 rounded-[10px] border p-3"
+                onChange={(e) => setCode(e.target.value)}
               />
-              <button className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] cursor-pointer">
+              <button className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] cursor-pointer" onClick={() => verifyEmailCode(email, code)}>
                 확인
               </button>
             </div>

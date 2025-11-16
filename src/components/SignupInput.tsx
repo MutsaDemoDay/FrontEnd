@@ -2,7 +2,7 @@
 import React from 'react';
 
 export interface OwnerSignupFormData {
-  id: string;
+  loginId: string;
   password: string;
   passwordConfirm: string;
   phoneNumber: string;
@@ -14,7 +14,7 @@ export interface OwnerSignupFormData {
 }
 
 export interface CustomerSignupFormData {
-  id: string;
+  loginId: string;
   password: string;
   passwordConfirm: string;
   email: string;
