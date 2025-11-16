@@ -69,7 +69,7 @@ export const FindPassword = () => {
       <div className="fixed w-full h-[56px] text-[20px] font-semibold px-6 bottom-10 cursor-pointer">
         <button
           className="w-full rounded-[40px] bg-(--main-color) text-white p-3"
-          onClick={() => navigate('/find-id-confirm')}
+          onClick={() => navigate('/find-customer-password-confirm')}
         >
           다음
         </button>

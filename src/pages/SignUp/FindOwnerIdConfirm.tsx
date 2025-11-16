@@ -1,16 +1,17 @@
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
 
-export const FindIdConfirm = () => {
+export const FindOwnerIdConfirm = () => {
   const navigate = useNavigate();
 
   const handleLoginClick = () => {
-    navigate('/login');
+    navigate('/');
   };
 
   const handleFindPasswordClick = () => {
     navigate('/find-password');
   };
+  
   return (
     <div className="flex flex-col w-full items-center">
       <div className="flex flex-row items-center self-start mt-3 gap-4 px-6">
@@ -22,10 +23,10 @@ export const FindIdConfirm = () => {
       <div className="w-screen h-px mt-3 bg-gray-200" />
 
       <div className="flex flex-row w-full justify-center items-center h-[60px] text-[12px]">
-        <div className="flex h-full items-center justify-center w-1/2 border-b-2">
+        <div className="flex h-full items-center justify-center w-1/2 border-b border-gray-500">
           개인회원
         </div>
-        <div className="flex h-full items-center justify-center w-1/2 border-b border-gray-500">
+        <div className="flex h-full items-center justify-center w-1/2 border-b-2">
           점주회원
         </div>
       </div>
