@@ -1,13 +1,148 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
-import { sendEmailVerificationCode, verifyEmailCode } from '../../api/EmailVerify';
+import {
+  sendEmailVerificationCode,
+  verifyEmailCode,
+} from '../../api/EmailVerify';
 import { useState } from 'react';
 
-export const FindId = () => {
+interface EmailVerificationInputsProps {
+  email: string;
+  setEmail: (value: string) => void;
+  code: string;
+  setCode: (value: string) => void;
+  isVerified: boolean;
+  handleSendCode: () => void;
+  handleVerifyCode: () => void;
+}
+
+const EmailVerificationInputs = ({
+  email,
+  setEmail,
+  code,
+  setCode,
+  isVerified,
+  handleSendCode,
+  handleVerifyCode,
+}: EmailVerificationInputsProps) => {
+  return (
+    <>
+      <div className="flex flex-row gap-4 mt-2 w-full">
+        <input
+          type="email"
+          placeholder="이메일 주소 입력"
+          className="w-full h-[48px] border-(--fill-color3) rounded-[10px] border p-3"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isVerified}
+        />
+        <button
+          className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] cursor-pointer"
+          onClick={handleSendCode}
+          disabled={isVerified}
+        >
+          인증번호 전송
+        </button>
+      </div>
+
+      <div className="flex flex-row gap-4 mt-2 w-full">
+        <input
+          type="text"
+          placeholder="인증번호 입력"
+          className="w-full h-[48px] border-(--fill-color3) rounded-[10px] border p-3"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          disabled={isVerified}
+        />
+        <button
+          className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] cursor-pointer"
+          onClick={handleVerifyCode}
+          disabled={isVerified}
+        >
+          확인
+        </button>
+      </div>
+    </>
+  );
+};
+
+export const FindCustomerId = () => {
   const navigate = useNavigate();
+
+  const [userType, setUserType] = useState('customer');
+  const [name, setName] = useState('');
+  const [businessRegNumber, setBusinessRegNumber] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+
+  // --- 3. EmailVerificationInputs에 props로 전달할 핸들러들 ---
+  const handleVerifyCode = async () => {
+    try {
+      await verifyEmailCode(email, code);
+
+      alert('인증에 성공했습니다.');
+      setIsVerified(true);
+    } catch (error) {
+      console.error('Email verification error:', error);
+      alert('인증번호가 일치하지 않거나 오류가 발생했습니다.');
+      setIsVerified(false);
+    }
+  };
+
+  const handleSendCode = () => {
+    // 이메일 유효성 검사 등 필요시 추가
+    if (!email) {
+      alert('이메일을 입력해주세요.');
+      return;
+    }
+    sendEmailVerificationCode(email);
+    alert('인증번호를 전송했습니다.');
+  };
+
+  const handleNextClick = () => {
+    if (!isVerified) {
+      alert('이메일 인증을 완료해주세요.');
+      return;
+    }
+
+    let identifier = '';
+
+    if (userType === 'customer') {
+      if (!name) {
+        alert('가입자명을 입력해주세요.');
+        return;
+      }
+      identifier = name;
+    } else {
+      if (!businessRegNumber) {
+        alert('사업자등록번호를 입력해주세요.');
+        return;
+      }
+      identifier = businessRegNumber;
+    }
+
+    if (userType === 'customer') {
+      navigate('/find-customer-id-confirm', {
+        state: {
+          userType: userType,
+          identifier: identifier,
+          email: email,
+        },
+      });
+    }
+
+    if (userType === 'owner') {
+      navigate('/find-owner-id-confirm', {
+        state: {
+          userType: userType,
+          identifier: identifier,
+          email: email,
+        },
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col w-full items-center">
@@ -20,56 +155,81 @@ export const FindId = () => {
       <div className="w-screen h-px mt-3 bg-gray-200" />
 
       <div className="flex flex-row w-full justify-center items-center h-[60px] text-[12px]">
-        <div className="flex h-full items-center justify-center w-1/2 border-b-2">
+        <div
+          className={`flex h-full items-center justify-center w-1/2 cursor-pointer ${
+            userType === 'customer'
+              ? 'border-b-2 border-black font-semibold'
+              : 'border-b border-gray-500 text-gray-500'
+          }`}
+          onClick={() => setUserType('customer')}
+        >
           개인회원
         </div>
-        <div className="flex h-full items-center justify-center w-1/2 border-b border-gray-500">
+        <div
+          className={`flex h-full items-center justify-center w-1/2 cursor-pointer ${
+            userType === 'owner'
+              ? 'border-b-2 border-black font-semibold'
+              : 'border-b border-gray-500 text-gray-500'
+          }`}
+          onClick={() => setUserType('owner')}
+        >
           점주회원
         </div>
       </div>
 
-      <div className="w-full h-[248px] px-6">
-        <p className="self-start mt-10 text-[20px]">
-          가입자명과 이메일을
-          <br />
-          입력해 주세요.
-        </p>
+      <div className="w-full h-auto px-6">
+        {userType === 'customer' ? (
+          <p className="self-start mt-10 text-[20px]">
+            가입자명과 이메일을
+            <br />
+            입력해 주세요.
+          </p>
+        ) : (
+          <p className="self-start mt-10 text-[20px]">
+            사업자등록번호와 이메일을
+            <br />
+            입력해 주세요.
+          </p>
+        )}
 
         <div className="flex flex-col mt-10 w-full items-center">
           <div className="flex flex-col items-center w-full text-[12px]">
-            <input
-              type="text"
-              placeholder="가입자명"
-              className="w-full border border-gray-400 rounded-[10px] p-3"
-            />
-            <div className="flex flex-row gap-4 mt-2 w-full">
-              <input
-                type="email"
-                placeholder="이메일 주소 입력"
-                className="w-full h-[48px] border-gray-400 rounded-[10px] border p-3"
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <button className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] cursor-pointer" onClick={() => sendEmailVerificationCode(email)}>
-                인증번호 전송
-              </button>
-            </div>
-
-            <div className="flex flex-row gap-4 mt-2 w-full">
+            {userType === 'customer' ? (
               <input
                 type="text"
-                placeholder="인증번호 입력"
-                className="w-full h-[48px] border-gray-400 rounded-[10px] border p-3"
-                onChange={(e) => setCode(e.target.value)}
+                placeholder="가입자명"
+                className="w-full border border-(--fill-color3) rounded-[10px] p-3"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
-              <button className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] cursor-pointer" onClick={() => verifyEmailCode(email, code)}>
-                확인
-              </button>
-            </div>
+            ) : (
+              <input
+                type="text"
+                placeholder="사업자등록번호 ('-' 제외)"
+                className="w-full border border-(--fill-color3) rounded-[10px] p-3"
+                value={businessRegNumber}
+                onChange={(e) => setBusinessRegNumber(e.target.value)}
+              />
+            )}
+            <EmailVerificationInputs
+              email={email}
+              setEmail={setEmail}
+              code={code}
+              setCode={setCode}
+              isVerified={isVerified}
+              handleSendCode={handleSendCode}
+              handleVerifyCode={handleVerifyCode}
+            />
           </div>
         </div>
       </div>
-      <div className="fixed w-full h-[56px] text-[20px] font-semibold px-6 bottom-10 cursor-pointer">
-        <button className="w-full rounded-[40px] bg-(--main-color) text-white p-3" onClick={() => navigate('/find-id-confirm')}>
+
+      <div className="fixed w-full h-[56px] text-[20px] font-semibold px-6 bottom-10">
+        <button
+          className={`w-full rounded-[40px] text-white p-3 bg-(--main-color) cursor-pointer`}
+          onClick={handleNextClick}
+          disabled={!isVerified}
+        >
           다음
         </button>
       </div>

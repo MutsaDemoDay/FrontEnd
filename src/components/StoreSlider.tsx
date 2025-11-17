@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import shop_arrow from '../assets/shop_arrow.png';
 
 interface Store {
+  // ... (Store 인터페이스)
   id: number;
   name: string;
   category: string;
@@ -17,7 +18,10 @@ interface Store {
   description: string;
 }
 
-const StoreCard: React.FC<{ store: Store; onStoreSelect: (store: Store) => void }> = ({ store, onStoreSelect }) => {
+const StoreCard: React.FC<{
+  store: Store;
+  onStoreSelect: (store: Store) => void;
+}> = ({ store, onStoreSelect }) => {
   const navigate = useNavigate();
 
   const handleNavigate = () => {
@@ -42,7 +46,12 @@ const StoreCard: React.FC<{ store: Store; onStoreSelect: (store: Store) => void 
 
       <div className="flex flex-col">
         <div className="flex flex-row items-center gap-1">
-          <p className="text-[20px] font-medium" onClick={() => onStoreSelect(store)}>{store.name}</p>
+          <p
+            className="text-[20px] font-medium cursor-pointer" // cursor-pointer 추가
+            onClick={() => onStoreSelect(store)}
+          >
+            {store.name}
+          </p>
           <p className="text-[12px] text-gray-500">{store.category}</p>
         </div>
         <div className="flex flex-row items-center mt-2 gap-2">
@@ -58,7 +67,7 @@ const StoreCard: React.FC<{ store: Store; onStoreSelect: (store: Store) => void 
       </div>
       <div className="mt-1">
         <span className="text-yellow-500">⭐️ {store.rating.toFixed(1)}</span>
-        <span className="text-gray-400 ml-1">({store.reviewCount})</span>
+        <span className="text-(--fill-color3) ml-1">({store.reviewCount})</span>
       </div>
       <div className="w-[202px] h-[24px] text-[10px] mt-1 px-4 py-1.5 bg-gray-50 rounded-[20px]">
         <span className="font-semibold text-black">AI 요약</span>{' '}
@@ -71,13 +80,14 @@ const StoreCard: React.FC<{ store: Store; onStoreSelect: (store: Store) => void 
 interface StoreSliderProps {
   stores: Store[];
   selectedStore: Store | null;
-  onClose: () => void;
+  onClose: () => void; // [수정] onClose prop 다시 추가
   onStoreSelect: (store: Store) => void;
 }
 
 export const StoreSlider: React.FC<StoreSliderProps> = ({
   stores,
   selectedStore,
+  // onClose, // onClose는 MapPage에서 지도를 클릭할 때 처리됩니다.
   onStoreSelect,
 }) => {
   const sliderRef = React.useRef<HTMLDivElement>(null);
@@ -98,12 +108,13 @@ export const StoreSlider: React.FC<StoreSliderProps> = ({
     }
   }, [selectedStore]);
 
+  // [수정] 렌더링 조건을 다시 selectedStore로 변경합니다.
   if (!selectedStore) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-[90px] left-0 right-0 w-full z-10">
+    <div className="fixed bottom-[100px] left-0 right-0 w-full z-10">
       <div
         ref={sliderRef}
         className="flex overflow-x-auto scroll-snap-type-x-mandatory scroll-smooth gap-4"
@@ -124,6 +135,7 @@ export const StoreSlider: React.FC<StoreSliderProps> = ({
 
         {stores.map((store) => (
           <div key={store.id} data-store-id={store.id}>
+            {/* StoreCard가 isSelected prop을 받지 않도록 수정 (혹은 유지하셔도 됩니다) */}
             <StoreCard store={store} onStoreSelect={onStoreSelect} />
           </div>
         ))}
