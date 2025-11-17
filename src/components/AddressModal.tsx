@@ -3,6 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import type { KakaoAddress } from './KakaoAddress';
 import road_search_button from '../assets/road_search_button.png';
 
+declare global {
+  interface Window {
+    kakao: any;
+  }
+}
+
 // 이 컴포넌트가 받을 Props 타입 정의
 type AddressModalProps = {
   onClose: () => void;
