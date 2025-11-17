@@ -195,8 +195,6 @@ export const CustomerSignup = () => {
             onChange={handleCustomerData}
             error={errors.passwordConfirm}
           />
-          {/* 주소지 입력창 제거 */}
-          {/* <SignupInput ... /> */}
         </div>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col items-center">
