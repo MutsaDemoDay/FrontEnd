@@ -5,13 +5,7 @@ import type { KakaoAddress } from '../components/KakaoAddress';
 import { UserBottomBar } from '../components/UserBottomBar';
 import { StoreSlider } from '../components/StoreSlider';
 
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    kakao: any;
-  }
-}
-
+// Store 인터페이스
 interface Store {
   id: number;
   name: string;
@@ -24,13 +18,16 @@ interface Store {
   rating: number;
   reviewCount: number;
   description: string;
+  isFavorite?: boolean; // 즐겨찾기 여부 (목업)
 }
 
+// CurrentPosition 인터페이스
 interface CurrentPosition {
   lat: number;
   lng: number;
 }
 
+// 목업 데이터
 const stores: Store[] = [
   {
     id: 1,
@@ -43,15 +40,16 @@ const stores: Store[] = [
     reviewCount: 6,
     description: '활기찬 분위기의 동네 카페',
     distance: 8.5,
+    isFavorite: true,
   },
   {
     id: 2,
     name: '카페나무',
     category: '카페',
-    address: '서울 마포구 어딘가', // 실제 카카오 API로 검색되는 주소로 변경하면 좋음
+    address: '서울 마포구 어딘가',
     lat: 37.550556,
     lng: 126.925833,
-    rating: 3.0,
+    rating: 4.5,
     reviewCount: 6,
     description: '활기찬 분위기의 동네 카페',
     distance: 8.3,
@@ -63,10 +61,11 @@ const stores: Store[] = [
     address: '서울 서대문구 연세로 50',
     lat: 37.56578,
     lng: 126.93857,
-    rating: 4.5,
+    rating: 4.8,
     reviewCount: 120,
     description: '오랜 역사를 지닌 명문 대학교',
     distance: 5.0,
+    isFavorite: true,
   },
   {
     id: 4,
@@ -91,8 +90,44 @@ const stores: Store[] = [
     reviewCount: 10,
     description: '설명 5',
     distance: 6.2,
+    isFavorite: false,
   },
 ];
+
+// 필터 모드 타입
+type StoreListMode = 'nearby' | 'ai' | 'favorites';
+
+// 라디오 탭 버튼 헬퍼 컴포넌트
+type RadioTabProps = {
+  label: string;
+  value: StoreListMode;
+  currentValue: StoreListMode;
+  onClick: () => void;
+};
+
+const RadioTab: React.FC<RadioTabProps> = ({
+  label,
+  value,
+  currentValue,
+  onClick,
+}) => {
+  const isSelected = value === currentValue;
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors
+        ${
+          isSelected
+            ? 'bg-white text-black border border-black'
+            : 'bg-white text-black hover:bg-gray-300'
+        }
+      `}
+    >
+      {label}
+    </button>
+  );
+};
+
 
 export const MapPage: React.FC = () => {
   const mapRef = useRef<any | null>(null);
@@ -103,21 +138,62 @@ export const MapPage: React.FC = () => {
     lat: 37.5665,
     lng: 126.978,
   });
-
-  // 검색창 입력값
+  
+  // ... (searchQuery, addressResults, filteredStores, searchMarkers는 동일)
   const [searchQuery, setSearchQuery] = useState<string>('');
-
-  // 주소 검색 결과
   const [addressResults, setAddressResults] = useState<KakaoAddress[]>([]);
-
-  // 가게 검색 결과
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
-
-  // 검색된 주소 마커들
   const [searchMarkers, setSearchMarkers] = useState<any[]>([]);
 
-  // 슬라이더에 표시할 가게 목록 (최대 5개)
+  // [수정] sliderKey 및 isSliderVisible 상태 제거
+  // const [isSliderVisible, setIsSliderVisible] = useState(false);
+  // const [sliderKey, setSliderKey] = useState(0);
+
+  // 슬라이더에 표시할 가게 목록
   const [sliderStores, setSliderStores] = useState<Store[]>([]);
+
+  // 필터 모드 상태
+  const [mode, setMode] = useState<StoreListMode>('nearby');
+
+  // [수정] 슬라이더 컨텐츠 업데이트 함수
+  const updateSliderContent = (newMode: StoreListMode) => {
+    setMode(newMode); // 모드 상태 업데이트
+
+    let newSliderStores: Store[] = [];
+
+    switch (newMode) {
+      case 'nearby':
+        newSliderStores = [...stores]
+          .sort((a, b) => (a.distance || 99) - (b.distance || 99))
+          .slice(0, 5);
+        break;
+      case 'ai':
+        newSliderStores = [...stores]
+          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+          .slice(0, 5);
+        break;
+      case 'favorites':
+        newSliderStores = stores.filter((store) => store.isFavorite === true);
+        break;
+    }
+
+    setSliderStores(newSliderStores);
+
+    // --- [핵심 수정] ---
+    // 탭을 클릭하거나 첫 로드 시, 목록의 첫 번째 가게를 자동으로 선택합니다.
+    //
+    // ❗️이것이 '슬라이더를 열리게' 하는 로직입니다.
+    if (newSliderStores.length > 0) {
+      setSelectedStore(newSliderStores[0]);
+    } else {
+      // 만약 즐겨찾기 등이 비어있으면, 슬라이더를 닫습니다 (null 처리).
+      setSelectedStore(null);
+    }
+    // --- [끝] ---
+
+    // [수정] setSliderKey 호출 제거
+    // setSliderKey((prevKey) => prevKey + 1);
+  };
 
   useEffect(() => {
     const initializeMap = (initialPosition: CurrentPosition) => {
@@ -126,29 +202,27 @@ export const MapPage: React.FC = () => {
           const container = document.getElementById('map');
 
           if (container && mapRef.current === null) {
+            // ... (맵, Geocoder 생성 로직)
             const mapCenter = new window.kakao.maps.LatLng(
               initialPosition.lat,
               initialPosition.lng
             );
-
-            const options = {
-              center: mapCenter,
-              level: 3,
-            };
+            const options = { center: mapCenter, level: 3 };
             const kakaoMap = new window.kakao.maps.Map(container, options);
-
             mapRef.current = kakaoMap;
             geocoderRef.current = new window.kakao.maps.services.Geocoder();
 
             setCenter(initialPosition);
 
-            const sortedStores = [...stores]
-              .sort((a, b) => (a.distance || 99) - (b.distance || 99))
-              .slice(0, 5);
-
-            setSliderStores(sortedStores);
-
+            // [수정] 맵 초기화 시 '내 주변'을 기본으로 슬라이더 컨텐츠 로드
+            // 이 함수는 내부적으로 setSelectedStore(newSliderStores[0])를 호출하여
+            // 슬라이더를 '열린' 상태로 만듭니다.
+            updateSliderContent('nearby');
+            
+            // [수정] setIsSliderVisible(true) 제거
+            
             stores.forEach((store) => {
+              // ... (마커 생성 로직)
               const markerPosition = new window.kakao.maps.LatLng(
                 store.lat,
                 store.lng
@@ -159,12 +233,14 @@ export const MapPage: React.FC = () => {
                 title: store.name,
               });
 
+              // 마커 클릭 시: 슬라이더가 해당 가게를 표시하며 열림
               window.kakao.maps.event.addListener(marker, 'click', () => {
                 setSelectedStore(store);
                 kakaoMap.panTo(markerPosition);
               });
             });
 
+            // [수정] 지도 클릭 시: 슬라이더가 닫힘 (핵심)
             window.kakao.maps.event.addListener(kakaoMap, 'click', () => {
               setSelectedStore(null);
             });
@@ -172,6 +248,7 @@ export const MapPage: React.FC = () => {
         });
       }
     };
+    // ... (geolocation 호출 로직)
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const userPosition = {
@@ -184,14 +261,11 @@ export const MapPage: React.FC = () => {
         console.warn(`Geolocation ERROR(${err.code}): ${err.message}`);
         initializeMap(center);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 3000,
-        maximumAge: 0,
-      }
+      { enableHighAccuracy: true, timeout: 3000, maximumAge: 0 }
     );
-  }, []);
+  }, []); // 마운트 시 한 번만 실행
 
+  // ... (onSearchMap, handleSearchChange, handleAddressSelect 함수는 동일)
   // 검색 함수
   const onSearchMap = () => {
     if (searchQuery.trim() === '') {
@@ -267,12 +341,15 @@ export const MapPage: React.FC = () => {
     );
   };
 
+
+  // [수정] handleStoreSelect (슬라이더 카드 클릭 시)
   const handleStoreSelect = (store: Store) => {
     if (!mapRef.current) return;
 
     const moveLatLon = new window.kakao.maps.LatLng(store.lat, store.lng);
     mapRef.current.panTo(moveLatLon);
 
+    // 마커를 클릭하는 것과 동일하게, 'selectedStore'를 설정합니다.
     setSelectedStore(store);
 
     setFilteredStores([]);
@@ -283,6 +360,7 @@ export const MapPage: React.FC = () => {
 
   return (
     <div className="w-full h-screen flex flex-col justify-center relative overflow-scroll srollbar-hide">
+      {/* ... (Map, 검색창, 라디오 탭, 검색 결과 드롭다운 UI는 동일) */}
       <div className="mx-5 my-2 text-[25px] font-semibold flex justify-start items-start">
         Map
       </div>
@@ -304,6 +382,27 @@ export const MapPage: React.FC = () => {
         >
           <img src={searchIcon} alt="search" />
         </button>
+      </div>
+
+      <div className="fixed top-[180px] left-3 rounded-[50px] justify-center px-3 py-2 z-10 gap-2 bg-white ">
+        <RadioTab
+          label="내 주변"
+          value="nearby"
+          currentValue={mode}
+          onClick={() => updateSliderContent('nearby')}
+        />
+        <RadioTab
+          label="AI 추천"
+          value="ai"
+          currentValue={mode}
+          onClick={() => updateSliderContent('ai')}
+        />
+        <RadioTab
+          label="즐겨찾기"
+          value="favorites"
+          currentValue={mode}
+          onClick={() => updateSliderContent('favorites')}
+        />
       </div>
 
       {/* 검색 결과 드롭다운 */}
@@ -344,6 +443,7 @@ export const MapPage: React.FC = () => {
           </ul>
         )}
       </div>
+
       <div className="flex-grow w-full mt-3">
         <div id="map" className="w-full h-full z-0"></div>
       </div>
@@ -351,7 +451,7 @@ export const MapPage: React.FC = () => {
       <StoreSlider
         stores={sliderStores}
         selectedStore={selectedStore}
-        onClose={() => setSelectedStore(null)}
+        onClose={() => setSelectedStore(null)} // 맵 클릭 시 닫히도록 onClose 전달
         onStoreSelect={handleStoreSelect}
       />
 

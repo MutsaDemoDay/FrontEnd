@@ -14,10 +14,9 @@ export const OwnerSignup = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof OwnerSignupFormData, string>>>({});
 
   const [formData, setFormData] = useState<OwnerSignupFormData>({
-    id: '',
+    loginId: '',
     password: '',
     passwordConfirm: '',
-    phoneNumber: '',
     email: '',
     businessNumber: '',
     location: '',
@@ -26,7 +25,6 @@ export const OwnerSignup = () => {
   });
 
   const validateForm = () => {
-    // ... (validateForm 로직은 동일) ...
     const newErrors: Partial<Record<keyof OwnerSignupFormData, string>> = {};
     let isValid = true;
 
@@ -75,7 +73,7 @@ export const OwnerSignup = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            loginId: formData.id,
+            loginId: formData.loginId,
             password: formData.password,
             passwordConfirm: formData.passwordConfirm,
             email: formData.email,
@@ -141,11 +139,11 @@ export const OwnerSignup = () => {
       <div className="flex items-start flex-col mt-10 gap-4 w-[332px]">
         <SignupInput
           label="아이디"
-          name="id"
+          name="loginId"
           type="text"
-          value={formData.id}
+          value={formData.loginId}
           onChange={handleOwnerData}
-          error={errors.id}
+          error={errors.loginId}
         />
         <SignupInput
           label="비밀번호"
@@ -164,14 +162,6 @@ export const OwnerSignup = () => {
           error={errors.passwordConfirm}
         />
         <SignupInput
-          label="휴대폰 번호"
-          name="phoneNumber"
-          type="text"
-          value={formData.phoneNumber}
-          onChange={handleOwnerData}
-          error={errors.phoneNumber}
-        />
-        <SignupInput
           label="이메일"
           name="email"
           type="email"
@@ -180,7 +170,7 @@ export const OwnerSignup = () => {
           error={errors.email}
         />
         <SignupInput
-          label="사업자 등록번호"
+          label="사업자등록번호"
           name="businessNumber"
           type="text"
           value={formData.businessNumber}

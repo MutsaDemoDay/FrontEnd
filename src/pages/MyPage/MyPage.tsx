@@ -1,5 +1,4 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import BackButton from '../../components/BackButton';
 import StampsSection from '../../components/StampSection';
@@ -152,7 +151,7 @@ const ReviewItem = () => (
     {/* 리뷰 헤더 */}
     <div className="flex justify-between items-center">
       <h3 className="font-bold">카페나무</h3>
-      <span className="text-xs text-gray-400">2025. 08. 04</span>
+      <span className="text-xs text-(--fill-color3)">2025. 08. 04</span>
     </div>
 
     {/* 별점 */}

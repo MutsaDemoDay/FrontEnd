@@ -28,28 +28,28 @@ export const SignUp = () => {
       <div className="flex flex-col mt-32 gap-6">
         <div>
           <button
-            className="w-[344px] h-[200px] bg-[#F3F3F3] rounded-[10px] text-black font-medium text-[20px]"
+            className="w-[344px] h-[200px] bg-[#F3F3F3] rounded-[10px] text-black font-medium text-[20px] cursor-pointer"
             onClick={handleCustomerSignUpClick}
           >
             <div className='flex flex-row items-center justify-center'>
                 <p className=''>개인 회원</p>
                 <img src={logo_gt} alt=">" className='absolute ml-65 mt-4'/>
             </div>
-            <p className="text-[14px] text-[#898989] font-semibold">
-              손님이시라면
+            <p className="text-[12px] text-(--fill-color5) font-semibold">
+              손님으로 이용하려면
             </p>
           </button>
         </div>
         <div>
           <button
-            className="w-[344px] h-[200px] bg-[#F3F3F3] rounded-[10px] text-black font-medium text-[20px]"
+            className="w-[344px] h-[200px] bg-[#5B5B5B] rounded-[10px] text-white font-medium text-[20px] cursor-pointer"
             onClick={handleOwnerSignUpClick}
           >
             <div className='flex flex-row items-center justify-center'>
                 <p className=''>점주 회원</p>
                 <img src={logo_gt} alt=">" className='absolute ml-65 mt-4'/>
             </div>
-            <p className="text-[14px] text-[#898989] font-semibold">
+            <p className="text-[12px] text-(--fill-color2) font-semibold">
               내 가게를 등록하려면
             </p>
           </button>

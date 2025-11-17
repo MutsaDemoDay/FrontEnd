@@ -145,7 +145,7 @@ const StampsSection = () => {
           <div className="w-8 h-8 bg-white rounded-full border border-gray-200 flex items-center justify-center -translate-x-1"></div>
           <h2 className="font-bold text-lg">현재 스탬프({TOTAL_CARDS})</h2>
         </div>
-        <div className="flex gap-2 items-center text-gray-400">
+        <div className="flex gap-2 items-center text-(--fill-color3)">
           <img src={Plus} alt="Plus" className="w-6 h-6" />
           <img src={ThreeDots} alt="ThreeDots" className="w-6 h-6" />
         </div>

@@ -5,7 +5,6 @@ export interface OwnerSignupFormData {
   loginId: string;
   password: string;
   passwordConfirm: string;
-  phoneNumber: string;
   email: string;
   businessNumber: string;
   location: string;
@@ -19,9 +18,10 @@ export interface CustomerSignupFormData {
   passwordConfirm: string;
   email: string;
   emailConfirm: string;
-  address: string;
-  latitude: number;
-  longitude: number;
+  nickname: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface SignupInputProps {
@@ -35,7 +35,7 @@ interface SignupInputProps {
   variant?: 'default' | 'address' | 'email' | 'emailConfirm';
   onButtonClick?: () => void;
   readOnly?: boolean;
-  emailForVerification?: string; 
+  emailForVerification?: string;
 }
 
 async function sendEmailVerificationCode(email: string) {
@@ -103,8 +103,6 @@ const SignupInput = ({
   readOnly,
   emailForVerification,
 }: SignupInputProps) => {
-  
-  // 버튼 클릭 핸들러 통합
   const handleButtonClick = () => {
     if (variant === 'email') {
       sendEmailVerificationCode(value);
@@ -121,7 +119,7 @@ const SignupInput = ({
 
   return (
     <div className="flex flex-col w-full">
-      <label htmlFor={name} className="mb-2">
+      <label htmlFor={name} className="mb-2 text-[15px] text-[#5B5B5B]">
         {label}
       </label>
       {variant === 'address' ||
@@ -143,7 +141,7 @@ const SignupInput = ({
             <button
               type="button"
               onClick={handleButtonClick}
-              className="w-[68px] h-[48px] bg-gray-200 rounded-[10px] text-[12px] text-gray-700 shrink-0 cursor-pointer hover:bg-gray-300 active:bg-gray-400 transition-colors"
+              className="w-[68px] h-[48px] bg-(--fill-color6) rounded-[10px] text-[12px] text-white shrink-0 cursor-pointer hover:bg-gray-300 active:bg-(--fill-color3) transition-colors"
             >
               {/* variant에 따라 버튼 텍스트를 다르게 렌더링 */}
               {variant === 'email' ? (
@@ -172,7 +170,7 @@ const SignupInput = ({
             onChange={onChange}
             placeholder={placeholder}
             readOnly={readOnly}
-            className="border-none pl-4 bg-gray-200 rounded-[10px] w-full h-[48px] transition-all mb-4 text-[14px]"
+            className="border-none pl-4 bg-(--fill-color1) rounded-[10px] w-full h-[48px] transition-all mb-4 text-[14px]"
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>

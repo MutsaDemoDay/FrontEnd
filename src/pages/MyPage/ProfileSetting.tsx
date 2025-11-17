@@ -61,7 +61,7 @@ const ProfileSetting: React.FC = () => {
               maxLength={12}
               className="flex-1 pb-2 text-lg bg-transparent focus:outline-none"
             />
-            <span className="pb-2 text-sm text-gray-400">3/12</span>
+            <span className="pb-2 text-sm text-(--fill-color3)">3/12</span>
           </div>
         </div>
 
@@ -113,7 +113,7 @@ const ProfileSetting: React.FC = () => {
               남
             </button>
             {/* Unselected Button */}
-            <button className="py-3 px-6 rounded-lg bg-white text-gray-400 border border-gray-300">
+            <button className="py-3 px-6 rounded-lg bg-white text-(--fill-color3) border border-gray-300">
               여
             </button>
           </div>
@@ -133,18 +133,18 @@ const ProfileSetting: React.FC = () => {
                   서울 마포구 와우산로 94 롯폰기 1층 (상수)
                 </p>
               </div>
-              <button className="p-1 text-gray-400 hover:text-black">
+              <button className="p-1 text-(--fill-color3) hover:text-black">
                 <img src={ThreeDots} alt="ThreeDots" className="w-6 h-6" />
               </button>
             </div>
 
             {/* Store 2 (Empty) */}
-            <button className="flex items-center justify-center w-full py-5 rounded-lg bg-white border border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-500 transition-colors">
+            <button className="flex items-center justify-center w-full py-5 rounded-lg bg-white border border-gray-300 text-(--fill-color3) hover:border-gray-500 hover:text-gray-500 transition-colors">
               <img src={Plus} alt="Plus" className="w-6 h-6" />
             </button>
 
             {/* Store 3 (Empty) */}
-            <button className="flex items-center justify-center w-full py-5 rounded-lg bg-white border border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-500 transition-colors">
+            <button className="flex items-center justify-center w-full py-5 rounded-lg bg-white border border-gray-300 text-(--fill-color3) hover:border-gray-500 hover:text-gray-500 transition-colors">
               <img src={Plus} alt="Plus" className="w-6 h-6" />
             </button>
           </div>

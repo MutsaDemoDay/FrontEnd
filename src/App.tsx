@@ -25,10 +25,12 @@ import { StampRegistration1 } from './pages/Stamp/StampRegistration1';
 import { StampRegistration4 } from './pages/Stamp/StampRegistration4';
 import { FindId } from './pages/SignUp/FindId';
 import { FindPassword } from './pages/SignUp/FindPassword';
-import { FindIdConfirm } from './pages/SignUp/FindIdConfirm';
+import { FindCustomerIdConfirm } from './pages/SignUp/FindCustomerIdConfirm';
 import { KakaoCallback } from './KakaoCallback';
 import { OwnerFail } from './pages/SignUp/OwnerFail';
 import { ShopProfile } from './pages/Onboarding/ShopProfile';
+import { FindOwnerIdConfirm } from './pages/SignUp/FindOwnerIdConfirm';
+import { StoreInfo } from './pages/Store/StoreInfo';
 
 function App() {
   return (
@@ -65,7 +67,16 @@ function App() {
           <Route path="/find-id" element={<FindId />} />
           <Route path="/find-id-confirm" element={<FindIdConfirm />} />
           <Route path="/find-password" element={<FindPassword />} />
+          <Route path='/map' element={<MapPage />} />
+          <Route path='/signup/customer-confirm' element={<CustomerConfirm />} />
+          <Route path='/reward' element={<Reward />} />
+          <Route path='/stamp' element={<StampPage />} />
+          <Route path='/find-id' element={<FindId />} />
+          <Route path='/find-customer-id-confirm' element={<FindCustomerIdConfirm />} />
+          <Route path='/find-owner-id-confirm' element={<FindOwnerIdConfirm />} />
+          <Route path='/find-password' element={<FindPassword />} />
           <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
+          <Route path="/store/:storeNumber" element={<StoreInfo />} />
         </Route>
       </Routes>
     </BrowserRouter>
