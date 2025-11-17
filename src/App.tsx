@@ -17,7 +17,7 @@ import { OwnerSuccess } from './pages/SignUp/OwnerSuccess';
 import { CustomerConfirm } from './pages/SignUp/CustomerConfirm';
 import { Reward } from './pages/Reward';
 import { StampPage } from './pages/Stamp/StampPage';
-import { FindCustomerId } from './pages/SignUp/FindId';
+import { FindId } from './pages/SignUp/FindId';
 import { FindPassword } from './pages/SignUp/FindPassword';
 import { FindCustomerIdConfirm } from './pages/SignUp/FindCustomerIdConfirm';
 import { KakaoCallback } from './KakaoCallback';
@@ -49,7 +49,7 @@ function App() {
           <Route path='/signup/customer-confirm' element={<CustomerConfirm />} />
           <Route path='/reward' element={<Reward />} />
           <Route path='/stamp' element={<StampPage />} />
-          <Route path='/find-id' element={<FindCustomerId />} />
+          <Route path='/find-id' element={<FindId />} />
           <Route path='/find-customer-id-confirm' element={<FindCustomerIdConfirm />} />
           <Route path='/find-owner-id-confirm' element={<FindOwnerIdConfirm />} />
           <Route path='/find-password' element={<FindPassword />} />
