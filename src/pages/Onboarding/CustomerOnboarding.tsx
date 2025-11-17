@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, A11y } from 'swiper/modules';
+// @ts-ignore
 import 'swiper/css';
+// @ts-expect-error
 import 'swiper/css/pagination';
 import { useNavigate } from 'react-router-dom';
 import CustomerOnboarding_1 from '../../assets/CustomerOnboarding_1.png';
