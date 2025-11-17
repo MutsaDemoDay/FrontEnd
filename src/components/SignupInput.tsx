@@ -19,6 +19,9 @@ export interface CustomerSignupFormData {
   email: string;
   emailConfirm: string;
   nickname: string;
+  address: string;
+  latitude: number;
+  longitude: number;
 }
 
 interface SignupInputProps {
