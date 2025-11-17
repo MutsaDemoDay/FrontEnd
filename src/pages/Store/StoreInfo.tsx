@@ -7,44 +7,13 @@ import instagram_icon from '../../assets/instagram_icon.png';
 import store_stamp from '../../assets/store_stamp.png';
 import gift_icon from '../../assets/gift_icon.png';
 import americano from '../../assets/americano.png';
+import { useState } from 'react';
 
 export const StoreInfo = () => {
-  return (
-    <div className="w-full flex flex-col">
-      <div className="w-full h-[220px] bg-amber-100">
-        <div className="w-full flex justify-between items-start">
-          <BackButton2 />
-          <img
-            src={heart_share}
-            alt="공유하기"
-            className="w-[80px] h-[40px] m-3"
-          />
-        </div>
-      </div>
+  const [selectedTab, setSelectedTab] = useState<'home' | 'review'>('home');
 
-      <div className="w-full h-[180px] flex flex-col items-center justify-around px-6">
-        <div className="flex flex-row items-center">
-          <p className="text-(--fill-color7) font-semibold text-[24px] mr-5">
-            카페나무
-          </p>
-          <p className="text-(--fill-color6) font-medium text-[14px]">
-            커피 전문
-          </p>
-        </div>
-        <div className="flex flex-row items-center gap-5">
-          <p className="text-(--fill-color4) text-[12px]">8.3km</p>
-          <p className="text-(--fill-color4) text-[12px]">
-            서울 마포구 와우산로 94 홍문관 1층 (상수동)
-          </p>
-        </div>
-        <div className="flex flex-row justify-center items-center gap-2 w-full h-[54px] bg-(--fill-color1) rounded-[50px]">
-          <button className="w-3/7 bg-white h-[40px] rounded-[30px]">홈</button>
-          <button className="w-3/7 bg-white h-[40px] rounded-[30px]">
-            리뷰
-          </button>
-        </div>
-      </div>
-
+  const HomeTabContent = () => (
+    <>
       <div className="flex flex-col w-full h-[120px]">
         <div className="flex flex-row w-full h-[40px] items-center gap-3 border-b border-t border-(--fill-color1) px-6 ">
           <img src={clock} alt="" className="w-[20px] h-[20px]" />
@@ -113,17 +82,91 @@ export const StoreInfo = () => {
         {/* 구분선 */}
         <div className="h-px bg-(--fill-color2)" />
 
-        <div className='w-full h-[160px] justify-center items-center flex'>
-            <div className='flex flex-row items-center w-[350px] h-[120px]'>
-                <img src={americano} alt="" className='w-[120px] h-[120px]'/>
-                <div className='w-[212px] h-[100px] flex flex-col justify-center ml-5'>
-                    <p className='text-(--main-color2) font-semibold text-[16px]'>Americano</p>
-                    <p className='text-(--fill-color5) text-[14px]'>원두와 물 그리고 얼음</p>
-                    <p className='text-(--fill-color7) text-[14px] mt-9'>4,500원</p>
-                </div>
+        <div className="w-full h-[160px] justify-center items-center flex">
+          <div className="flex flex-row items-center w-[350px] h-[120px]">
+            <img src={americano} alt="" className="w-[120px] h-[120px]" />
+            <div className="w-[212px] h-[100px] flex flex-col justify-center ml-5">
+              <p className="text-(--main-color2) font-semibold text-[16px]">
+                Americano
+              </p>
+              <p className="text-(--fill-color5) text-[14px]">
+                원두와 물 그리고 얼음
+              </p>
+              <p className="text-(--fill-color7) text-[14px] mt-9">4,500원</p>
             </div>
+          </div>
         </div>
       </div>
+    </>
+  );
+
+  // --- [신규] '리뷰' 탭에 표시될 콘텐츠 (임시) ---
+  const ReviewTabContent = () => (
+    <div className="w-full p-10 text-center text-gray-500">
+      <div className='flex flex-col items-center justify-center w-full h-[160px]'>
+        <p className='text-[14px] text-(--fill-color7)'>2025년 01월 01일</p>
+        
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full flex flex-col">
+      <div className="w-full h-[220px] bg-amber-100">
+        <div className="w-full flex justify-between items-start">
+          <BackButton2 />
+          <img
+            src={heart_share}
+            alt="공유하기"
+            className="w-[80px] h-[40px] m-3"
+          />
+        </div>
+      </div>
+
+      <div className="w-full h-[180px] flex flex-col items-center justify-around px-6">
+        <div className="flex flex-row items-center">
+          <p className="text-(--fill-color7) font-semibold text-[24px] mr-5">
+            카페나무
+          </p>
+          <p className="text-(--fill-color6) font-medium text-[14px]">
+            커피 전문
+          </p>
+        </div>
+        <div className="flex flex-row items-center gap-5">
+          <p className="text-(--fill-color4) text-[12px]">8.3km</p>
+          <p className="text-(--fill-color4) text-[12px]">
+            서울 마포구 와우산로 94 홍문관 1층 (상수동)
+          </p>
+        </div>
+        <div className="flex flex-row justify-center items-center w-full h-[54px] bg-(--fill-color1) rounded-[50px]">
+          <div className="flex w-1/2 justify-center items-center">
+            <button
+              className={`w-[calc(100%-20px)] transition-all ${
+                selectedTab === 'home'
+                  ? 'bg-white h-[40px] rounded-[30px]'
+                  : 'h-[40px] text-gray-500'
+              }`}
+              onClick={() => setSelectedTab('home')}
+            >
+              홈
+            </button>
+          </div>
+          <div className="flex w-1/2 justify-center items-center">
+            <button
+              className={`w-[calc(100%-20px)] transition-all ${
+                selectedTab === 'review'
+                  ? 'bg-white h-[40px] rounded-[30px]'
+                  : 'h-[40px] text-gray-500'
+              }`}
+              onClick={() => setSelectedTab('review')}
+            >
+              리뷰
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {selectedTab === 'home' ? <HomeTabContent /> : <ReviewTabContent />}
     </div>
   );
 };

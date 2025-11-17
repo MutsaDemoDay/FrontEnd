@@ -5,7 +5,6 @@ import SignupInput, {
   type CustomerSignupFormData,
 } from '../../components/SignupInput';
 import { useNavigate } from 'react-router-dom';
-// import { AddressModal } from '../../components/AddressModal.tsx'; // 주소 모달 import 제거
 
 export const CustomerSignup = () => {
   const navigate = useNavigate();
@@ -19,9 +18,8 @@ export const CustomerSignup = () => {
     passwordConfirm: '',
     email: '',
     emailConfirm: '',
+    nickname: '',
   });
-
-  // const [isModalOpen, setIsModalOpen] = useState(false); // 주소 모달 state 제거
 
   const validateForm = () => {
     const newErrors: Partial<Record<keyof CustomerSignupFormData, string>> = {};
@@ -55,12 +53,6 @@ export const CustomerSignup = () => {
       newErrors.passwordConfirm = '비밀번호가 일치하지 않습니다.';
       isValid = false;
     }
-
-    // 주소 유효성 검사 제거
-    // if (!formData.address || formData.latitude === 0) {
-    //   newErrors.address = '주소 찾기를 완료해주세요.';
-    //   isValid = false;
-    // }
 
     setErrors(newErrors);
     return isValid;
@@ -99,10 +91,7 @@ export const CustomerSignup = () => {
             password: formData.password,
             passwordConfirm: formData.passwordConfirm,
             email: formData.email,
-            // 주소 관련 데이터 제거
-            // address: formData.address,
-            // latitude: formData.latitude,
-            // longitude: formData.longitude,
+            nickname: formData.nickname,
           }),
         }
       );
@@ -195,6 +184,15 @@ export const CustomerSignup = () => {
             onChange={handleCustomerData}
             error={errors.passwordConfirm}
           />
+          <SignupInput
+            label="닉네임"
+            name="nickname"
+            type="text"
+            value={formData.nickname}
+            onChange={handleCustomerData}
+            error={errors.nickname}
+            placeholder="1-10자 이내"
+          />
         </div>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col items-center">
@@ -208,9 +206,6 @@ export const CustomerSignup = () => {
           </button>
         </div>
       </form>
-
-      {/* 주소 모달 렌더링 제거 */}
-      {/* {isModalOpen && ( ... )} */}
     </div>
   );
 };
