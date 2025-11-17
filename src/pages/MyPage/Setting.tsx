@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom'; // 'Link'가 이미 import 되어 있습니다.
 import BackButton from '../../components/BackButton';
 import { UserBottomBar } from '../../components/UserBottomBar';
