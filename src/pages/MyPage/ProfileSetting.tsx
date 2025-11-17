@@ -22,9 +22,9 @@ const ProfileSetting: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="w-screen mx-4 min-h-screen bg-white text-gray-900">
       {/* 1. 헤더 (뒤로가기 버튼, 타이틀) */}
-      <header className="relative flex items-center justify-center p-4 border-b border-gray-200">
+      <header className="relative flex items-center justify-center border-b border-gray-200">
         <div className="absolute left-4">
           <BackButton />
         </div>
@@ -32,7 +32,7 @@ const ProfileSetting: React.FC = () => {
       </header>
 
       {/* 2. 메인 컨텐츠 영역 */}
-      <main className="p-6 space-y-8">
+      <main className="mx-4 space-y-8">
         {/* 프로필 이미지 섹션 */}
         <div className="flex justify-center mt-4">
           <div className="relative w-32 h-32 bg-gray-200 rounded-2xl">
