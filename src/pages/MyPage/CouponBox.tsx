@@ -78,6 +78,7 @@ import React from 'react';
 // react-router-dom에서 useNavigate를 import 합니다.
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
+import { UserBottomBar } from '../../components/UserBottomBar';
 
 const CouponBox: React.FC = () => {
   // navigate 함수를 사용하기 위해 훅을 호출합니다.
@@ -159,6 +160,7 @@ const CouponBox: React.FC = () => {
           </ul>
         </footer>
       </div>
+      <UserBottomBar />
     </div>
   );
 };
