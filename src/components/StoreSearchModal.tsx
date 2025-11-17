@@ -149,7 +149,7 @@ export const StoreSearchModal = ({
 
         {/* 검색 결과 목록 */}
         <div
-          ref={scrollableContentRef} // 스크롤 영역에 ref 할당
+          ref={scrollableContentRef}
           className="flex-1 w-full overflow-y-auto"
         >
           {isLoading && (
