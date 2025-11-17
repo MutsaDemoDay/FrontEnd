@@ -1,5 +1,4 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import BackButton from '../../components/BackButton';
 import StampsSection from '../../components/StampSection';
