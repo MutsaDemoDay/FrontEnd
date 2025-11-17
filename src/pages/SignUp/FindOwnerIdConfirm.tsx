@@ -11,7 +11,7 @@ export const FindOwnerIdConfirm = () => {
   const handleFindPasswordClick = () => {
     navigate('/find-password');
   };
-  
+
   return (
     <div className="flex flex-col w-full items-center">
       <div className="flex flex-row items-center self-start mt-3 gap-4 px-6">
@@ -37,7 +37,7 @@ export const FindOwnerIdConfirm = () => {
           <br />
           아이디입니다.
         </p>
-        <p className="text-[16px] text-gray-400 mt-[18px]">
+        <p className="text-[16px] text-(--fill-color3) mt-[18px]">
           아이디 및 비밀번호 찾기와 관련하여 <br />
           문의사항이 있으시면 고객센터로 문의해주세요.{' '}
         </p>

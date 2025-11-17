@@ -32,7 +32,7 @@ const EmailVerificationInputs = ({
         <input
           type="email"
           placeholder="이메일 주소 입력"
-          className="w-full h-[48px] border-gray-400 rounded-[10px] border p-3"
+          className="w-full h-[48px] border-(--fill-color3) rounded-[10px] border p-3"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={isVerified}
@@ -50,7 +50,7 @@ const EmailVerificationInputs = ({
         <input
           type="text"
           placeholder="인증번호 입력"
-          className="w-full h-[48px] border-gray-400 rounded-[10px] border p-3"
+          className="w-full h-[48px] border-(--fill-color3) rounded-[10px] border p-3"
           value={code}
           onChange={(e) => setCode(e.target.value)}
           disabled={isVerified}
@@ -198,7 +198,7 @@ export const FindCustomerId = () => {
               <input
                 type="text"
                 placeholder="가입자명"
-                className="w-full border border-gray-400 rounded-[10px] p-3"
+                className="w-full border border-(--fill-color3) rounded-[10px] p-3"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -206,7 +206,7 @@ export const FindCustomerId = () => {
               <input
                 type="text"
                 placeholder="사업자등록번호 ('-' 제외)"
-                className="w-full border border-gray-400 rounded-[10px] p-3"
+                className="w-full border border-(--fill-color3) rounded-[10px] p-3"
                 value={businessRegNumber}
                 onChange={(e) => setBusinessRegNumber(e.target.value)}
               />

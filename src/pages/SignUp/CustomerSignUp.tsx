@@ -5,7 +5,7 @@ import SignupInput, {
   type CustomerSignupFormData,
 } from '../../components/SignupInput';
 import { useNavigate } from 'react-router-dom';
-import { AddressModal } from '../../components/AddressModal.tsx';
+// import { AddressModal } from '../../components/AddressModal.tsx'; // 주소 모달 import 제거
 
 export const CustomerSignup = () => {
   const navigate = useNavigate();
@@ -19,54 +19,52 @@ export const CustomerSignup = () => {
     passwordConfirm: '',
     email: '',
     emailConfirm: '',
-    address: '',
-    latitude: 0,
-    longitude: 0,
   });
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false); // 주소 모달 state 제거
 
   const validateForm = () => {
-  const newErrors: Partial<Record<keyof CustomerSignupFormData, string>> = {};
-  let isValid = true;
+    const newErrors: Partial<Record<keyof CustomerSignupFormData, string>> = {};
+    let isValid = true;
 
-  // 이메일 정규식 (간단한 예시)
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // 이메일 정규식 (간단한 예시)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!formData.loginId) {
-    newErrors.loginId = '필수 입력 사항입니다.';
-    isValid = false;
-  }
+    if (!formData.loginId) {
+      newErrors.loginId = '필수 입력 사항입니다.';
+      isValid = false;
+    }
 
-  if (!formData.email) {
-    newErrors.email = '필수 입력 사항입니다.';
-    isValid = false;
-  } else if (!emailRegex.test(formData.email)) {
-    newErrors.email = '올바른 이메일 형식이 아닙니다.';
-    isValid = false;
-  }
+    if (!formData.email) {
+      newErrors.email = '필수 입력 사항입니다.';
+      isValid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = '올바른 이메일 형식이 아닙니다.';
+      isValid = false;
+    }
 
-  if (!formData.password) {
-    newErrors.password = '필수 입력 사항입니다.';
-    isValid = false;
-  } else if (formData.password.length <= 8) {
-    newErrors.password = '비밀번호는 8자 이상이어야 합니다.';
-    isValid = false;
-  }
+    if (!formData.password) {
+      newErrors.password = '필수 입력 사항입니다.';
+      isValid = false;
+    } else if (formData.password.length <= 8) {
+      newErrors.password = '비밀번호는 8자 이상이어야 합니다.';
+      isValid = false;
+    }
 
-  if (formData.password !== formData.passwordConfirm) {
-    newErrors.passwordConfirm = '비밀번호가 일치하지 않습니다.';
-    isValid = false;
-  }
+    if (formData.password !== formData.passwordConfirm) {
+      newErrors.passwordConfirm = '비밀번호가 일치하지 않습니다.';
+      isValid = false;
+    }
 
-  if (!formData.address || formData.latitude === 0) {
-    newErrors.address = '주소 찾기를 완료해주세요.';
-    isValid = false;
-  }
+    // 주소 유효성 검사 제거
+    // if (!formData.address || formData.latitude === 0) {
+    //   newErrors.address = '주소 찾기를 완료해주세요.';
+    //   isValid = false;
+    // }
 
-  setErrors(newErrors);
-  return isValid;
-};
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleCustomerData = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -101,9 +99,10 @@ export const CustomerSignup = () => {
             password: formData.password,
             passwordConfirm: formData.passwordConfirm,
             email: formData.email,
-            address: formData.address,
-            latitude: formData.latitude,
-            longitude: formData.longitude,
+            // 주소 관련 데이터 제거
+            // address: formData.address,
+            // latitude: formData.latitude,
+            // longitude: formData.longitude,
           }),
         }
       );
@@ -136,33 +135,6 @@ export const CustomerSignup = () => {
       setIsSubmitting(false);
     }
   }
-
-  const handleAddressSearch = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleAddressSelect = (data: {
-    address: string;
-    x: string;
-    y: string;
-  }) => {
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      address: data.address,
-      longitude: parseFloat(data.x),
-      latitude: parseFloat(data.y),
-    }));
-
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      address: undefined,
-    }));
-    setIsModalOpen(false);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
 
   return (
     <div className="flex flex-col items-center h-screen">
@@ -223,17 +195,8 @@ export const CustomerSignup = () => {
             onChange={handleCustomerData}
             error={errors.passwordConfirm}
           />
-          <SignupInput
-            label="주소지"
-            name="address"
-            type="text"
-            value={formData.address}
-            readOnly={true}
-            error={errors.address}
-            variant="address"
-            onButtonClick={handleAddressSearch} // 이 부분은 동일
-            placeholder="지번, 도로명, 건물명으로 검색"
-          />
+          {/* 주소지 입력창 제거 */}
+          {/* <SignupInput ... /> */}
         </div>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col items-center">
@@ -248,12 +211,8 @@ export const CustomerSignup = () => {
         </div>
       </form>
 
-      {isModalOpen && (
-        <AddressModal
-          onClose={handleCloseModal}
-          onSelect={handleAddressSelect}
-        />
-      )}
+      {/* 주소 모달 렌더링 제거 */}
+      {/* {isModalOpen && ( ... )} */}
     </div>
   );
 };

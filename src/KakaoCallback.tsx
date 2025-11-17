@@ -24,14 +24,17 @@ export const KakaoCallback = () => {
         try {
           const apiUri = import.meta.env.VITE_API_URI;
           
+          // sessionStorage에서 redirectUri 가져오기 (있으면 전달, 없으면 생략)
           const redirectUri = sessionStorage.getItem('kakaoRedirectUri');
           
+          // redirectUri가 있으면 쿼리 파라미터로 전달, 없으면 code만 전달
           const url = redirectUri 
             ? `${apiUri}/v1/auth/kakao?code=${code}&redirectUri=${encodeURIComponent(redirectUri)}`
             : `${apiUri}/v1/auth/kakao?code=${code}`;
           
           const response = await fetch(url, { method: 'GET' });
           
+          // 사용 후 sessionStorage에서 제거
           if (redirectUri) {
             sessionStorage.removeItem('kakaoRedirectUri');
           }
