@@ -67,7 +67,7 @@ const EmailVerificationInputs = ({
   );
 };
 
-export const FindCustomerId = () => {
+export const FindId = () => {
   const navigate = useNavigate();
 
   const [userType, setUserType] = useState('customer');
