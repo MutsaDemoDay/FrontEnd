@@ -264,7 +264,7 @@
 // export default StampHistory;
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 뒤로가기 위해 필요하다면
+// import { useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
 
 // Assets
