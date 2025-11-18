@@ -7,8 +7,6 @@ import instagram_icon from '../../assets/instagram_icon.png';
 import store_stamp from '../../assets/store_stamp.png';
 import gift_icon from '../../assets/gift_icon.png';
 import americano from '../../assets/americano.png';
-import star_empty_icon from '../../assets/star_empty_icon.png';
-import star_full_icon from '../../assets/star_full_icon.png';
 import { useState } from 'react';
 
 export const StoreInfo = () => {
@@ -55,7 +53,7 @@ export const StoreInfo = () => {
         </div>
 
         {/* 구분선 */}
-        <div className="h-px bg-(--fill-color1)" />
+        <div className="h-px bg-(--fill-color2)" />
 
         <div className="flex flex-col items-center justify-center w-full">
           <img
@@ -103,49 +101,14 @@ export const StoreInfo = () => {
   );
 
   const ReviewTabContent = () => (
-    <div className="w-full text-center text-gray-500">
-      {/* 구분선 */}
-      <div className="h-px bg-(--fill-color1)" />
-
-      {/* 리뷰 탭 내용 */}
+    <div className="w-full p-10 text-center text-gray-500">
       <div className="flex flex-col items-center justify-center w-full h-[160px]">
-        <div className="flex flex-row w-full justify-center">
+        <div className="flex flex-row justify-center items-center">
           <p className="text-[14px] text-(--fill-color7)">2025년 01월 01일</p>
-          <p className="text-[14px] text-(--fill-color6)">
-            에 해당 가게 스탬프를 완료했어요.
+          <p>
+            에 해당 가게 스탬프를 완료했어요. <br />
+            방문 후기를 남겨주세요!
           </p>
-        </div>
-        <p className="text-[14px] text-(--fill-color6)">
-          방문 후기를 남겨주세요!
-        </p>
-
-        {/* 별점 */}
-        <div className="flex flex-row justify-center mt-4 gap-2">
-          <img
-            src={star_full_icon}
-            alt="별점 1"
-            className="w-[30px] h-[30px]"
-          />
-          <img
-            src={star_empty_icon}
-            alt="별점 2"
-            className="w-[30px] h-[30px]"
-          />
-          <img
-            src={star_empty_icon}
-            alt="별점 3"
-            className="w-[30px] h-[30px]"
-          />
-          <img
-            src={star_empty_icon}
-            alt="별점 4"
-            className="w-[30px] h-[30px]"
-          />
-          <img
-            src={star_empty_icon}
-            alt="별점 5"
-            className="w-[30px] h-[30px]"
-          />
         </div>
       </div>
     </div>
