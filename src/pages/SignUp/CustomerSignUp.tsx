@@ -103,8 +103,7 @@ export const CustomerSignup = () => {
       }
 
       const responseData = await response.json();
-      const { data } = responseData;
-      const { accessToken, refreshToken } = data;
+      const { accessToken, refreshToken } = responseData;
 
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken);
