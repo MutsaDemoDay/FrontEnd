@@ -21,7 +21,7 @@ export const OwnerSignup = () => {
     businessNumber: '',
     location: '',
     latitude: 0,
-    longitude: 0,
+    longitude: 0
   });
 
   const validateForm = () => {
