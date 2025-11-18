@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 
 // 간단한 커피잔 아이콘 (Inline SVG)
 const CoffeeIcon = ({

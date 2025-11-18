@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import BackButton from '../../components/BackButton';
 import PlusIcon from '../../assets/plus.svg';
 import GarbageIcon from '../../assets/garbage.svg';
