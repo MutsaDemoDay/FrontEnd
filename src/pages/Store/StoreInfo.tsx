@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { BackButton2 } from '../../components/BackButton2';
-import heart_share from '../../assets/heart_share.png';
+import heart_empty_icon from '../../assets/heart_empty_icon.png';
+import heart_icon from '../../assets/heart_icon.png';
+import share_icon from '../../assets/share_icon.png';
 import clock from '../../assets/clock.png';
 import phone_icon from '../../assets/phone_icon.png';
 import internet_icon from '../../assets/internet_icon.png';
@@ -7,10 +10,104 @@ import instagram_icon from '../../assets/instagram_icon.png';
 import store_stamp from '../../assets/store_stamp.png';
 import gift_icon from '../../assets/gift_icon.png';
 import americano from '../../assets/americano.png';
-import { useState } from 'react';
+import star_empty_icon from '../../assets/star_empty_icon.png';
+import star_full_icon from '../../assets/star_full_icon.png';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export const StoreInfo = () => {
   const [selectedTab, setSelectedTab] = useState<'home' | 'review'>('home');
+  const [isFavorited, setIsFavorited] = useState(false); // <--- '좋아요' 상태 추가
+  const [isLoading, setIsLoading] = useState(true); // <--- 로딩 상태 추가
+
+  const navigate = useNavigate();
+  const { storeid } = useParams<{ storeid: string }>();
+
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!storeid) {
+        setIsLoading(false);
+        return; // storeid가 없으면 실행 중지
+      }
+
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setIsLoading(false);
+        // 로그인하지 않았으므로 '좋아요' 상태일 수 없음
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/v1/favstores/${storeid}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          setIsFavorited(true); // 이미 '좋아요' 한 상태
+        } else if (response.status === 404) {
+          setIsFavorited(false); // '좋아요' 하지 않은 상태
+        } else {
+          // 기타 서버 오류
+          console.error('Failed to check favorite status:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error checking favorite status:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [storeid]); // storeid가 변경될 때마다 다시 실행
+
+  const handleGoToReview = () => {
+    navigate('/store/review');
+  };
+
+  // <--- NEW: '좋아요' 토글 핸들러
+  const handleToggleFavorite = async () => {
+    if (!storeid) {
+      alert('가게 ID를 찾을 수 없습니다.');
+      return;
+    }
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      navigate('/'); // 필요시 로그인 페이지로 이동
+      return;
+    }
+
+    const url = `/api/v1/favstores/${storeid}`;
+    const method = isFavorited ? 'DELETE' : 'POST'; // 상태에 따라 메소드 변경
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // 성공 시, 로컬 상태를 반전
+        setIsFavorited((prev) => !prev);
+      } else {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message ||
+            `'좋아요' ${isFavorited ? '취소' : '추가'}에 실패했습니다.`
+        );
+      }
+    } catch (error: any) {
+      console.error('Favorite toggle error:', error);
+      alert(error.message);
+    }
+  };
 
   const HomeTabContent = () => (
     <>
@@ -110,6 +207,70 @@ export const StoreInfo = () => {
             방문 후기를 남겨주세요!
           </p>
         </div>
+        <p className="text-[14px] text-(--fill-color6)">
+          방문 후기를 남겨주세요!
+        </p>
+
+        {/* 별점 */}
+        <div
+          className="flex flex-row justify-center mt-4 gap-2"
+          onClick={handleGoToReview}
+        >
+          <img
+            src={star_empty_icon}
+            alt="별점 1"
+            className="w-[30px] h-[30px]"
+          />
+          <img
+            src={star_empty_icon}
+            alt="별점 2"
+            className="w-[30px] h-[30px]"
+          />
+          <img
+            src={star_empty_icon}
+            alt="별점 3"
+            className="w-[30px] h-[30px]"
+          />
+          <img
+            src={star_empty_icon}
+            alt="별점 4"
+            className="w-[30px] h-[30px]"
+          />
+          <img
+            src={star_empty_icon}
+            alt="별점 5"
+            className="w-[30px] h-[30px]"
+          />
+        </div>
+      </div>
+      {/* 구분선 */}
+      <div className="h-px bg-(--fill-color1)" />
+
+      <div className="w-full px-6">
+        <div className="w-full flex flex-col items-start mt-3">
+          <div className="flex flex-row items-center gap-1">
+            <p className="text-(--main-color2) font-semibold text-[18px]">
+              Review
+            </p>
+            <p className="text-(--main-color2)">(${6})</p>
+          </div>
+          <div className="flex flex-row w-full h-[100px] items-center border-b border-(--fill-color1) mt-3">
+            <img src={star_full_icon} alt="" className="w-[40px] h-[40px]" />
+            <p className="text-[30px] text-(--main-color) font-extrabold ml-3">
+              4.8
+            </p>
+            <p className="text-[18px] text-(--fill-color6) ml-3 align-text-bottom">
+              {' '}
+              /5.0
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex h-[44px] items-center justify-center bg-(--fill-color1) rounded-[50px] text-(--fill-color5) text-[13px] mx-6">
+        해당 가게의 스탬프를 완성한 유저만
+        <br />
+        리뷰를 작성할 수 있어요!
       </div>
     </div>
   );
@@ -119,11 +280,17 @@ export const StoreInfo = () => {
       <div className="w-full h-[220px] bg-amber-100">
         <div className="w-full flex justify-between items-start">
           <BackButton2 />
-          <img
-            src={heart_share}
-            alt="공유하기"
-            className="w-[80px] h-[40px] m-3"
-          />
+          <div className="flex flex-row justify-center items-center w-20 h-10 bg-(--fill-color1) rounded-[20px] opacity-90 m-3 p-1">
+            {!isLoading && ( // 로딩이 끝난 후에만 아이콘 표시
+              <img
+                src={isFavorited ? heart_icon : heart_empty_icon}
+                alt={isFavorited ? '채워진 하트' : '빈 하트'}
+                className="w-[16px] h-[16px] m-3 cursor-pointer"
+                onClick={handleToggleFavorite} // 핸들러 연결
+              />
+            )}
+            <img src={share_icon} alt="공유하기" className="w-[16px] h-[16px] m-3 cursor-pointer" />
+          </div>
         </div>
       </div>
 

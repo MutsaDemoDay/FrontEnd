@@ -14,7 +14,7 @@ import Coupon from './pages/MyPage/Coupon';
 import { CustomerOnboarding } from './pages/Onboarding/CustomerOnboarding';
 import { MapPage } from './pages/MapPage';
 import { OwnerSuccess } from './pages/SignUp/OwnerSuccess';
-import { CustomerConfirm } from './pages/SignUp/CustomerConfirm';
+import { CustomerConfirm } from './pages/Onboarding/CustomerConfirm';
 import { Reward } from './pages/Reward';
 import StampPage from './pages/Stamp/StampPage';
 import { Event } from './pages/Stamp/Event';
@@ -58,6 +58,16 @@ function App() {
           />
           <Route path="/reward" element={<Reward />} />
           <Route path="/stamp" element={<StampPage />} />
+          <Route path="/find-id" element={<FindId />} />
+          <Route
+            path="/find-customer-id-confirm"
+            element={<FindCustomerIdConfirm />}
+          />
+          <Route
+            path="/find-owner-id-confirm"
+            element={<FindOwnerIdConfirm />}
+          />
+          <Route path="/find-password" element={<FindPassword />} />
           <Route path="/stamp/event" element={<Event />} />
           <Route path="/stampearning" element={<StampEarning />} />
           <Route path="/stamphistory" element={<StampHistory />} />
@@ -65,7 +75,6 @@ function App() {
           <Route path="/stampregistration1" element={<StampRegistration1 />} />
           <Route path="/stampregistration4" element={<StampRegistration4 />} />
           <Route path="/find-id" element={<FindId />} />
-          <Route path="/find-id-confirm" element={<FindIdConfirm />} />
           <Route path="/find-password" element={<FindPassword />} />
           <Route path='/map' element={<MapPage />} />
           <Route path='/signup/customer-confirm' element={<CustomerConfirm />} />

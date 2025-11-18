@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from 'react-router-dom';
-import BackButton from '../../components/BackButton';
+import BackButton from '../../components/BackButton.tsx';
 import addProfile from '../../assets/addProfile.png';
 import { useEffect, useState } from 'react';
-import SignupInput from '../../components/SignupInput';
+import SignupInput from '../../components/SignupInput.tsx';
 import { AddressModal } from '../../components/AddressModal.tsx';
 import {
   StoreSearchModal,
   type Store,
-} from '../../components/StoreSearchModal';
+} from '../../components/StoreSearchModal.tsx';
 
 type UserProfileProps = {
   nickname: string;
@@ -22,8 +23,10 @@ type UserProfileProps = {
 export const CustomerConfirm = () => {
   const navigate = useNavigate();
 
+  const [isSubmitting, setIsSubmitting] = useState(false); // 중복 제출 방지용 상태
+
   const handleSkipClick = () => {
-    navigate('/customer/onboarding');
+    navigate('/onboarding/customer');
   };
 
   const [profileData, setProfileData] = useState<UserProfileProps>({
@@ -66,12 +69,63 @@ export const CustomerConfirm = () => {
     });
   };
 
-  // '확인' 버튼 클릭 핸들러
-  const handleConfirmClick = () => {
-    console.log('프로필이 저장되었습니다:', profileData);
-    // todo: profileData를 서버로 전송하는 API 로직
-    // ...
-    navigate('/onboarding/customer');
+  // ---------------------------------------------------------
+  // [수정됨] '확인' 버튼 클릭 핸들러 (API 연동)
+  // ---------------------------------------------------------
+  const handleConfirmClick = async () => {
+    // 1. 필수 데이터 검증 (주소가 없으면 진행 불가)
+    if (!profileData.address || profileData.latitude === 0) {
+      alert('주소를 입력해주세요.');
+      return;
+    }
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    // 2. 토큰 가져오기
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      alert('로그인 정보가 없습니다. 다시 로그인해주세요.');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      // 3. API 요청 보내기
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URI}/v1/auth/user/onboarding`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`, // 인증 토큰 추가
+          },
+          body: JSON.stringify({
+            // 서버 요구사항에 맞춰 대문자로 변환 ('male' -> 'MALE')
+            gender: profileData.gender === 'male' ? 'MALE' : 'FEMALE',
+            address: profileData.address,
+            latitude: profileData.latitude,
+            longitude: profileData.longitude,
+            favStoreId: profileData.favStoreId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '프로필 저장에 실패했습니다.');
+      }
+
+      console.log('프로필 저장 성공');
+      
+      navigate('/onboarding/customer'); 
+
+    } catch (error: any) {
+      console.error('Onboarding Error:', error);
+      alert(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // --- 주소 관련 핸들러 ---
@@ -99,8 +153,8 @@ export const CustomerConfirm = () => {
 
   // '+' 버튼 클릭 시
   const handleAddShopClick = (index: number) => {
-    setSelectedSlotIndex(index); // 몇 번째 슬롯이 클릭되었는지 저장
-    setIsStoreSearchModalOpen(true); // 가게 검색 모달 열기
+    setSelectedSlotIndex(index);
+    setIsStoreSearchModalOpen(true);
   };
 
   // 가게 검색 모달 닫기
@@ -110,32 +164,28 @@ export const CustomerConfirm = () => {
 
   // 가게 검색 모달에서 가게 선택 시
   const handleStoreSelect = (store: Store) => {
-    // 1. UI 상태 업데이트
     const newFavoriteStores = [...favoriteStores];
     newFavoriteStores[selectedSlotIndex] = store;
     setFavoriteStores(newFavoriteStores);
 
-    // 2. profileData의 favStoreId (ID 배열) 업데이트
     const newFavStoreIds = newFavoriteStores
-      .filter((s): s is Store => s !== null) // null이 아닌 가게만 필터링
-      .map((s) => s.storeId); // 가게 ID만 추출
+      .filter((s): s is Store => s !== null)
+      .map((s) => s.storeId);
 
     setProfileData((prev) => ({
       ...prev,
       favStoreId: newFavStoreIds,
     }));
 
-    setIsStoreSearchModalOpen(false); // 모달 닫기
+    setIsStoreSearchModalOpen(false);
   };
 
   // '...' 버튼 클릭 (가게 삭제)
   const handleRemoveShop = (index: number) => {
-    // 1. UI 상태 업데이트 (해당 슬롯을 null로)
     const newFavoriteStores = [...favoriteStores];
     newFavoriteStores[index] = null;
     setFavoriteStores(newFavoriteStores);
 
-    // 2. profileData의 favStoreId (ID 배열) 업데이트
     const newFavStoreIds = newFavoriteStores
       .filter((s): s is Store => s !== null)
       .map((s) => s.storeId);
@@ -146,23 +196,17 @@ export const CustomerConfirm = () => {
     }));
   };
 
-    useEffect(() => {
-    // 주소 모달 또는 가게 검색 모달 중 하나라도 열려있는지 확인
+  useEffect(() => {
     const isModalOpen = isAddressModalOpen || isStoreSearchModalOpen;
-
     if (isModalOpen) {
-      // 모달이 열리면 body의 스크롤을 막음
       document.body.style.overflow = 'hidden';
     } else {
-      // 모달이 닫히면 body 스크롤을 복원
       document.body.style.overflow = 'auto';
     }
-
-    // 컴포넌트가 언마운트될 때(페이지를 벗어날 때) 스크롤을 복원
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [isAddressModalOpen, isStoreSearchModalOpen]); // 두 모달의 상태가 변경될 때마다 이 effect가 실행됨
+  }, [isAddressModalOpen, isStoreSearchModalOpen]);
 
   return (
     <div className="flex flex-col items-center pb-24">
@@ -242,12 +286,11 @@ export const CustomerConfirm = () => {
           />
         </div>
 
-        {/* --- 단골 가게 등록 (동적 렌더링) --- */}
+        {/* --- 단골 가게 등록 --- */}
         <p className="mt-8 font-semibold">단골 가게 등록</p>
         <div className="w-full mt-2.5 space-y-3">
           {favoriteStores.map((store, index) =>
             store ? (
-              // 가게가 선택된 슬롯
               <div
                 key={index}
                 className="w-full h-[48px] border border-gray-300 rounded-lg p-4 flex items-center justify-between"
@@ -257,18 +300,17 @@ export const CustomerConfirm = () => {
                   <p className="text-gray-500 text-xs">{store.address}</p>
                 </div>
                 <button
-                  onClick={() => handleRemoveShop(index)} // 삭제 핸들러 연결
+                  onClick={() => handleRemoveShop(index)}
                   className="text-gray-400 text-xl"
                 >
                   ...
                 </button>
               </div>
             ) : (
-              // 빈 슬롯 ('+' 버튼)
               <button
                 key={index}
                 className="w-full h-[48px] border border-gray-300 rounded-lg flex items-center justify-center text-gray-400 text-3xl"
-                onClick={() => handleAddShopClick(index)} // 추가 핸들러 연결
+                onClick={() => handleAddShopClick(index)}
               >
                 +
               </button>
@@ -279,8 +321,9 @@ export const CustomerConfirm = () => {
         <button
           className="w-full h-[56px] bg-gray-300 text-white font-bold rounded-lg mt-12"
           onClick={handleConfirmClick}
+          disabled={isSubmitting} // 제출 중 클릭 방지
         >
-          확인
+          {isSubmitting ? '저장 중...' : '확인'}
         </button>
       </div>
 

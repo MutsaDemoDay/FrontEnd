@@ -76,6 +76,7 @@ export const FindId = () => {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [isVerified, setIsVerified] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // <--- 로딩 상태 추가
 
   // --- 3. EmailVerificationInputs에 props로 전달할 핸들러들 ---
   const handleVerifyCode = async () => {
@@ -101,46 +102,78 @@ export const FindId = () => {
     alert('인증번호를 전송했습니다.');
   };
 
-  const handleNextClick = () => {
+  const handleNextClick = async () => {
     if (!isVerified) {
       alert('이메일 인증을 완료해주세요.');
       return;
     }
+    if (isSubmitting) return; // 중복 제출 방지
 
-    let identifier = '';
+    setIsSubmitting(true);
 
-    if (userType === 'customer') {
-      if (!name) {
-        alert('가입자명을 입력해주세요.');
-        return;
+    try {
+      let url = '';
+      let body: any = {};
+
+      if (userType === 'customer') {
+        if (!name) {
+          alert('닉네임을 입력해주세요.');
+          setIsSubmitting(false);
+          return;
+        }
+        url = '/v1/user/findId';
+        body = { nickname: name, email: email };
+      } else {
+        if (!businessRegNumber) {
+          alert('사업자등록번호를 입력해주세요.');
+          setIsSubmitting(false);
+          return;
+        }
+        url = '/v1/manager/findId';
+        body = { businessRegNumber: businessRegNumber, email: email };
       }
-      identifier = name;
-    } else {
-      if (!businessRegNumber) {
-        alert('사업자등록번호를 입력해주세요.');
-        return;
+
+      // API 요청
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('일치하는 회원 정보를 찾을 수 없습니다.');
+        }
+        throw new Error('아이디 찾기 중 오류가 발생했습니다.');
       }
-      identifier = businessRegNumber;
-    }
 
-    if (userType === 'customer') {
-      navigate('/find-customer-id-confirm', {
-        state: {
-          userType: userType,
-          identifier: identifier,
-          email: email,
-        },
-      });
-    }
+      const responseData = await response.json();
 
-    if (userType === 'owner') {
-      navigate('/find-owner-id-confirm', {
-        state: {
-          userType: userType,
-          identifier: identifier,
-          email: email,
-        },
-      });
+
+      // 성공 시, 결과 데이터를 state에 담아 다음 페이지로 이동
+      if (userType === 'customer') {
+        navigate('/find-customer-id-confirm', {
+          state: {
+            loginId: responseData.loginId,
+            createdAt: responseData.createdAt,
+          },
+        });
+      } else {
+        // userType === 'owner'
+        navigate('/find-owner-id-confirm', {
+          state: {
+            loginId: responseData.loginId,
+            createdAt: responseData.createdAt,
+          },
+        });
+      }
+    } catch (error: any) {
+      console.error('Find ID error:', error);
+      alert(error.message || '오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -180,7 +213,7 @@ export const FindId = () => {
       <div className="w-full h-auto px-6">
         {userType === 'customer' ? (
           <p className="self-start mt-10 text-[20px]">
-            가입자명과 이메일을
+            닉네임과 이메일을
             <br />
             입력해 주세요.
           </p>
@@ -192,12 +225,12 @@ export const FindId = () => {
           </p>
         )}
 
-        <div className="flex flex-col mt-10 w-full items-center">
+<div className="flex flex-col mt-10 w-full items-center">
           <div className="flex flex-col items-center w-full text-[12px]">
             {userType === 'customer' ? (
               <input
                 type="text"
-                placeholder="가입자명"
+                placeholder="닉네임"
                 className="w-full border border-(--fill-color3) rounded-[10px] p-3"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -226,11 +259,15 @@ export const FindId = () => {
 
       <div className="fixed w-full h-[56px] text-[20px] font-semibold px-6 bottom-10">
         <button
-          className={`w-full rounded-[40px] text-white p-3 bg-(--main-color) cursor-pointer`}
+          className={`w-full rounded-[40px] text-white p-3 ${
+            !isVerified || isSubmitting
+              ? 'bg-gray-400'
+              : 'bg-(--main-color) cursor-pointer'
+          }`}
           onClick={handleNextClick}
-          disabled={!isVerified}
+          disabled={!isVerified || isSubmitting}
         >
-          다음
+          {isSubmitting ? '확인 중...' : '다음'}
         </button>
       </div>
     </div>

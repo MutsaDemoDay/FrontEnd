@@ -1,8 +1,18 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
+import { useEffect } from 'react';
 
 export const FindCustomerIdConfirm = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // <--- location 훅 사용
+  const { loginId, joinDate } = location.state || {}; // <--- state에서 데이터 추출
+
+  useEffect(() => {
+    if (!loginId) {
+      alert('잘못된 접근입니다. 아이디 찾기를 다시 시도해주세요.');
+      navigate('/find-id'); // 아이디 찾기 페이지로 이동
+    }
+  }, [loginId, navigate]);
 
   const handleLoginClick = () => {
     navigate('/');
@@ -47,9 +57,11 @@ export const FindCustomerIdConfirm = () => {
       <div className="w-screen h-px mt-3 bg-gray-200" />
 
       <div className="flex flex-row w-full h-[100px] items-center gap-4">
-        <div className="flex items-center justify-center w-1/2">ABCDE1234</div>
+        <div className="flex items-center justify-center w-1/2">
+          {loginId || '아이디 정보 없음'}
+        </div>
         <div className="flex items-center justify-center w-1/2 text-(--fill-color5)">
-          가입일: 2024-01-01
+          {joinDate ? `가입일: ${joinDate}` : '가입일 정보 없음'}
         </div>
       </div>
 
