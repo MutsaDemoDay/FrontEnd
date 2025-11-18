@@ -150,7 +150,7 @@ export const StoreInfo = () => {
         </div>
 
         {/* 구분선 */}
-        <div className="h-px bg-(--fill-color1)" />
+        <div className="h-px bg-(--fill-color2)" />
 
         <div className="flex flex-col items-center justify-center w-full">
           <img
@@ -198,16 +198,13 @@ export const StoreInfo = () => {
   );
 
   const ReviewTabContent = () => (
-    <div className="w-full text-center text-gray-500">
-      {/* 구분선 */}
-      <div className="h-px bg-(--fill-color1)" />
-
-      {/* 리뷰 탭 내용 */}
+    <div className="w-full p-10 text-center text-gray-500">
       <div className="flex flex-col items-center justify-center w-full h-[160px]">
-        <div className="flex flex-row w-full justify-center">
+        <div className="flex flex-row justify-center items-center">
           <p className="text-[14px] text-(--fill-color7)">2025년 01월 01일</p>
-          <p className="text-[14px] text-(--fill-color6)">
-            에 해당 가게 스탬프를 완료했어요.
+          <p>
+            에 해당 가게 스탬프를 완료했어요. <br />
+            방문 후기를 남겨주세요!
           </p>
         </div>
         <p className="text-[14px] text-(--fill-color6)">

@@ -52,6 +52,15 @@ export const CustomerConfirm = () => {
   // 현재 선택된 단골 가게 슬롯 인덱스
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
 
+  // 닉네임 input 핸들러
+  const handleProfileData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfileData({
+      ...profileData,
+      [name]: value,
+    });
+  };
+
   // 성별 버튼 클릭 핸들러
   const handleGenderClick = (gender: 'male' | 'female') => {
     setProfileData({
@@ -227,6 +236,16 @@ export const CustomerConfirm = () => {
         <div className="w-[120px] h-[120px] rounded-full mt-12 mx-auto cursor-pointer">
           <img src={addProfile} alt="프로필 추가" />
         </div>
+
+        <p className="mt-[18px] font-semibold">닉네임</p>
+        <input
+          type="text"
+          name="nickname"
+          value={profileData.nickname}
+          onChange={handleProfileData}
+          className="focus-within:outline-none border-b mt-2.5 border-gray-300 w-full"
+          placeholder="닉네임을 입력하세요"
+        />
 
         {/* --- 성별 --- */}
         <p className="mt-[18px] font-semibold">성별</p>

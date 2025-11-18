@@ -290,7 +290,7 @@ export const ShopProfile = () => {
                 value="beverage"
                 checked={rewardType === 'beverage'}
                 onChange={() => setRewardType('beverage')}
-                className="w-5 h-5 accent-(--main-color)"
+                className="w-5 h-5 accent-white"
               />
               <span className="text-sm">매장 음료 1잔</span>
             </label>
@@ -302,7 +302,7 @@ export const ShopProfile = () => {
                 value="other"
                 checked={rewardType === 'other'}
                 onChange={() => setRewardType('other')}
-                className="w-5 h-5 accent-(--main-color)"
+                className="w-5 h-5 accent-white"
               />
               <span className="text-sm">기타</span>
             </label>
