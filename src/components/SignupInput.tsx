@@ -6,6 +6,7 @@ export interface OwnerSignupFormData {
   password: string;
   passwordConfirm: string;
   email: string;
+  emailConfirm: string;
   businessNumber: string;
   location: string;
   latitude: number;
@@ -141,7 +142,7 @@ const SignupInput = ({
             <button
               type="button"
               onClick={handleButtonClick}
-              className="w-[68px] h-[48px] bg-(--fill-color6) rounded-[10px] text-[12px] text-white shrink-0 cursor-pointer hover:bg-gray-300 active:bg-(--fill-color3) transition-colors"
+              className="w-[68px] h-[48px] bg-(--fill-color1) rounded-[10px] text-[12px] text-[#5B5B5B] shrink-0 cursor-pointer hover:bg-gray-300 active:bg-(--fill-color3) transition-colors"
             >
               {/* variant에 따라 버튼 텍스트를 다르게 렌더링 */}
               {variant === 'email' ? (
