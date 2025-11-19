@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useRef } from 'react';
-import searchIcon from '../assets/saerchIcon.png';
+import searchIcon from '../assets/searchIcon.png';
 import type { KakaoAddress } from '../components/KakaoAddress';
 import { UserBottomBar } from '../components/UserBottomBar';
 import { StoreSlider } from '../components/StoreSlider';
