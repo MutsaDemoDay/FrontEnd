@@ -7,17 +7,19 @@ import SignupInput, {
 import { useNavigate } from 'react-router-dom';
 import { AddressModal } from '../../components/AddressModal';
 
-
 export const OwnerSignup = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof OwnerSignupFormData, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof OwnerSignupFormData, string>>
+  >({});
 
   const [formData, setFormData] = useState<OwnerSignupFormData>({
     loginId: '',
     password: '',
     passwordConfirm: '',
     email: '',
+    emailConfirm: '',
     businessNumber: '',
     location: '',
     latitude: 0,
@@ -28,18 +30,31 @@ export const OwnerSignup = () => {
     const newErrors: Partial<Record<keyof OwnerSignupFormData, string>> = {};
     let isValid = true;
 
-    for (const key in formData) {
-      if (!formData[key as keyof OwnerSignupFormData]) {
-        newErrors[key as keyof OwnerSignupFormData] = '이 필드를 입력해주세요.';
-        isValid = false;
-      }
+    // 이메일 정규식 (간단한 예시)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!formData.loginId) {
+      newErrors.loginId = '필수 입력 사항입니다.';
+      isValid = false;
     }
 
-    if (
-      formData.password &&
-      formData.passwordConfirm &&
-      formData.password !== formData.passwordConfirm
-    ) {
+    if (!formData.email) {
+      newErrors.email = '필수 입력 사항입니다.';
+      isValid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = '올바른 이메일 형식이 아닙니다.';
+      isValid = false;
+    }
+
+    if (!formData.password) {
+      newErrors.password = '필수 입력 사항입니다.';
+      isValid = false;
+    } else if (formData.password.length <= 8) {
+      newErrors.password = '비밀번호는 8자 이상이어야 합니다.';
+      isValid = false;
+    }
+
+    if (formData.password !== formData.passwordConfirm) {
       newErrors.passwordConfirm = '비밀번호가 일치하지 않습니다.';
       isValid = false;
     }
@@ -56,7 +71,7 @@ export const OwnerSignup = () => {
     });
   };
 
-  async function handleSubmit (e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -91,14 +106,26 @@ export const OwnerSignup = () => {
         throw new Error(errorData.message || '회원가입 요청이 거절되었습니다.');
       }
 
-      console.log('가입 데이터:', formData);
-      alert('가입이 완료되었습니다!');
-      navigate('/signup/owner-success');
+      const responseData = await response.json();
+      const { accessToken, refreshToken } = responseData;
+
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken);
+        if (refreshToken) {
+          localStorage.setItem('refreshToken', refreshToken);
+        }
+        console.log('가입 성공 및 자동 로그인 처리 완료');
+
+        alert('가입이 완료되었습니다!');
+        navigate('/signup/owner-success');
+      } else {
+        throw new Error('회원가입은 성공했으나 토큰을 받지 못했습니다.');
+      }
     } catch (error: any) {
       console.error('회원가입 오류:', error);
       alert(error.message);
     }
-  };
+  }
 
   const handleAddressSearch = () => {
     setIsModalOpen(true);
@@ -116,7 +143,7 @@ export const OwnerSignup = () => {
     setFormData((prevFormData) => ({
       ...prevFormData,
       location: data.address,
-      longitude: parseFloat(data.x), 
+      longitude: parseFloat(data.x),
       latitude: parseFloat(data.y),
     }));
 
@@ -137,6 +164,29 @@ export const OwnerSignup = () => {
 
       {/* 입력 폼 */}
       <div className="flex items-start flex-col mt-10 gap-4 w-[332px]">
+        {/* 1. 이메일 입력창 */}
+        <SignupInput
+          label="이메일"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleOwnerData}
+          error={errors.email}
+          variant="email"
+          placeholder="이메일 주소 입력"
+        />
+        {/* 2. 인증번호 입력창 */}
+        <SignupInput
+          label=""
+          name="emailConfirm"
+          type="text"
+          value={formData.emailConfirm}
+          onChange={handleOwnerData}
+          error={errors.emailConfirm}
+          variant="emailConfirm"
+          placeholder="인증번호"
+          emailForVerification={formData.email}
+        />
         <SignupInput
           label="아이디"
           name="loginId"
@@ -162,14 +212,6 @@ export const OwnerSignup = () => {
           error={errors.passwordConfirm}
         />
         <SignupInput
-          label="이메일"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleOwnerData}
-          error={errors.email}
-        />
-        <SignupInput
           label="사업자등록번호"
           name="businessNumber"
           type="text"
@@ -182,7 +224,7 @@ export const OwnerSignup = () => {
           name="location"
           type="text"
           value={formData.location}
-          onChange={handleOwnerData} 
+          onChange={handleOwnerData}
           readOnly={true}
           error={errors.location}
           variant="address"
