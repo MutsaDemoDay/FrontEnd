@@ -83,19 +83,26 @@ export const FirstPage = () => {
       );
 
       if (!response.ok) {
+        alert('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
         throw new Error(
           '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'
         );
       }
 
-      const data = await response.json();
-      console.log('로그인 성공:', data);
+      const responseData = await response.json();
+      const resultData = responseData.data || responseData;
 
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      navigate('/stamp');
-    } catch (error: any) {
-      console.error('로그인 오류:', error);
+      if (resultData.accessToken) {
+        localStorage.setItem('accessToken', resultData.accessToken);
+        localStorage.setItem('refreshToken', resultData.refreshToken);
+        console.log('토큰 저장 완료:', resultData.accessToken);
+        navigate('/stamp');
+      } else {
+        console.error('토큰을 찾을 수 없습니다. 응답 구조를 확인해주세요.', resultData);
+        alert('로그인 처리에 실패했습니다. (토큰 없음)');
+      }
+    } catch (error) {
+      console.error('로그인 처리 중 오류 발생:', error);
     }
   }
 

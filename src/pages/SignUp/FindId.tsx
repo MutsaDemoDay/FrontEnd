@@ -38,7 +38,7 @@ const EmailVerificationInputs = ({
           disabled={isVerified}
         />
         <button
-          className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] cursor-pointer"
+          className="w-[72px] h-[48px] p-2 rounded-[10px] bg-gray-200 text-[12px] text-[#5B5B5B] items-center cursor-pointer"
           onClick={handleSendCode}
           disabled={isVerified}
         >
@@ -71,19 +71,16 @@ export const FindId = () => {
   const navigate = useNavigate();
 
   const [userType, setUserType] = useState('customer');
-  const [name, setName] = useState('');
-  const [businessRegNumber, setBusinessRegNumber] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [isVerified, setIsVerified] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // <--- 로딩 상태 추가
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // --- 3. EmailVerificationInputs에 props로 전달할 핸들러들 ---
   const handleVerifyCode = async () => {
     try {
       await verifyEmailCode(email, code);
 
-      alert('인증에 성공했습니다.');
       setIsVerified(true);
     } catch (error) {
       console.error('Email verification error:', error);
@@ -99,7 +96,6 @@ export const FindId = () => {
       return;
     }
     sendEmailVerificationCode(email);
-    alert('인증번호를 전송했습니다.');
   };
 
   const handleNextClick = async () => {
@@ -112,28 +108,14 @@ export const FindId = () => {
     setIsSubmitting(true);
 
     try {
-      let url = '';
-      let body: any = {};
+      const apiUri = import.meta.env.VITE_API_URI;
+      const url =
+        userType === 'customer'
+          ? `${apiUri}/v1/auth/user/findId`
+          : `${apiUri}/v1/auth/manager/findId`;
 
-      if (userType === 'customer') {
-        if (!name) {
-          alert('닉네임을 입력해주세요.');
-          setIsSubmitting(false);
-          return;
-        }
-        url = '/v1/user/findId';
-        body = { nickname: name, email: email };
-      } else {
-        if (!businessRegNumber) {
-          alert('사업자등록번호를 입력해주세요.');
-          setIsSubmitting(false);
-          return;
-        }
-        url = '/v1/manager/findId';
-        body = { businessRegNumber: businessRegNumber, email: email };
-      }
+      const body = { email: email };
 
-      // API 요청
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -150,22 +132,22 @@ export const FindId = () => {
       }
 
       const responseData = await response.json();
+      console.log('API Response:', responseData);
+      
+      const resultData = responseData.data || responseData;
 
-
-      // 성공 시, 결과 데이터를 state에 담아 다음 페이지로 이동
       if (userType === 'customer') {
         navigate('/find-customer-id-confirm', {
           state: {
-            loginId: responseData.loginId,
-            createdAt: responseData.createdAt,
+            loginId: resultData.loginId, // responseData.loginId -> resultData.loginId
+            createdAt: resultData.createdAt, // responseData.createdAt -> resultData.createdAt
           },
         });
       } else {
-        // userType === 'owner'
         navigate('/find-owner-id-confirm', {
           state: {
-            loginId: responseData.loginId,
-            createdAt: responseData.createdAt,
+            loginId: resultData.loginId,
+            createdAt: resultData.createdAt,
           },
         });
       }
@@ -211,39 +193,14 @@ export const FindId = () => {
       </div>
 
       <div className="w-full h-auto px-6">
-        {userType === 'customer' ? (
-          <p className="self-start mt-10 text-[20px]">
-            닉네임과 이메일을
-            <br />
-            입력해 주세요.
-          </p>
-        ) : (
-          <p className="self-start mt-10 text-[20px]">
-            사업자등록번호와 이메일을
-            <br />
-            입력해 주세요.
-          </p>
-        )}
+        <p className="self-start mt-10 text-[20px]">
+          본인확인을 위해
+          <br />
+          이메일 인증을 완료해 주세요.
+        </p>
 
-<div className="flex flex-col mt-10 w-full items-center">
+        <div className="flex flex-col mt-10 w-full items-center">
           <div className="flex flex-col items-center w-full text-[12px]">
-            {userType === 'customer' ? (
-              <input
-                type="text"
-                placeholder="닉네임"
-                className="w-full border border-(--fill-color3) rounded-[10px] p-3"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            ) : (
-              <input
-                type="text"
-                placeholder="사업자등록번호 ('-' 제외)"
-                className="w-full border border-(--fill-color3) rounded-[10px] p-3"
-                value={businessRegNumber}
-                onChange={(e) => setBusinessRegNumber(e.target.value)}
-              />
-            )}
             <EmailVerificationInputs
               email={email}
               setEmail={setEmail}
