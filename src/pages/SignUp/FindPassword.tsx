@@ -71,9 +71,7 @@ export const FindPassword = () => {
   const navigate = useNavigate();
 
   const [userType, setUserType] = useState('customer');
-  const [name, setName] = useState('');
   const [id, setId] = useState('');
-  const [businessRegNumber, setBusinessRegNumber] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [isVerified, setIsVerified] = useState(false);
@@ -115,11 +113,11 @@ export const FindPassword = () => {
       }
       identifier = id;
     } else {
-      if (!businessRegNumber) {
-        alert('사업자등록번호를 입력해주세요.');
+      if (!id) {
+        alert('아이디를 입력해주세요.');
         return;
       }
-      identifier = businessRegNumber;
+      identifier = id;
     }
 
     if (userType === 'customer') {
@@ -177,39 +175,12 @@ export const FindPassword = () => {
       </div>
 
       <div className="w-full h-auto px-6">
-        {userType === 'customer' ? (
-          <p className="self-start mt-10 text-[20px]">
-            가입자명과 이메일을
-            <br />
-            입력해 주세요.
-          </p>
-        ) : (
-          <p className="self-start mt-10 text-[20px]">
-            사업자등록번호와 이메일을
-            <br />
-            입력해 주세요.
-          </p>
-        )}
+        <p className="self-start mt-10 text-[20px]">
+          아이디, 이메일을 입력해주세요.
+        </p>
 
         <div className="flex flex-col mt-10 w-full items-center">
           <div className="flex flex-col items-center w-full text-[12px]">
-            {userType === 'customer' ? (
-              <input
-                type="text"
-                placeholder="가입자명"
-                className="w-full border border-(--fill-color3) rounded-[10px] p-3"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            ) : (
-              <input
-                type="text"
-                placeholder="사업자등록번호 ('-' 제외)"
-                className="w-full border border-(--fill-color3) rounded-[10px] p-3"
-                value={businessRegNumber}
-                onChange={(e) => setBusinessRegNumber(e.target.value)}
-              />
-            )}
             <input
               type="text"
               placeholder="아이디 입력"

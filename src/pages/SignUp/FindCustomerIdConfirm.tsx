@@ -4,13 +4,13 @@ import { useEffect } from 'react';
 
 export const FindCustomerIdConfirm = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // <--- location 훅 사용
-  const { loginId, joinDate } = location.state || {}; // <--- state에서 데이터 추출
+  const location = useLocation();
+  const { loginId, createdAt } = location.state || {};
 
   useEffect(() => {
     if (!loginId) {
       alert('잘못된 접근입니다. 아이디 찾기를 다시 시도해주세요.');
-      navigate('/find-id'); // 아이디 찾기 페이지로 이동
+      navigate('/find-id');
     }
   }, [loginId, navigate]);
 
@@ -61,7 +61,7 @@ export const FindCustomerIdConfirm = () => {
           {loginId || '아이디 정보 없음'}
         </div>
         <div className="flex items-center justify-center w-1/2 text-(--fill-color5)">
-          {joinDate ? `가입일: ${joinDate}` : '가입일 정보 없음'}
+          {createdAt ? `가입일: ${createdAt}` : '가입일 정보 없음'}
         </div>
       </div>
 
