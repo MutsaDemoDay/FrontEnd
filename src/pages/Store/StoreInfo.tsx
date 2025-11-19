@@ -17,40 +17,57 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 export const StoreInfo = () => {
   const [selectedTab, setSelectedTab] = useState<'home' | 'review'>('home');
-  const [isFavorited, setIsFavorited] = useState(false); // <--- '좋아요' 상태 추가
-  const [isLoading, setIsLoading] = useState(true); // <--- 로딩 상태 추가
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
-  const { storeid } = useParams<{ storeid: string }>();
+  const { storeId } = useParams<{ storeId: string }>();
 
+  // 1. 초기 즐겨찾기 상태 확인 (GET)
   useEffect(() => {
+    const apiUri = import.meta.env.VITE_API_URI;
     const checkFavoriteStatus = async () => {
-      if (!storeid) {
+      if (!storeId) {
         setIsLoading(false);
-        return; // storeid가 없으면 실행 중지
+        return;
       }
 
       const token = localStorage.getItem('accessToken');
       if (!token) {
         setIsLoading(false);
-        // 로그인하지 않았으므로 '좋아요' 상태일 수 없음
         return;
       }
 
+      console.log(token);
+      
       try {
-        const response = await fetch(`/api/v1/favstores/${storeid}`, {
+        // [수정] GET 요청
+        const response = await fetch(`${apiUri}/v1/favstores`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
           },
         });
 
         if (response.ok) {
-          setIsFavorited(true); // 이미 '좋아요' 한 상태
+          // [수정 핵심] 응답 Body를 파싱하여 실제 favorite 값을 확인해야 함
+          const result = await response.json();
+          console.log('[Favorite Check] Response:', result);
+
+          // API 응답 구조: { data: [ { favorite: true, ... } ] }
+          if (result.data && Array.isArray(result.data) && result.data.length > 0) {
+            // 배열의 첫 번째 요소 혹은 현재 storeId와 일치하는 요소의 favorite 값 사용
+            const storeData = result.data.find((item: any) => item.storeId === Number(storeId)) || result.data[0];
+            setIsFavorited(storeData.favorite);
+          } else {
+            // 데이터가 없으면 즐겨찾기 안 된 상태로 간주
+            setIsFavorited(false);
+          }
         } else if (response.status === 404) {
-          setIsFavorited(false); // '좋아요' 하지 않은 상태
+          setIsFavorited(false);
         } else {
-          // 기타 서버 오류
           console.error('Failed to check favorite status:', response.statusText);
         }
       } catch (error) {
@@ -61,47 +78,51 @@ export const StoreInfo = () => {
     };
 
     checkFavoriteStatus();
-  }, [storeid]); // storeid가 변경될 때마다 다시 실행
+  }, [storeId]);
 
   const handleGoToReview = () => {
-    navigate('/store/review');
+    navigate(`/store/${storeId}/review`);
   };
 
-  // <--- NEW: '좋아요' 토글 핸들러
+  // 2. 즐겨찾기 토글 (POST / DELETE)
   const handleToggleFavorite = async () => {
-    if (!storeid) {
-      alert('가게 ID를 찾을 수 없습니다.');
-      return;
-    }
+    const apiUri = import.meta.env.VITE_API_URI;
+    if (!storeId) return;
 
     const token = localStorage.getItem('accessToken');
     if (!token) {
       alert('로그인이 필요합니다.');
-      navigate('/'); // 필요시 로그인 페이지로 이동
       return;
     }
 
-    const url = `/api/v1/favstores/${storeid}`;
-    const method = isFavorited ? 'DELETE' : 'POST'; // 상태에 따라 메소드 변경
+    const url = `${apiUri}/v1/favstores/${storeId}`;
+    
+    const method = isFavorited ? 'DELETE' : 'POST';
+
+    console.log(`[Favorite Toggle] ${method} Request to: ${url}`);
 
     try {
       const response = await fetch(url, {
         method: method,
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          // 빈 Body를 보낼 때는 Content-Type을 생략하는 것이 안전함 (400 에러 방지)
         },
+        body: '', // 빈 문자열 전송 (curl -d '' 와 동일)
       });
 
       if (response.ok) {
-        // 성공 시, 로컬 상태를 반전
         setIsFavorited((prev) => !prev);
+        console.log(`[Favorite Toggle] Success! New State: ${!isFavorited}`);
       } else {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message ||
-            `'좋아요' ${isFavorited ? '취소' : '추가'}에 실패했습니다.`
-        );
+        // 에러 로그 강화
+        console.error(`[Favorite Toggle Error] Status: ${response.status}`);
+        if (response.status === 405) {
+          alert('서버 오류: 이 기능(DELETE)은 현재 지원되지 않습니다. (405 Method Not Allowed)');
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || '요청 실패');
+        }
       }
     } catch (error: any) {
       console.error('Favorite toggle error:', error);
@@ -289,7 +310,11 @@ export const StoreInfo = () => {
                 onClick={handleToggleFavorite} // 핸들러 연결
               />
             )}
-            <img src={share_icon} alt="공유하기" className="w-[16px] h-[16px] m-3 cursor-pointer" />
+            <img
+              src={share_icon}
+              alt="공유하기"
+              className="w-[16px] h-[16px] m-3 cursor-pointer"
+            />
           </div>
         </div>
       </div>

@@ -87,7 +87,7 @@ function App() {
           <Route path='/find-owner-id-confirm' element={<FindOwnerIdConfirm />} />
           <Route path='/find-password' element={<FindPassword />} />
           <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
-          <Route path="/store/:storeNumber" element={<StoreInfo />} />
+          <Route path="/store/:storeId" element={<StoreInfo />} />
         </Route>
       </Routes>
     </BrowserRouter>
