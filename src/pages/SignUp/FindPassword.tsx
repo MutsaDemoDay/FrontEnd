@@ -75,11 +75,11 @@ export const FindPassword = () => {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [isVerified, setIsVerified] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleVerifyCode = async () => {
     try {
       await verifyEmailCode(email, code);
-
       alert('인증에 성공했습니다.');
       setIsVerified(true);
     } catch (error) {
@@ -95,49 +95,69 @@ export const FindPassword = () => {
       return;
     }
     sendEmailVerificationCode(email);
-    alert('인증번호를 전송했습니다.');
   };
 
-  const handleNextClick = () => {
+  const handleNextClick = async () => {
     if (!isVerified) {
       alert('이메일 인증을 완료해주세요.');
       return;
     }
-
-    let identifier = '';
-
-    if (userType === 'customer') {
-      if (!id) {
-        alert('아이디를 입력해주세요.');
-        return;
-      }
-      identifier = id;
-    } else {
-      if (!id) {
-        alert('아이디를 입력해주세요.');
-        return;
-      }
-      identifier = id;
+    if (!id) {
+      alert('아이디를 입력해주세요.');
+      return;
     }
+    
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-    if (userType === 'customer') {
-      navigate('/find-customer-id-confirm', {
+    try {
+      const apiUri = import.meta.env.VITE_API_URI;
+      const url =
+        userType === 'customer'
+          ? `${apiUri}/v1/auth/user/findPassword`
+          : `${apiUri}/v1/auth/manager/findPassword`;
+      
+      const body = { 
+        loginId: id, 
+        email: email 
+      };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || '회원 정보를 찾을 수 없습니다.');
+      }
+
+      const responseData = await response.json();
+      
+      // 응답 구조: { data: { resetToken: "..." }, ... }
+      // 만약 data가 없으면 responseData 자체가 data일 수 있으므로 안전하게 처리
+      const resultData = responseData.data || responseData;
+      const resetToken = resultData.resetToken;
+
+      if (!resetToken) {
+        throw new Error('비밀번호 재설정 토큰을 받아오지 못했습니다.');
+      }
+
+      // 토큰을 가지고 재설정 페이지로 이동
+      navigate('/reset-password', {
         state: {
-          userType: userType,
-          identifier: identifier,
-          email: email,
+          resetToken: resetToken,
         },
       });
-    }
 
-    if (userType === 'owner') {
-      navigate('/find-owner-id-confirm', {
-        state: {
-          userType: userType,
-          identifier: identifier,
-          email: email,
-        },
-      });
+    } catch (error: any) {
+      console.error('Find Password error:', error);
+      alert(error.message || '오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -203,11 +223,15 @@ export const FindPassword = () => {
 
       <div className="fixed w-full h-[56px] text-[20px] font-semibold px-6 bottom-10">
         <button
-          className={`w-full rounded-[40px] text-white p-3 bg-(--main-color) cursor-pointer`}
+          className={`w-full rounded-[40px] text-white p-3 ${
+            !isVerified || isSubmitting
+              ? 'bg-gray-400'
+              : 'bg-(--main-color) cursor-pointer'
+          }`}
           onClick={handleNextClick}
-          disabled={!isVerified}
+          disabled={!isVerified || isSubmitting}
         >
-          다음
+          {isSubmitting ? '확인 중...' : '다음'}
         </button>
       </div>
     </div>

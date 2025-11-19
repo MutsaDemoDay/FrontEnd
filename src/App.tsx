@@ -31,6 +31,7 @@ import { OwnerFail } from './pages/SignUp/OwnerFail';
 import { ShopProfile } from './pages/Onboarding/ShopProfile';
 import { FindOwnerIdConfirm } from './pages/SignUp/FindOwnerIdConfirm';
 import { StoreInfo } from './pages/Store/StoreInfo';
+import { ResetPassword } from './pages/SignUp/ResetPassword';
 
 function App() {
   return (
@@ -68,6 +69,7 @@ function App() {
             element={<FindOwnerIdConfirm />}
           />
           <Route path="/find-password" element={<FindPassword />} />
+          <Route path='/reset-password' element={<ResetPassword />} />
           <Route path="/stamp/event" element={<Event />} />
           <Route path="/stampearning" element={<StampEarning />} />
           <Route path="/stamphistory" element={<StampHistory />} />

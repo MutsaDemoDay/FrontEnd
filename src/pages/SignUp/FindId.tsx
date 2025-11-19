@@ -96,7 +96,6 @@ export const FindId = () => {
       return;
     }
     sendEmailVerificationCode(email);
-    alert('인증번호를 전송했습니다.');
   };
 
   const handleNextClick = async () => {
