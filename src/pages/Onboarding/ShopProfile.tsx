@@ -131,7 +131,7 @@ export const ShopProfile = () => {
         <div className="w-full mt-9 relative">
           <p className="text-[15px] font-medium">매장 카테고리</p>
           <div
-            className="w-full h-[50px] border border-(--fill-color3) mt-2 p-2 flex justify-between items-center cursor-pointer rounded-[10px]"
+            className="w-full h-[50px] border border-(--fill-color3) mt-2 p-4 flex justify-between items-center cursor-pointer rounded-[10px]"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <span className={category ? 'text-black' : 'text-gray-400'}>
@@ -231,7 +231,9 @@ export const ShopProfile = () => {
 
         {/* 4. 스탬프 디자인 (이미지 첨부) */}
         <div className="w-full flex flex-col items-center mt-12">
-          <p className="text-[18px] text-(--main-color) font-semibold mb-3 self-start">스탬프 설정</p>
+          <p className="text-[18px] text-(--main-color) font-semibold mb-3 self-start">
+            스탬프 설정
+          </p>
           <input
             type="file"
             accept="image/*"
@@ -239,50 +241,64 @@ export const ShopProfile = () => {
             onChange={handleImageUpload}
             className="hidden"
           />
-          <img src={stamp_inform} alt="Stamp Information" className='w-[330px] h-[57px]' />
+          <img
+            src={stamp_inform}
+            alt="Stamp Information"
+            className="w-[330px] h-[57px]"
+          />
 
-          {/* 이미지 미리보기 영역 (330px : 160px) */}
-          <div
-            className="w-[330px] h-[160px] bg-gray-100 rounded-lg border border-dashed border-gray-400 flex items-center justify-center overflow-hidden relative cursor-pointer mx-auto"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {stampImagePreview ? (
-              <img
-                src={stampImagePreview}
-                alt="Stamp Preview"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="flex flex-col items-center text-gray-400">
-                <span className="text-2xl mb-1">+</span>
-                <span className="text-xs">이미지를 첨부해주세요</span>
-                <span className="text-[10px] text-gray-300 mt-1">
-                  (권장: 330px x 160px)
-                </span>
-              </div>
-            )}
+          <div className="w-full flex flex-row items-center justify-between">
+            <p className="text-[14px] text-[#5B5B5B]">
+              스탬프
+              <br />
+              디자인
+            </p>
+            <div
+              className="w-[240px] h-[160px] mt-5 bg-white rounded-lg border border-dashed border-gray-400 flex items-center justify-center overflow-hidden relative cursor-pointer mx-auto"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {stampImagePreview ? (
+                <img
+                  src={stampImagePreview}
+                  alt="Stamp Preview"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center text-gray-400">
+                  <span className="text-2xl mb-1">+</span>
+                  <span className="text-xs">이미지를 첨부해주세요</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* 5. 적립 금액 조건 */}
-        <div className="w-full mt-9">
-          <p className="text-[15px] font-medium">적립 금액 조건</p>
-          <div className="flex items-center w-full h-10 border-b border-gray-300 mt-2">
+        <div className="w-full mt-9 flex flex-row items-center justify-between">
+          {' '}
+          {/* Added justify-between */}
+          <p className="text-[14px] text-[#5B5B5B] font-medium">
+            적립 금액 조건
+          </p>
+          <div className="flex items-center border-b border-gray-300 mt-2 flex-grow justify-end mx-4">
+            {' '}
+            {/* Removed fixed width, added flex-grow, ml-4 for spacing */}
             <input
               type="number"
               value={minOrderAmount}
               onChange={(e) => setMinOrderAmount(e.target.value)}
-              placeholder="예: 3000"
-              className="flex-1 h-full p-2 focus:outline-none text-right"
+              placeholder=""
+              className="w-24 h-full p-2 focus:outline-none text-right" // Set a fixed or max width for the input field itself
             />
-            <span className="ml-2 pr-2 text-gray-600 text-sm">원 이상</span>
+            <span className="text-gray-600 text-sm mx-2">원 이상</span>{' '}
+            {/* Adjusted spacing */}
           </div>
         </div>
 
         {/* 6. 리워드 보상 선택 */}
-        <div className="w-full mt-9">
-          <p className="text-[15px] font-medium mb-4">리워드 보상</p>
-          <div className="flex flex-col gap-3">
+        <div className="w-full mt-9 flex flex-row items-center gap-3">
+          <p className="text-[15px] font-medium mr-3">리워드 보상</p>
+          <div className="flex flex-row gap-3">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="radio"
@@ -290,7 +306,7 @@ export const ShopProfile = () => {
                 value="beverage"
                 checked={rewardType === 'beverage'}
                 onChange={() => setRewardType('beverage')}
-                className="w-5 h-5 accent-white"
+                className="w-5 h-5 accent-black"
               />
               <span className="text-sm">매장 음료 1잔</span>
             </label>
@@ -302,16 +318,16 @@ export const ShopProfile = () => {
                 value="other"
                 checked={rewardType === 'other'}
                 onChange={() => setRewardType('other')}
-                className="w-5 h-5 accent-white"
+                className="w-5 h-5 accent-black"
               />
-              <span className="text-sm">기타</span>
+              <span className="text-sm">기타 아이템</span>
             </label>
           </div>
         </div>
 
         {/* 저장 버튼 예시 */}
         <button className="w-full h-[56px] mt-12 bg-(--main-color) text-white rounded-[40px] font-bold text-lg">
-          저장하기
+          확인
         </button>
       </div>
     </div>
