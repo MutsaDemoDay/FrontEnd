@@ -3,6 +3,7 @@ import wallet_logo from '../../assets/wallet_logo.png';
 import reward_logo from '../../assets/reward_logo.png';
 import { UserBottomBar } from '../../components/UserBottomBar';
 import question_icon from '../../assets/question_icon.png';
+import { useNavigate } from 'react-router-dom';
 
 const USERNAME = ['김멋사'];
 const USER_LEVEL = 2;
@@ -29,25 +30,6 @@ const StampProgress = ({ current, max, level }: { current: number; max: number; 
   const currentAngle = startAngle + progress * maxAngle;
   const knobX = size / 2 + radius * Math.cos((currentAngle * Math.PI) / 180);
   const knobY = size / 2 + radius * Math.sin((currentAngle * Math.PI) / 180);
-
-  // const getStampCount = async () => {
-  //   const apiUrl = import.meta.env.VITE_API_URI;
-  //   try {
-  //     const response = await fetch(`${apiUrl}/user/stamp`, {
-  //       method: 'GET',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         // 여기에 인증 토큰이나 필요한 헤더 추가
-  //       },
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error('네트워크 응답이 올바르지 않습니다.');
-  //     }
-  //   } catch (error) {
-  //     console.error('스탬프 수를 가져오는 중 오류 발생:', error);
-  //   }
-  // }
 
   return (
     <div className="relative flex justify-center items-center" style={{ width: size, height: size }}>
@@ -121,8 +103,32 @@ const StampProgress = ({ current, max, level }: { current: number; max: number; 
 };
 
 
-// --- 메인 컴포넌트 ---
 export const Reward = () => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate('/reward/info');
+  }
+
+
+  // const getStampCount = async () => {
+  //   const apiUrl = import.meta.env.VITE_API_URI;
+  //   try {
+  //     const response = await fetch(`${apiUrl}/user/stamp`, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         // 여기에 인증 토큰이나 필요한 헤더 추가
+  //       },
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error('네트워크 응답이 올바르지 않습니다.');
+  //     }
+  //   } catch (error) {
+  //     console.error('스탬프 수를 가져오는 중 오류 발생:', error);
+  //   }
+  // }
   return (
     <div className="flex flex-col justify-center items-center w-full px-5 pb-24"> {/* 하단 바 고려하여 pb 추가 */}
       <div className="self-start mt-4">
@@ -167,7 +173,7 @@ export const Reward = () => {
           <p className="flex text-[#5A3A28] font-bold text-[20px]">
             Current Benefit
           </p>
-          <img src={question_icon} alt="" className='flex w-[16px] h-[16px]' />
+          <img src={question_icon} alt="" className='flex w-[16px] h-[16px]' onClick={handleClick}/>
         </div>
         <div className="flex flex-row items-center w-full bg-white rounded-[50px] mt-2 p-3 shadow-sm">
           <img
