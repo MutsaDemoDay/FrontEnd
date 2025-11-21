@@ -23,6 +23,8 @@ export default defineConfig([
       'react/react-in-jsx-scope': 'off',
       "react/jsx-props-no-spreading": "off",
       "import/prefer-default-export": "off",
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "off",
     },
   },
 ]);

@@ -6,7 +6,7 @@
   ],
   "compilerOptions": {
     "jsx": "react-jsx",
-    "noUnusedParameters": false,
-    "noUnusedLocals": false,
+    "noUnusedLocals": false,      // 지역 변수 미사용 허용
+    "noUnusedParameters": false   // 함수 파라미터 미사용 허용
   }
 }
