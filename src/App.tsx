@@ -33,6 +33,7 @@ import { FindOwnerIdConfirm } from './pages/SignUp/FindOwnerIdConfirm';
 import { StoreInfo } from './pages/Store/StoreInfo';
 import { ResetPassword } from './pages/SignUp/ResetPassword';
 import { StoreReview } from './pages/Store/StoreReview';
+import { RewardInfo } from './pages/Reward/RewardInfo';
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
             element={<CustomerConfirm />}
           />
           <Route path="/reward" element={<Reward />} />
+          <Route path="/reward/info" element={<RewardInfo />} />
           <Route path="/stamp" element={<StampPage />} />
           <Route path="/find-id" element={<FindId />} />
           <Route
