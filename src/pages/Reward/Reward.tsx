@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import wallet_logo from '../../assets/wallet_logo.png';
 import reward_logo from '../../assets/reward_logo.png';
 import { UserBottomBar } from '../../components/UserBottomBar';

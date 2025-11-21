@@ -12,7 +12,7 @@ import default_store_stamp from '../../assets/store_stamp.png';
 import gift_icon from '../../assets/gift_icon.png';
 import americano from '../../assets/americano.png';
 import star_empty_icon from '../../assets/star_empty_icon.png';
-import star_full_icon from '../../assets/star_full_icon.png';
+// import star_full_icon from '../../assets/star_full_icon.png';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
