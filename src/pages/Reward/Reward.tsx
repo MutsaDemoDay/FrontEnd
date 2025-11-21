@@ -5,9 +5,32 @@ import { UserBottomBar } from '../../components/UserBottomBar';
 import question_icon from '../../assets/question_icon.png';
 import { useNavigate } from 'react-router-dom';
 
+const example_stores = [
+  {
+    storeName: '블루보틀 홍대점',
+    storeAddress: '서울시 마포구 어울마당로 55',
+    issuedDate: '2025-11-08',
+  },
+  {
+    storeName: '블루보틀 홍대점',
+    storeAddress: '서울시 마포구 어울마당로 55',
+    issuedDate: '2025-11-08',
+  },
+  {
+    storeName: '블루보틀 홍대점',
+    storeAddress: '서울시 마포구 어울마당로 55',
+    issuedDate: '2025-11-09',
+  },
+  {
+    storeName: '블루보틀 홍대점',
+    storeAddress: '서울시 마포구 어울마당로 55',
+    issuedDate: '2025-11-09',
+  },
+];
+
 const USERNAME = ['김멋사'];
 const USER_LEVEL = 2;
-const CURRENT_STAMP = 30;
+const CURRENT_STAMP = example_stores.length;
 const MAXIMUM_STAMP = 60;
 const WALLET_BENEFIT = ['초급 지갑 테마', '중급 지갑 테마'];
 const REWARD_BENEFIT = ['"브루 수련생", "카페 수집가" 뱃지 획득', '중급 상장'];
@@ -110,25 +133,44 @@ export const Reward = () => {
     navigate('/reward/info');
   }
 
+  const handleFetchStamps = async () => {
+    const stampCount = await getStampCount();
+    console.log('현재 스탬프 수:', stampCount);
+  };
 
-  // const getStampCount = async () => {
-  //   const apiUrl = import.meta.env.VITE_API_URI;
-  //   try {
-  //     const response = await fetch(`${apiUrl}/user/stamp`, {
-  //       method: 'GET',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         // 여기에 인증 토큰이나 필요한 헤더 추가
-  //       },
-  //     });
+  const getStampCount = async () => {
+    const apiUrl = import.meta.env.VITE_API_URI;
+    try {
+      const response = await fetch(`${apiUrl}/v1/users/stamps/history`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken') || ''}`,
+        },
+      });
 
-  //     if (!response.ok) {
-  //       throw new Error('네트워크 응답이 올바르지 않습니다.');
-  //     }
-  //   } catch (error) {
-  //     console.error('스탬프 수를 가져오는 중 오류 발생:', error);
-  //   }
-  // }
+      if (!response.ok) {
+        throw new Error('네트워크 응답이 올바르지 않습니다.');
+      }
+
+      const data = await response.json();
+      console.log('스탬프 데이터:', data);
+
+      return data.length; // 스탬프 수 반환
+    } catch (error) {
+      console.error('스탬프 수를 가져오는 중 오류 발생:', error);
+    }
+  };
+  const [stampCount, setStampCount] = React.useState<number>(CURRENT_STAMP);
+
+  React.useEffect(() => {
+    handleFetchStamps().then((count) => {
+      if (count !== undefined) {
+        setStampCount(count);
+      }
+    });
+  }, []);
+
   return (
     <div className="flex flex-col justify-center items-center w-full px-5 pb-24"> {/* 하단 바 고려하여 pb 추가 */}
       <div className="self-start mt-4">
@@ -144,7 +186,7 @@ export const Reward = () => {
         <p className="text-[10px] text-(--main-color2)">내가 모은 스탬프</p>
         <div className="flex flex-row justify-center items-baseline">
           <p className="font-bold text-[20px] text-(--main-color2)">
-            {CURRENT_STAMP} / {MAXIMUM_STAMP}
+            {stampCount} / {MAXIMUM_STAMP}
           </p>
           <p className="font-medium text-[10px] ml-1 text-gray-500">Stamp</p>
         </div>
@@ -153,7 +195,7 @@ export const Reward = () => {
       {/* 진척도 그림 영역 (수정됨) */}
       <div className="mt-[-20px]">
         <StampProgress 
-          current={CURRENT_STAMP} 
+          current={stampCount} 
           max={MAXIMUM_STAMP} 
           level={USER_LEVEL} 
         />
@@ -163,7 +205,7 @@ export const Reward = () => {
         <p>다음 레벨까지&nbsp;</p>
         {/* Tailwind에서 CSS 변수 사용 시 [] 또는 config 필요. 여기선 색상 하드코딩 혹은 text-[var(--main-color)] 사용 권장 */}
         <p className="text-[var(--main-color)] font-bold">
-          {MAXIMUM_STAMP - CURRENT_STAMP}스탬프&nbsp;
+          {MAXIMUM_STAMP - stampCount}스탬프&nbsp;
         </p>
         <p>남았어요!</p>
       </div>

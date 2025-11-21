@@ -5,7 +5,6 @@ import wallet_theme_icon from '../../assets/wallet_theme_icon.png';
 import badge_theme_icon from '../../assets/badge_theme_icon.png';
 import review_theme_icon from '../../assets/review_theme_icon.png';
 
-// 데이터에 화면에 표시될 '설명(description)' 필드를 추가했습니다.
 const LEVEL_BENEFITS = [
   {
     level: 1,
@@ -49,6 +48,7 @@ const LEVEL_BENEFITS = [
   },
 ];
 
+
 export const RewardInfo = () => {
   // 초기값을 2로 설정하여 스크린샷과 동일하게 시작하거나 1로 설정
   const [selectedLevel, setSelectedLevel] = React.useState<number>(2);
@@ -64,7 +64,8 @@ export const RewardInfo = () => {
       {/* 상단 네비게이션 */}
       <div className="w-full flex justify-between items-center">
         <BackButton />
-        <div className="w-[24px]"></div> {/* BackButton과 균형을 맞추기 위한 빈 div */}
+        <div className="w-[24px]"></div>{' '}
+        {/* BackButton과 균형을 맞추기 위한 빈 div */}
       </div>
 
       {/* 타이틀 영역 */}
@@ -92,11 +93,9 @@ export const RewardInfo = () => {
       {/* 레벨 혜택 영역 */}
       <div className="w-full flex flex-col justify-start items-center mt-8">
         <div className="w-full flex justify-start ml-6 mb-4">
-            <p className="text-[#8B8B8B] text-[16px] font-bold">
-            Level benefit
-            </p>
+          <p className="text-[#8B8B8B] text-[16px] font-bold">Level benefit</p>
         </div>
-        
+
         {/* 1. 레벨 선택 탭 버튼 */}
         <div className="w-full flex flex-row justify-between gap-2 px-1">
           {LEVEL_BENEFITS.map((level) => {
@@ -110,7 +109,7 @@ export const RewardInfo = () => {
                   ${
                     isSelected
                       ? 'border-(--main-color) bg-white' // 선택됨: 주황 테두리
-                      : 'border-(--fill-color4) bg-white'   // 미선택: 회색 테두리
+                      : 'border-(--fill-color4) bg-white' // 미선택: 회색 테두리
                   }
                 `}
               >
@@ -148,7 +147,11 @@ export const RewardInfo = () => {
             <div className="flex flex-col gap-3">
               {/* 지갑 테마 혜택 */}
               <div className="flex items-center bg-(--fill-color1) rounded-[50px] p-5 h-[64px]">
-                <img src={wallet_theme_icon} alt="icon" className="w-[27px] h-[27px] mr-4" />
+                <img
+                  src={wallet_theme_icon}
+                  alt="icon"
+                  className="w-[27px] h-[27px] mr-4"
+                />
                 <span className="text-(--fill-color6) text-[14px] font-semibold">
                   {currentLevelData.walletTheme}
                 </span>
@@ -157,18 +160,32 @@ export const RewardInfo = () => {
               {/* 뱃지 획득 혜택 (뱃지가 있을 경우에만 표시) */}
               {currentLevelData.badges.length > 0 && (
                 <div className="flex items-center bg-(--fill-color1) rounded-[50px] p-5 h-[64px]">
-                  <img src={badge_theme_icon} alt="icon" className="w-[27px] h-[27px] mr-4" />
+                  <img
+                    src={badge_theme_icon}
+                    alt="icon"
+                    className="w-[27px] h-[27px] mr-4"
+                  />
                   <span className="text-(--fill-color6) text-[14px] font-semibold">
-                     {/* 배열을 문자열로 합쳐서 보여줌 (따옴표 포함) */}
-                    {currentLevelData.badges.map(b => `"${b}"`).join(' ')} 뱃지 획득
+                    {/* 배열을 문자열로 합쳐서 보여줌 (따옴표 포함) */}
+                    {currentLevelData.badges
+                      .map((b) => `"${b}"`)
+                      .join(' ')}{' '}
+                    뱃지 획득
                   </span>
                 </div>
               )}
 
               {/* 추가 혜택 (있을 경우에만 표시) */}
               {currentLevelData.additionalBenefits.map((benefit, index) => (
-                <div key={index} className="flex items-center bg-(--fill-color1) rounded-[50px] p-5 h-[64px]">
-                   <img src={review_theme_icon} alt="icon" className="w-[27px] h-[27px] mr-4" />
+                <div
+                  key={index}
+                  className="flex items-center bg-(--fill-color1) rounded-[50px] p-5 h-[64px]"
+                >
+                  <img
+                    src={review_theme_icon}
+                    alt="icon"
+                    className="w-[27px] h-[27px] mr-4"
+                  />
                   <span className="text-(--fill-color6) text-[14px] font-semibold">
                     {benefit}
                   </span>
