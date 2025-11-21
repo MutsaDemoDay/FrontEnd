@@ -31,7 +31,7 @@ interface CurrentPosition {
 const stores: Store[] = [
   {
     id: 1,
-    name: '카페홍문관',
+    name: '테스트 카페',
     category: '카페',
     address: '서울 마포구 와우산로 94 홍문관 1층',
     lat: 37.557434302,

@@ -127,9 +127,9 @@ export const FirstPage = () => {
       </div>
 
       {/* 아이디, 비밀번호 */}
-      <form className="flex flex-col w-[320px] mt-20 text-(--fill-color4)" onSubmit={handleLogin}>
+      <form className="flex flex-col w-[320px] mt-20 " onSubmit={handleLogin}>
         <input
-          className="bg-[#F3F3F3] rounded-[40px] h-[50px] pl-5 mb-2"
+          className="bg-[#F3F3F3] rounded-[40px] h-[50px] pl-5 mb-2 "
           placeholder="아이디"
           value={loginData.loginId}
           name="loginId"

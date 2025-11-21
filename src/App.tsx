@@ -15,7 +15,7 @@ import { CustomerOnboarding } from './pages/Onboarding/CustomerOnboarding';
 import { MapPage } from './pages/MapPage';
 import { OwnerSuccess } from './pages/SignUp/OwnerSuccess';
 import { CustomerConfirm } from './pages/Onboarding/CustomerConfirm';
-import { Reward } from './pages/Reward';
+import { Reward } from './pages/Reward/Reward';
 import StampPage from './pages/Stamp/StampPage';
 import { Event } from './pages/Stamp/Event';
 import { StampEarning } from './pages/Stamp/StampEarning';
@@ -32,6 +32,7 @@ import { ShopProfile } from './pages/Onboarding/ShopProfile';
 import { FindOwnerIdConfirm } from './pages/SignUp/FindOwnerIdConfirm';
 import { StoreInfo } from './pages/Store/StoreInfo';
 import { ResetPassword } from './pages/SignUp/ResetPassword';
+import { StoreReview } from './pages/Store/StoreReview';
 
 function App() {
   return (
@@ -69,7 +70,7 @@ function App() {
             element={<FindOwnerIdConfirm />}
           />
           <Route path="/find-password" element={<FindPassword />} />
-          <Route path='/reset-password' element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/stamp/event" element={<Event />} />
           <Route path="/stampearning" element={<StampEarning />} />
           <Route path="/stamphistory" element={<StampHistory />} />
@@ -78,16 +79,26 @@ function App() {
           <Route path="/stampregistration4" element={<StampRegistration4 />} />
           <Route path="/find-id" element={<FindId />} />
           <Route path="/find-password" element={<FindPassword />} />
-          <Route path='/map' element={<MapPage />} />
-          <Route path='/signup/customer-confirm' element={<CustomerConfirm />} />
-          <Route path='/reward' element={<Reward />} />
-          <Route path='/stamp' element={<StampPage />} />
-          <Route path='/find-id' element={<FindId />} />
-          <Route path='/find-customer-id-confirm' element={<FindCustomerIdConfirm />} />
-          <Route path='/find-owner-id-confirm' element={<FindOwnerIdConfirm />} />
-          <Route path='/find-password' element={<FindPassword />} />
+          <Route path="/map" element={<MapPage />} />
+          <Route
+            path="/signup/customer-confirm"
+            element={<CustomerConfirm />}
+          />
+          <Route path="/reward" element={<Reward />} />
+          <Route path="/stamp" element={<StampPage />} />
+          <Route path="/find-id" element={<FindId />} />
+          <Route
+            path="/find-customer-id-confirm"
+            element={<FindCustomerIdConfirm />}
+          />
+          <Route
+            path="/find-owner-id-confirm"
+            element={<FindOwnerIdConfirm />}
+          />
+          <Route path="/find-password" element={<FindPassword />} />
           <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
           <Route path="/store/:storeId" element={<StoreInfo />} />
+          <Route path="/store/:storeId/review" element={<StoreReview />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -23,7 +23,12 @@ const StoreCard: React.FC<{
   const navigate = useNavigate();
 
   const handleNavigate = () => {
-    navigate(`/store/${store.id}`);
+    navigate(`/store/${store.id}`, { 
+      state: { 
+        storeName: store.name,
+        category: store.category 
+      } 
+    });
   };
 
   return (
