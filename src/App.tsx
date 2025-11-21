@@ -18,7 +18,6 @@ import { CustomerConfirm } from './pages/Onboarding/CustomerConfirm';
 import { Reward } from './pages/Reward/Reward';
 import StampPage from './pages/Stamp/StampPage';
 import { Event } from './pages/Stamp/Event';
-import { StampEarning } from './pages/Stamp/StampEarning';
 import StampHistory from './pages/Stamp/StampHistory';
 import StampSetting from './pages/Stamp/StampSetting';
 import { StampRegistration1 } from './pages/Stamp/StampRegistration1';
@@ -74,7 +73,6 @@ function App() {
           <Route path="/find-password" element={<FindPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/stamp/event" element={<Event />} />
-          <Route path="/stampearning" element={<StampEarning />} />
           <Route path="/stamphistory" element={<StampHistory />} />
           <Route path="/stampsetting" element={<StampSetting />} />
           <Route path="/stampregistration1" element={<StampRegistration1 />} />
