@@ -1,10 +1,27 @@
-import { Link } from 'react-router-dom'; // 'Link'가 이미 import 되어 있습니다.
+import { Link, useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
 import { UserBottomBar } from '../../components/UserBottomBar';
 import setting_mini from '../../assets/setting_mini.png';
 import profile_mini from '../../assets/user_mini.png';
 
 export default function Setting() {
+  // const navigate = useNavigate();
+  // const handleClick = ()=> {
+  //   fetchlogout();
+  // }
+
+  // async function fetchlogout(){
+  //   try{
+  //     const apiuri = import.meta.env.VITE_API_URI;
+  //     const response = await fetch(`${apiuri}/v1/auth/logout`,{
+  //       method:'POST',
+  //       headers:{
+  //         'Content-Type': 'application/json',
+  //         Authorization: Bearer ${localStorage.getItem('accessToken') || ''},
+  //     },)
+  //   }
+  // }
+
   return (
     <div className="w-[399px] min-h-screen bg-white mx-auto border border-gray-300 overflow-y-auto">
       {/* 1. 설정 페이지 헤더 (페이지 전용) */}
@@ -28,6 +45,7 @@ export default function Setting() {
         */}
         <SettingsLinkButton label="로그아웃" />
       </main>
+      <button className="w-20 h-20 bg-black" />
       <UserBottomBar />
     </div>
   );
@@ -73,23 +91,19 @@ const SettingsLinkButton = ({
  hover:bg-gray-200 active:bg-gray-300 transition-colors
  ${className}
  `;
- const logoutClassName = `
+  const logoutClassName = `
   w-[340px] h-[60px] bg-[#FFF6F6] rounded-[20px] items-center justify-center text-[#A62F2F] cursor-pointer
   flex hover:bg-[#FFDADA] active:bg-[#FFBABA] transition-colors mt-10
  `;
- 
+
   // 버튼/링크의 내부 컨텐츠
   const content = (
     <>
       {icon && (
         // 아이콘 플레이스홀더 (이미지상 흰색 원)
         <div className="w-[20px] h-[20px] bg-white rounded-full mr-4 flex-shrink-0">
-          {label === '프로필 설정' && (
-            <img src={setting_mini}></img>
-          )}
-          {label === '계정 정보' && (
-            <img src={profile_mini}></img>
-          )}
+          {label === '프로필 설정' && <img src={setting_mini}></img>}
+          {label === '계정 정보' && <img src={profile_mini}></img>}
         </div>
       )}
       <span className="text-base font-medium">{label}</span>
