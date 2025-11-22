@@ -33,6 +33,10 @@ import { StoreInfo } from './pages/Store/StoreInfo';
 import { ResetPassword } from './pages/SignUp/ResetPassword';
 import { StoreReview } from './pages/Store/StoreReview';
 import { RewardInfo } from './pages/Reward/RewardInfo';
+import { Dashboard } from './pages/Owner/Dashboard';
+import { EventManage } from './pages/Owner/EventManage';
+import { Manage } from './pages/Owner/Manage';
+import { Settings } from './pages/Owner/Settings';
 
 function App() {
   return (
@@ -99,6 +103,11 @@ function App() {
           <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
           <Route path="/store/:storeId" element={<StoreInfo />} />
           <Route path="/store/:storeId/review" element={<StoreReview />} />
+
+          <Route path="/owner/dashboard" element={<Dashboard />} />
+          <Route path="/owner/manage" element={<Manage />} />
+          <Route path="/owner/eventmanage" element={<EventManage />} />
+          <Route path="/owner/settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>
