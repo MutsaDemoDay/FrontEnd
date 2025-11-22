@@ -33,6 +33,7 @@ import { StoreInfo } from './pages/Store/StoreInfo';
 import { ResetPassword } from './pages/SignUp/ResetPassword';
 import { StoreReview } from './pages/Store/StoreReview';
 import { RewardInfo } from './pages/Reward/RewardInfo';
+import { Dashboard } from './pages/OwnerPage/DashBoard';
 
 function App() {
   return (
@@ -99,6 +100,7 @@ function App() {
           <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
           <Route path="/store/:storeId" element={<StoreInfo />} />
           <Route path="/store/:storeId/review" element={<StoreReview />} />
+          <Route path="/owner/dashboard" element={<Dashboard />} />
         </Route>
       </Routes>
     </BrowserRouter>

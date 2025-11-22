@@ -54,6 +54,10 @@ const StampProgress = ({ current, max, level }: { current: number; max: number; 
   const knobX = size / 2 + radius * Math.cos((currentAngle * Math.PI) / 180);
   const knobY = size / 2 + radius * Math.sin((currentAngle * Math.PI) / 180);
 
+  async function fetchStampCount() {
+    
+  }
+
   return (
     <div className="relative flex justify-center items-center" style={{ width: size, height: size }}>
       {/* 1. SVG 게이지 */}
