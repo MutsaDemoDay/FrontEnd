@@ -64,7 +64,7 @@ export const FirstPage = () => {
     }
   };
 
-  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     try {
@@ -93,12 +93,39 @@ export const FirstPage = () => {
       const resultData = responseData.data || responseData;
 
       if (resultData.accessToken) {
+        // 1. 토큰 저장
         localStorage.setItem('accessToken', resultData.accessToken);
         localStorage.setItem('refreshToken', resultData.refreshToken);
-        console.log('토큰 저장 완료:', resultData.accessToken);
-        navigate('/stamp');
+        
+        // 2. 온보딩 완료 여부 확인
+        // (유저 타입에 상관없이 본인의 온보딩이 끝났으면 true라고 가정)
+        const isUserOnboarded = resultData.userOnboarded;
+        const isManagerOnboarded = resultData.managerOnboarded;
+        
+        // 온보딩이 이미 완료된 경우 해당 페이지로 이동
+        if (isUserOnboarded) {
+          navigate('/stamp');
+          return;
+        } else if (isManagerOnboarded) {
+          navigate('/owner/dashboard');
+          return;
+        }
+
+        // 3. 온보딩 미완료 시: userType에 따른 분기 처리
+        const userType = resultData.userType; // "USER" | "MANAGER"
+
+        if (userType === 'USER') {
+          navigate('/signup/customer-confirm');
+        } else if (userType === 'MANAGER') {
+          navigate('/shop-profile');
+        } else {
+          // userType이 없거나 이상한 값일 경우 예외 처리
+          console.error('알 수 없는 유저 타입:', userType);
+          alert('로그인 정보에 오류가 있습니다. 관리자에게 문의하세요.');
+        }
+
       } else {
-        console.error('토큰을 찾을 수 없습니다. 응답 구조를 확인해주세요.', resultData);
+        console.error('토큰을 찾을 수 없습니다.', resultData);
         alert('로그인 처리에 실패했습니다. (토큰 없음)');
       }
     } catch (error) {

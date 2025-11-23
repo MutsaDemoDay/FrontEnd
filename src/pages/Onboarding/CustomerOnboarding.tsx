@@ -42,7 +42,7 @@ export const CustomerOnboarding = () => {
       ),
     },
   ];
-
+  
   return (
     <div className="w-full min-w-0 h-[calc(100vh-60px)] flex flex-col relative">
       <Swiper
