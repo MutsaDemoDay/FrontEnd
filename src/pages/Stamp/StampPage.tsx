@@ -126,15 +126,11 @@
 //         {/* View Mode Condition */}
 //         {viewMode === 'list' ? (
 //           <>
-//             <div className="mb-2 flex justify-center">
+//             {/* ✅ 수정됨: 텍스트 제거하고 간격 조정 (mb-2 -> mb-6) */}
+//             <div className="mb-6 flex justify-center">
 //               <StampSection />
 //             </div>
-//             <div className="text-center mb-6">
-//               <p className="font-bold text-gray-800 flex items-center justify-center gap-1">
-//                 ☕ 카페나무
-//               </p>
-//               <p className="text-sm text-gray-500">2/10</p>
-//             </div>
+
 //             <div className="mb-6">
 //               <StampCard />
 //             </div>
@@ -279,7 +275,7 @@
 
 // export default StampPage;
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Plus from '../../assets/plus.svg';
 import ThreeDots from '../../assets/threedots.svg';
@@ -287,10 +283,20 @@ import Hamburger from '../../assets/hamburger.svg';
 import StampSection from '../../components/StampSection';
 import { StampCard } from '../../components/StampCard';
 import { UserBottomBar } from '../../components/UserBottomBar';
-import Window from '../../components/Window';
+import Window from '../../components/Window'; // 작성하신 Window 컴포넌트
 import { fetchUserQr } from '../../api/UserQR';
 
-// 이벤트 데이터 타입 정의
+// ✅ API 주소 설정 (.env 파일 혹은 하드코딩)
+const apiUri = import.meta.env.VITE_API_URI || 'http://localhost:8080';
+
+// ✅ 스탬프 데이터 타입 (Window.tsx와 동일해야 함)
+interface StampData {
+  storeName: string;
+  currentCount: number;
+  maxCount: number;
+  stampImageUrl: string;
+}
+
 interface EventItem {
   id: number;
   title: string;
@@ -305,58 +311,97 @@ const StampPage = () => {
 
   // QR 모달 상태
   const [showQrModal, setShowQrModal] = useState(false);
-
-  // QR 이미지 데이터 상태
   const [qrImage, setQrImage] = useState<string>('');
-  // 로딩 상태
   const [isLoadingQr, setIsLoadingQr] = useState(false);
 
-  // 이벤트 데이터 예시
+  // ✅ Grid 모드 데이터 상태
+  const [gridStamps, setGridStamps] = useState<StampData[]>([]);
+  const [isLoadingStamps, setIsLoadingStamps] = useState(false);
+
   const events: EventItem[] = [
     {
       id: 1,
       title: 'OPEN EVENT',
-      description:
-        '개업 기념 스탬프 1+1 적립 이벤트\n진행중인 신규 카페 보러가기🎁',
+      description: '개업 기념 스탬프 1+1 적립 이벤트...',
       date: '2025. 01. 01 ~ 01. 02',
     },
     {
       id: 2,
       title: 'SPECIAL EVENT',
-      description: '✨이번주 추천 카페✨ 방문시\n음료가 10~20% 할인돼요',
+      description: '✨이번주 추천 카페✨ 방문시...',
       date: '2025. 01. 01 ~ 01. 02',
     },
     {
       id: 3,
       title: 'SNS BONUS',
-      description: '음료 주문하고 SNS에 인증샷\n업로드시 매장 굿즈 증정💖',
+      description: '음료 주문하고 SNS에 인증샷...',
       date: '2025. 01. 01 ~ 01. 02',
     },
   ];
 
-  // ✅ QR 버튼 클릭 핸들러
+  // ✅ viewMode가 'grid'일 때 API 호출
+  useEffect(() => {
+    if (viewMode === 'grid') {
+      const fetchGridStamps = async () => {
+        setIsLoadingStamps(true);
+        try {
+          // 1. 로컬 스토리지에서 토큰 가져오기 (키 이름 확인: 'token', 'accessToken' 등)
+          const token =
+            localStorage.getItem('token') ||
+            localStorage.getItem('accessToken');
+
+          // 2. API 요청 (헤더에 토큰 포함)
+          const response = await fetch(`${apiUri}/v1/users/stamps`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              // 🔑 핵심: 토큰이 없으면 빈 문자열, 있으면 Bearer 추가
+              Authorization: token ? `Bearer ${token}` : '',
+            },
+          });
+
+          if (response.ok) {
+            const data: StampData[] = await response.json();
+            setGridStamps(data);
+          } else {
+            console.error(`Error fetching stamps: ${response.status}`);
+            // 에러 발생 시 빈 배열 처리 (또는 임시 데이터)
+            setGridStamps([]);
+          }
+        } catch (error) {
+          console.error('Network error:', error);
+          setGridStamps([]);
+        } finally {
+          setIsLoadingStamps(false);
+        }
+      };
+
+      fetchGridStamps();
+    }
+  }, [viewMode]);
+
+  // QR 버튼 클릭 핸들러
   const handleQrClick = async () => {
-    setShowQrModal(true); // 모달 열기
-    setIsLoadingQr(true); // 로딩 시작
-    setQrImage(''); // 기존 이미지 초기화
+    setShowQrModal(true);
+    setIsLoadingQr(true);
+    setQrImage('');
 
     try {
-      const userEmail = 'test@example.com'; // 실제 환경에서는 유저 정보에서 가져오세요
-
+      const userEmail = 'test@example.com';
+      // 여기도 실제로는 토큰 기반으로 유저 정보를 가져오는 게 좋습니다.
       const res = await fetchUserQr(userEmail);
-
       if (res.code === 200 || res.code === 100) {
         setQrImage(res.data);
       } else {
-        alert(res.message || 'QR 생성에 실패했습니다.');
+        alert(res.message || 'QR 실패');
         setShowQrModal(false);
       }
     } catch (error) {
       console.log(error);
-      alert('QR 코드를 불러오는 중 오류가 발생했습니다.');
+      alert('QR 에러');
       setShowQrModal(false);
     } finally {
-      setIsLoadingQr(false); // 로딩 끝
+      setIsLoadingQr(false);
     }
   };
 
@@ -366,7 +411,6 @@ const StampPage = () => {
       <header className="flex items-center justify-between px-5 py-4 bg-gray-50 sticky top-0 z-10">
         <h1 className="text-xl font-bold text-gray-800">My Stamp</h1>
         <div className="flex items-center space-x-3">
-          {/* ✅ Plus 버튼 클릭 시 /stampsetting 으로 이동 */}
           <button
             onClick={() => navigate('/stampsetting')}
             className="p-1 text-gray-500 hover:text-gray-800"
@@ -381,7 +425,7 @@ const StampPage = () => {
 
       {/* Main Content */}
       <main className="px-5">
-        {/* Toggle Switch (List/Grid) */}
+        {/* View Mode Toggle */}
         <div className="flex justify-center mb-4">
           <div className="flex bg-black rounded-full p-1 w-[80px] relative">
             <button
@@ -392,7 +436,6 @@ const StampPage = () => {
             >
               <img src={Hamburger} alt="List Mode" className="w-4 h-4" />
             </button>
-
             <button
               onClick={() => setViewMode('grid')}
               className={`flex-1 flex justify-center items-center rounded-full py-1 transition-all ${
@@ -404,27 +447,25 @@ const StampPage = () => {
           </div>
         </div>
 
-        {/* View Mode Condition */}
+        {/* Grid View 일 때 Window 컴포넌트에 데이터 전달 */}
         {viewMode === 'list' ? (
           <>
-            {/* ✅ 수정됨: 텍스트 제거하고 간격 조정 (mb-2 -> mb-6) */}
             <div className="mb-6 flex justify-center">
               <StampSection />
             </div>
-
             <div className="mb-6">
               <StampCard />
             </div>
           </>
         ) : (
           <div className="mb-6">
-            <Window />
+            {/* 부모가 가져온 데이터(gridStamps)를 자식(Window)에게 전달 */}
+            <Window data={gridStamps} loading={isLoadingStamps} />
           </div>
         )}
 
-        {/* Action Buttons */}
+        {/* Buttons */}
         <div className="grid grid-cols-2 gap-4 mb-10">
-          {/* 스탬프 히스토리 버튼 */}
           <button
             onClick={() => navigate('/stamphistory')}
             className="bg-white p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center space-y-2 hover:bg-gray-50 transition"
@@ -437,7 +478,6 @@ const StampPage = () => {
             </span>
           </button>
 
-          {/* 2. 스탬프 찍기 버튼 */}
           <button
             onClick={handleQrClick}
             className="bg-white p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center space-y-2 hover:bg-gray-50 transition"
@@ -451,7 +491,7 @@ const StampPage = () => {
           </button>
         </div>
 
-        {/* Event Section */}
+        {/* Events */}
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-4">Event</h2>
           <div className="space-y-3">
@@ -470,7 +510,6 @@ const StampPage = () => {
                   </p>
                   <p className="text-[10px] text-gray-400">{event.date}</p>
                 </div>
-
                 <div className="w-20 h-20 bg-white rounded-lg shadow-sm overflow-hidden flex-shrink-0 flex items-center justify-center">
                   <span className="text-xs text-gray-300">IMG</span>
                 </div>
@@ -480,18 +519,14 @@ const StampPage = () => {
         </section>
       </main>
 
-      {/* QR 모달 (화면 중앙 고정, 스크롤 무시) */}
+      {/* QR Modal */}
       {showQrModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* 배경 오버레이 (반투명 회색 배경) */}
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-[2px]"
             onClick={() => setShowQrModal(false)}
           ></div>
-
-          {/* 컨텐츠 컨테이너: w=393px 고정 */}
           <div className="relative z-10 w-[393px] h-full flex flex-col items-center justify-center pointer-events-none">
-            {/* 닫기 버튼 (393px 영역 기준 우측 상단) */}
             <button
               className="absolute top-6 right-6 z-50 flex items-center justify-center w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 transition backdrop-blur-md pointer-events-auto"
               onClick={() => setShowQrModal(false)}
@@ -511,8 +546,6 @@ const StampPage = () => {
                 />
               </svg>
             </button>
-
-            {/* QR 이미지 박스 및 텍스트 */}
             <div className="pointer-events-auto flex flex-col items-center w-full">
               <div className="bg-white p-5 rounded-2xl shadow-2xl mb-6 w-[240px] h-[240px] flex items-center justify-center">
                 {isLoadingQr ? (
@@ -533,8 +566,6 @@ const StampPage = () => {
                   </div>
                 )}
               </div>
-
-              {/* 하단 텍스트 정보 */}
               <div className="text-center space-y-1">
                 <p className="text-white text-base font-medium">
                   회원ID: abceq01234
