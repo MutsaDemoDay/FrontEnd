@@ -44,8 +44,9 @@ export const CustomerSignup = () => {
     if (!formData.password) {
       newErrors.password = '필수 입력 사항입니다.';
       isValid = false;
-    } else if (formData.password.length <= 8) {
-      newErrors.password = '비밀번호는 8자 이상이어야 합니다.';
+    } else if (formData.password.length < 10) {
+      newErrors.password = '비밀번호는 10자 이상이어야 합니다.';
+      console.log(formData.password.length);
       isValid = false;
     }
 
@@ -103,7 +104,8 @@ export const CustomerSignup = () => {
       }
 
       const responseData = await response.json();
-      const { accessToken, refreshToken } = responseData;
+      const { accessToken, refreshToken } =
+        responseData.result || responseData.data || responseData;
 
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken);

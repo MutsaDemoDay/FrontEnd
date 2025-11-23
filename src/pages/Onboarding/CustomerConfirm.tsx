@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from 'react-router-dom';
-import BackButton from '../../components/BackButton.tsx';
 import addProfile from '../../assets/addProfile.png';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react'; // useRef 추가
 import SignupInput from '../../components/SignupInput.tsx';
 import { AddressModal } from '../../components/AddressModal.tsx';
 import {
@@ -13,7 +12,6 @@ import {
 type UserProfileProps = {
   nickname: string;
   gender: 'male' | 'female';
-  profileImageUrl: string;
   favStoreId: number[];
   address: string;
   latitude: number;
@@ -22,8 +20,14 @@ type UserProfileProps = {
 
 export const CustomerConfirm = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null); // 파일 인풋 제어용 Ref
 
-  const [isSubmitting, setIsSubmitting] = useState(false); // 중복 제출 방지용 상태
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 이미지 파일 상태 (API 전송용)
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  // 이미지 미리보기 URL 상태 (화면 표시용)
+  const [previewUrl, setPreviewUrl] = useState<string>(addProfile);
 
   const handleSkipClick = () => {
     navigate('/onboarding/customer');
@@ -32,7 +36,6 @@ export const CustomerConfirm = () => {
   const [profileData, setProfileData] = useState<UserProfileProps>({
     nickname: '',
     gender: 'male',
-    profileImageUrl: '',
     favStoreId: [],
     address: '',
     latitude: 0,
@@ -45,14 +48,26 @@ export const CustomerConfirm = () => {
     null,
   ]);
 
-  // 주소 모달 상태
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  // 가게 검색 모달 상태
   const [isStoreSearchModalOpen, setIsStoreSearchModalOpen] = useState(false);
-  // 현재 선택된 단골 가게 슬롯 인덱스
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
 
-  // 성별 버튼 클릭 핸들러
+  // --- [추가] 이미지 변경 핸들러 ---
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImageFile(file); // 전송할 파일 저장
+      // 미리보기 URL 생성
+      const newPreviewUrl = URL.createObjectURL(file);
+      setPreviewUrl(newPreviewUrl);
+    }
+  };
+
+  // --- [추가] 프로필 이미지 클릭 시 파일 선택창 열기 ---
+  const handleProfileImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleGenderClick = (gender: 'male' | 'female') => {
     setProfileData({
       ...profileData,
@@ -60,11 +75,9 @@ export const CustomerConfirm = () => {
     });
   };
 
-  // ---------------------------------------------------------
-  // [수정됨] '확인' 버튼 클릭 핸들러 (API 연동)
-  // ---------------------------------------------------------
+  // 확인버튼 클릭 핸들러
   const handleConfirmClick = async () => {
-    // 1. 필수 데이터 검증 (주소가 없으면 진행 불가)
+    // 1. 필수 값 검증
     if (!profileData.address || profileData.latitude === 0) {
       alert('주소를 입력해주세요.');
       return;
@@ -73,43 +86,52 @@ export const CustomerConfirm = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // 2. 토큰 가져오기
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      alert('로그인 정보가 없습니다. 다시 로그인해주세요.');
-      navigate('/login');
+      alert('로그인 정보가 없습니다.');
+      navigate('/');
       return;
     }
 
     try {
-      // 3. API 요청 보내기
+      const formData = new FormData();
+
+      const jsonPayload = {
+        address: profileData.address,
+        latitude: profileData.latitude,
+        longitude: profileData.longitude,
+        gender: profileData.gender === 'male' ? 'MALE' : 'FEMALE',
+        favStoreId: profileData.favStoreId,
+      };
+
+      formData.append(
+        'data',
+        new Blob([JSON.stringify(jsonPayload)], { type: 'application/json' })
+      );
+
+      if (profileImageFile) {
+        formData.append('profileImage', profileImageFile);
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_API_URI}/v1/auth/user/onboarding`,
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`, // 인증 토큰 추가
+            Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            // 서버 요구사항에 맞춰 대문자로 변환 ('male' -> 'MALE')
-            gender: profileData.gender === 'male' ? 'MALE' : 'FEMALE',
-            address: profileData.address,
-            latitude: profileData.latitude,
-            longitude: profileData.longitude,
-            favStoreId: profileData.favStoreId,
-          }),
+          body: formData,
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Server Error:', errorData);
         throw new Error(errorData.message || '프로필 저장에 실패했습니다.');
       }
 
-      console.log('프로필 저장 성공');
-      
-      navigate('/onboarding/customer'); 
+      console.log('프로필 저장 성공!');
+      navigate('/onboarding/customer');
 
     } catch (error: any) {
       console.error('Onboarding Error:', error);
@@ -119,18 +141,15 @@ export const CustomerConfirm = () => {
     }
   };
 
-  // --- 주소 관련 핸들러 ---
-  const handleAddressSearch = () => {
-    setIsAddressModalOpen(true);
-  };
+  const handleAddressSearch = () => setIsAddressModalOpen(true);
 
   const handleAddressSelect = (data: {
     address: string;
-    x: string; // 경도
-    y: string; // 위도
+    x: string;
+    y: string;
   }) => {
-    setProfileData((prevProfileData) => ({
-      ...prevProfileData,
+    setProfileData((prev) => ({
+      ...prev,
       address: data.address,
       longitude: parseFloat(data.x),
       latitude: parseFloat(data.y),
@@ -138,22 +157,15 @@ export const CustomerConfirm = () => {
     setIsAddressModalOpen(false);
   };
 
-  const handleCloseAddressModal = () => {
-    setIsAddressModalOpen(false);
-  };
+  const handleCloseAddressModal = () => setIsAddressModalOpen(false);
 
-  // '+' 버튼 클릭 시
   const handleAddShopClick = (index: number) => {
     setSelectedSlotIndex(index);
     setIsStoreSearchModalOpen(true);
   };
 
-  // 가게 검색 모달 닫기
-  const handleCloseStoreSearchModal = () => {
-    setIsStoreSearchModalOpen(false);
-  };
+  const handleCloseStoreSearchModal = () => setIsStoreSearchModalOpen(false);
 
-  // 가게 검색 모달에서 가게 선택 시
   const handleStoreSelect = (store: Store) => {
     const newFavoriteStores = [...favoriteStores];
     newFavoriteStores[selectedSlotIndex] = store;
@@ -163,15 +175,10 @@ export const CustomerConfirm = () => {
       .filter((s): s is Store => s !== null)
       .map((s) => s.storeId);
 
-    setProfileData((prev) => ({
-      ...prev,
-      favStoreId: newFavStoreIds,
-    }));
-
+    setProfileData((prev) => ({ ...prev, favStoreId: newFavStoreIds }));
     setIsStoreSearchModalOpen(false);
   };
 
-  // '...' 버튼 클릭 (가게 삭제)
   const handleRemoveShop = (index: number) => {
     const newFavoriteStores = [...favoriteStores];
     newFavoriteStores[index] = null;
@@ -181,19 +188,12 @@ export const CustomerConfirm = () => {
       .filter((s): s is Store => s !== null)
       .map((s) => s.storeId);
 
-    setProfileData((prev) => ({
-      ...prev,
-      favStoreId: newFavStoreIds,
-    }));
+    setProfileData((prev) => ({ ...prev, favStoreId: newFavStoreIds }));
   };
 
   useEffect(() => {
     const isModalOpen = isAddressModalOpen || isStoreSearchModalOpen;
-    if (isModalOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
+    document.body.style.overflow = isModalOpen ? 'hidden' : 'auto';
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -201,9 +201,7 @@ export const CustomerConfirm = () => {
 
   return (
     <div className="flex flex-col items-center pb-24">
-      {/* 상단바 */}
       <div className="flex flex-row items-center self-start mt-3 gap-4 px-6 w-full">
-        <BackButton />
         <p className="font-semibold">프로필 채우기</p>
         <p
           className="ml-auto text-gray-400 cursor-pointer"
@@ -213,7 +211,6 @@ export const CustomerConfirm = () => {
         </p>
       </div>
 
-      {/* 구분선 */}
       <div className="w-screen h-px mt-3 bg-gray-200" />
 
       <div className="w-full max-w-md px-10 flex flex-col items-start">
@@ -224,9 +221,27 @@ export const CustomerConfirm = () => {
           내 프로필 채우기를 시작하세요.
         </p>
 
-        <div className="w-[120px] h-[120px] rounded-full mt-12 mx-auto cursor-pointer">
-          <img src={addProfile} alt="프로필 추가" />
+        {/* --- [수정] 프로필 이미지 영역 --- */}
+        <div
+          className="w-[120px] h-[120px] rounded-full mt-12 mx-auto cursor-pointer relative overflow-hidden"
+          onClick={handleProfileImageClick} // 클릭 이벤트 연결
+        >
+          {/* 이미지를 object-cover로 설정하여 꽉 차게 표시 */}
+          <img
+            src={previewUrl}
+            alt="프로필 추가"
+            className="w-full h-full object-cover"
+          />
         </div>
+
+        {/* 숨겨진 파일 인풋 */}
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleImageChange}
+          className="hidden" // 화면엔 보이지 않음
+        />
 
         {/* --- 성별 --- */}
         <p className="mt-[18px] font-semibold">성별</p>
@@ -253,7 +268,8 @@ export const CustomerConfirm = () => {
           </button>
         </div>
 
-        {/* --- 주소지 --- */}
+        {/* ... (나머지 UI 코드는 기존과 동일) ... */}
+
         <div className="w-full mt-6">
           <SignupInput
             label="주소지"
@@ -267,7 +283,6 @@ export const CustomerConfirm = () => {
           />
         </div>
 
-        {/* --- 단골 가게 등록 --- */}
         <p className="mt-8 font-semibold">단골 가게 등록</p>
         <div className="w-full mt-2.5 space-y-3">
           {favoriteStores.map((store, index) =>
@@ -300,23 +315,20 @@ export const CustomerConfirm = () => {
         </div>
 
         <button
-          className="w-full h-[56px] bg-gray-300 text-white font-bold rounded-lg mt-12"
+          className="w-full h-[56px] bg-(--main-color) text-white font-bold rounded-[40px] mt-12"
           onClick={handleConfirmClick}
-          disabled={isSubmitting} // 제출 중 클릭 방지
+          disabled={isSubmitting}
         >
           {isSubmitting ? '저장 중...' : '확인'}
         </button>
       </div>
 
-      {/* 주소 모달 */}
       {isAddressModalOpen && (
         <AddressModal
           onClose={handleCloseAddressModal}
           onSelect={handleAddressSelect}
         />
       )}
-
-      {/* 가게 검색 모달 */}
       {isStoreSearchModalOpen && (
         <StoreSearchModal
           onClose={handleCloseStoreSearchModal}
