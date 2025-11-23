@@ -31,7 +31,7 @@ export const Manage = () => {
 
       <div className="flex flex-col w-full gap-3">
         <div className="flex flex-row w-full justify-between mt-5 gap-3">
-          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
+          <div className="w-full h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
             <p className="font-semibold text-[14px]">스탬프 적립하기</p>
             <div className="flex flex-row self-end">
               <img
@@ -42,18 +42,6 @@ export const Manage = () => {
               />
             </div>
           </div>
-
-          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
-            <p className="font-semibold text-[14px]">적립 내역</p>
-            <div className="flex flex-row self-end">
-              <img
-                src={goto_icon}
-                alt=""
-                className="w-[40px] h-[40px]"
-                onClick={handleGotoStampHistory}
-              />
-            </div>
-          </div>
         </div>
 
         <div className="w-full h-[170px] flex flex-col p-4 px-5 bg-(--fill-color1) text-(--fill-color7) rounded-[20px] justify-between">
@@ -61,7 +49,12 @@ export const Manage = () => {
             <p className="text-[14px] text-(--fill-color7) font-semibold">
               스탬프 설정
             </p>
-            <img src={logo_gt} alt="" className="w-[9px] h-[14px] mx-1 mt-1" onClick={handleGotoStampSetting} />
+            <img
+              src={logo_gt}
+              alt=""
+              className="w-[9px] h-[14px] mx-1 mt-1"
+              onClick={handleGotoStampSetting}
+            />
           </div>
 
           <div className="flex flex-row gap-3">

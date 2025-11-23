@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from 'react-router-dom';
-import BackButton from '../../components/BackButton.tsx';
 import addProfile from '../../assets/addProfile.png';
 import { useEffect, useState, useRef } from 'react'; // useRef 추가
 import SignupInput from '../../components/SignupInput.tsx';
@@ -203,7 +202,6 @@ export const CustomerConfirm = () => {
   return (
     <div className="flex flex-col items-center pb-24">
       <div className="flex flex-row items-center self-start mt-3 gap-4 px-6 w-full">
-        <BackButton />
         <p className="font-semibold">프로필 채우기</p>
         <p
           className="ml-auto text-gray-400 cursor-pointer"
