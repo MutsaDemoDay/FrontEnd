@@ -85,7 +85,11 @@
 //       <header className="flex items-center justify-between px-5 py-4 bg-gray-50 sticky top-0 z-10">
 //         <h1 className="text-xl font-bold text-gray-800">My Stamp</h1>
 //         <div className="flex items-center space-x-3">
-//           <button className="p-1 text-gray-500 hover:text-gray-800">
+//           {/* ✅ Plus 버튼 클릭 시 /stampsetting 으로 이동 */}
+//           <button
+//             onClick={() => navigate('/stampsetting')}
+//             className="p-1 text-gray-500 hover:text-gray-800"
+//           >
 //             <img src={Plus} alt="Plus" className="w-6 h-6" />
 //           </button>
 //           <button className="p-1 text-gray-500 hover:text-gray-800">
@@ -403,15 +407,11 @@ const StampPage = () => {
         {/* View Mode Condition */}
         {viewMode === 'list' ? (
           <>
-            <div className="mb-2 flex justify-center">
+            {/* ✅ 수정됨: 텍스트 제거하고 간격 조정 (mb-2 -> mb-6) */}
+            <div className="mb-6 flex justify-center">
               <StampSection />
             </div>
-            <div className="text-center mb-6">
-              <p className="font-bold text-gray-800 flex items-center justify-center gap-1">
-                ☕ 카페나무
-              </p>
-              <p className="text-sm text-gray-500">2/10</p>
-            </div>
+
             <div className="mb-6">
               <StampCard />
             </div>
