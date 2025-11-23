@@ -175,7 +175,7 @@ export const ShopProfile = () => {
 
       console.log('사장님 온보딩 성공');
       alert('매장 등록이 완료되었습니다!');
-      navigate('/stamp'); 
+      navigate('/owner/dashboard'); 
 
     } catch (error: any) {
       console.error('온보딩 실패:', error);
