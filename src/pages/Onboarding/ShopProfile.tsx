@@ -69,7 +69,7 @@ export const ShopProfile = () => {
   const [stampImagePreview, setStampImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // 실제 파일 전송을 위해 파일 객체 상태 추가 (추후 이미지 업로드 API 연동 시 필요)
-  const [, setStampFile] = useState<File | null>(null);
+  const [stampFile, setStampFile] = useState<File | null>(null);
 
   // 4. 적립 조건 및 리워드
   const [minOrderAmount, setMinOrderAmount] = useState('');
