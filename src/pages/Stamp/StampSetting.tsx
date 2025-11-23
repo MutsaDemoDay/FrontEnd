@@ -1,10 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import BackButton from '../../components/BackButton';
 import PlusIcon from '../../assets/plus.svg';
 import GarbageIcon from '../../assets/garbage.svg';
 import EmptyStar from '../../assets/emptystar.svg';
 import YellowStar from '../../assets/yellowstar.svg';
 import DeleteStampModal from '../../components/DeleteStampModal';
+
+// API 주소 설정
+const apiUri = import.meta.env.VITE_API_URI || 'http://localhost:8080';
+
+// UI에 표시할 스탬프 아이템 타입
 interface StampItem {
   id: number;
   name: string;
@@ -13,46 +20,81 @@ interface StampItem {
   theme: 'standard' | 'text' | 'green' | 'yellow';
 }
 
+// GET 요청 시 서버 응답 데이터 타입 (스탬프 목록)
+interface StampResponseDto {
+  storeName: string;
+  currentCount: number;
+  maxCount: number;
+  stampImageUrl: string;
+  stampId?: number; // 삭제를 위해선 DB의 PK(ID)가 필수입니다.
+}
+
+// DELETE 요청 시 서버 응답 데이터 타입
+interface DeleteApiResponse {
+  timestamp: string;
+  code: number;
+  message: string;
+}
+
 const StampSetting = () => {
-  const [stamps, setStamps] = useState<StampItem[]>([
-    {
-      id: 1,
-      name: '카페나무',
-      count: '2/10',
-      isFavorite: true,
-      theme: 'standard',
-    },
-    {
-      id: 2,
-      name: '열공커피 홍대입구역점',
-      count: '2/10',
-      isFavorite: true,
-      theme: 'text',
-    },
-    {
-      id: 3,
-      name: '카페드림',
-      count: '2/10',
-      isFavorite: false,
-      theme: 'green',
-    },
-    {
-      id: 4,
-      name: '스탠스커피',
-      count: '2/10',
-      isFavorite: false,
-      theme: 'yellow',
-    },
-  ]);
+  const navigate = useNavigate();
 
-  // --- 추가된 상태 ---
-  const [isDeleteMode, setIsDeleteMode] = useState(false); // 삭제 모드 여부
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set()); // 삭제할 ID 선택 (Set 사용으로 중복 방지)
-  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 표시 여부
+  // 상태 관리
+  const [stamps, setStamps] = useState<StampItem[]>([]);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 즐겨찾기 토글 (삭제 모드가 아닐 때만 동작)
+  // --- API 연동: 스탬프 목록 조회 (GET) ---
+  useEffect(() => {
+    const fetchStamps = async () => {
+      const token = localStorage.getItem('accessToken');
+
+      if (!token) {
+        console.warn('로그인 토큰이 없습니다.');
+        return;
+      }
+
+      try {
+        const response = await axios.get<StampResponseDto[]>(
+          `${apiUri}/v1/users/stamps`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const data = response.data;
+
+        // DTO -> UI State 변환
+        const formattedStamps: StampItem[] = data.map((item, index) => ({
+          // [중요] 실제 삭제 API 호출을 위해선 서버에서 주는 고유 ID(stampId)를 사용해야 합니다.
+          // stampId가 없다면 임시로 index를 쓰지만, 이 경우 삭제가 정상 동작하지 않을 수 있습니다.
+          id: item.stampId || index,
+          name: item.storeName,
+          count: `${item.currentCount}/${item.maxCount}`,
+          isFavorite: false, // 즐겨찾기 정보가 API에 없다면 기본값 false
+          theme: ['standard', 'text', 'green', 'yellow'][
+            index % 4
+          ] as StampItem['theme'],
+        }));
+
+        setStamps(formattedStamps);
+      } catch (error) {
+        console.error('스탬프 목록 조회 실패:', error);
+      }
+    };
+
+    fetchStamps();
+  }, [navigate]);
+
+  // --- 일반 핸들러 ---
+
+  // 즐겨찾기 토글
   const toggleFavorite = (id: number) => {
-    if (isDeleteMode) return; // 삭제 모드일 땐 무시
+    if (isDeleteMode) return;
     setStamps((prevStamps) =>
       prevStamps.map((stamp) =>
         stamp.id === id ? { ...stamp, isFavorite: !stamp.isFavorite } : stamp
@@ -60,9 +102,8 @@ const StampSetting = () => {
     );
   };
 
-  // --- 삭제 관련 핸들러 ---
+  // --- 삭제 모드 관련 핸들러 ---
 
-  // 삭제할 스탬프 선택/해제
   const toggleSelection = (id: number) => {
     const newSelectedIds = new Set(selectedIds);
     if (newSelectedIds.has(id)) {
@@ -73,38 +114,69 @@ const StampSetting = () => {
     setSelectedIds(newSelectedIds);
   };
 
-  // 휴지통 아이콘 클릭 -> 삭제 모드 진입
   const handleDeleteModeToggle = () => {
     setIsDeleteMode(true);
-    setSelectedIds(new Set()); // 선택 초기화
+    setSelectedIds(new Set());
   };
 
-  // '취소' 버튼 클릭 -> 삭제 모드 해제
   const handleCancelDeleteMode = () => {
-    setIsDeleteMode(false);
-    setSelectedIds(new Set()); // 선택 초기화
-  };
-
-  // '삭제' 버튼 클릭 -> 모달 열기
-  const handleOpenDeleteModal = () => {
-    if (selectedIds.size === 0) {
-      // 선택된 항목이 없으면 아무것도 안 함 (또는 알림)
-      return;
-    }
-    setIsModalOpen(true);
-  };
-
-  // 모달에서 '확인' 클릭 -> 실제 삭제 실행
-  const handleConfirmDelete = () => {
-    setStamps((prevStamps) =>
-      prevStamps.filter((stamp) => !selectedIds.has(stamp.id))
-    );
-    setIsModalOpen(false);
     setIsDeleteMode(false);
     setSelectedIds(new Set());
   };
 
-  // 미니 카드 썸네일 렌더링 헬퍼 함수
+  const handleOpenDeleteModal = () => {
+    if (selectedIds.size === 0) return;
+    setIsModalOpen(true);
+  };
+
+  // ★ 수정된 삭제 로직 (DELETE API 연동) ★
+  const handleConfirmDelete = async () => {
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    try {
+      // 선택된 ID들에 대해 병렬로 DELETE 요청 전송
+      const deletePromises = Array.from(selectedIds).map(async (id) => {
+        // [요청] DELETE /v1/stamps/{stampId}
+        const response = await axios.delete<DeleteApiResponse>(
+          `${apiUri}/v1/stamps/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // 서버 응답 확인 (옵션: code가 100인지 확인 등)
+        console.log(`ID ${id} 삭제 결과:`, response.data);
+        return response.data;
+      });
+
+      // 모든 삭제 요청 대기
+      await Promise.all(deletePromises);
+
+      // UI 업데이트: 삭제 성공한 항목들을 화면 목록에서 제거
+      setStamps((prevStamps) =>
+        prevStamps.filter((stamp) => !selectedIds.has(stamp.id))
+      );
+
+      // 모드 및 상태 초기화
+      setIsModalOpen(false);
+      setIsDeleteMode(false);
+      setSelectedIds(new Set());
+
+      alert('삭제되었습니다.');
+    } catch (error) {
+      console.error('스탬프 삭제 실패:', error);
+      alert('스탬프 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // --- 렌더링 헬퍼 (썸네일) ---
   const renderThumbnail = (theme: string) => {
     const baseClass =
       'w-[80px] h-[50px] rounded-md shadow-sm flex items-center justify-center overflow-hidden relative border border-gray-100';
@@ -167,27 +239,30 @@ const StampSetting = () => {
 
   return (
     <div className="min-h-screen bg-white px-5 pt-4 pb-28">
-      {' '}
-      {/* 하단 버튼 여백 확보 */}
       {/* 1. Header */}
       <div className="mb-6">
         <BackButton />
         <h1 className="text-2xl font-bold text-gray-800 mt-4">스탬프 관리</h1>
       </div>
+
       {/* 2. Action Bar (삭제 모드 아닐 때) */}
       {!isDeleteMode && (
         <div className="flex justify-end space-x-2 mb-3">
-          <button className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition">
+          <button
+            onClick={() => navigate('/stampregistration1')}
+            className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition"
+          >
             <img src={PlusIcon} alt="추가" className="w-4 h-4" />
           </button>
           <button
-            onClick={handleDeleteModeToggle} // 휴지통 클릭
+            onClick={handleDeleteModeToggle}
             className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition"
           >
             <img src={GarbageIcon} alt="삭제" className="w-4 h-4" />
           </button>
         </div>
       )}
+
       {/* 3. Stamp List Container */}
       <div className="border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
         {stamps.map((stamp) => (
@@ -196,11 +271,10 @@ const StampSetting = () => {
             className={`flex items-center justify-between p-4 border-b border-gray-50 last:border-b-0 bg-white ${
               isDeleteMode ? 'cursor-pointer' : 'hover:bg-gray-50'
             }`}
-            onClick={() => isDeleteMode && toggleSelection(stamp.id)} // 삭제 모드일 때만 클릭 가능
+            onClick={() => isDeleteMode && toggleSelection(stamp.id)}
           >
             {/* Left: Checkbox & Image & Info */}
             <div className="flex items-center space-x-4">
-              {/* 삭제 모드일 때 보이는 원형 버튼 */}
               {isDeleteMode && (
                 <div
                   className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
@@ -209,7 +283,6 @@ const StampSetting = () => {
                       : 'bg-white border-gray-300'
                   }`}
                 >
-                  {/* 선택 시 체크 (흰색 점으로 대체) */}
                   {selectedIds.has(stamp.id) && (
                     <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                   )}
@@ -239,6 +312,7 @@ const StampSetting = () => {
           </div>
         ))}
       </div>
+
       {/* 4. Delete Mode Buttons (Fixed at bottom) */}
       {isDeleteMode && (
         <div className="fixed bottom-0 left-0 right-0 z-10 grid grid-cols-2 gap-3 p-5 bg-white border-t border-gray-100">
@@ -252,8 +326,8 @@ const StampSetting = () => {
             onClick={handleOpenDeleteModal}
             className={`w-full py-4 font-bold rounded-xl transition ${
               selectedIds.size > 0
-                ? 'bg-[#FF6B00] text-white hover:bg-orange-500' // 활성화
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed' // 비활성화
+                ? 'bg-[#FF6B00] text-white hover:bg-orange-500'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
             disabled={selectedIds.size === 0}
           >
@@ -261,6 +335,7 @@ const StampSetting = () => {
           </button>
         </div>
       )}
+
       {/* 5. Delete Confirmation Modal */}
       <DeleteStampModal
         isOpen={isModalOpen}
