@@ -19,6 +19,10 @@ export const Manage = () => {
     navigate('/owner/stampsetting');
   };
 
+  const handleGotoQRGenerate = () => {
+    navigate('/owner/qr-generate');
+  };
+
   return (
     <div className="flex flex-col w-full px-6 py-4">
       <h1 className="text-[25px] text-(--fill-color6) font-normal">
@@ -31,7 +35,7 @@ export const Manage = () => {
 
       <div className="flex flex-col w-full gap-3">
         <div className="flex flex-row w-full justify-between mt-5 gap-3">
-          <div className="w-full h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
+          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
             <p className="font-semibold text-[14px]">스탬프 적립하기</p>
             <div className="flex flex-row self-end">
               <img
@@ -41,6 +45,15 @@ export const Manage = () => {
                 onClick={handleGotoStampEarn}
               />
             </div>
+          </div>
+          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
+            <p className="ont-semibold text-[14px]">QR 생성하기</p>
+            <img
+                src={goto_icon}
+                alt=""
+                className="w-[40px] h-[40px]"
+                onClick={handleGotoQRGenerate}
+              />
           </div>
         </div>
 
@@ -87,10 +100,6 @@ export const Manage = () => {
               </p>
             </div>
           </div>
-        </div>
-
-        <div className="flex w-full h-15 bg-(--fill-color1) rounded-[20px] px-7 items-center">
-          <p className="">QR 생성하기</p>
         </div>
 
         <p className="mt-10 text-[18px] text-(--main-color) font-semibold">

@@ -103,24 +103,11 @@ export const OwnerSignup = () => {
       if (!response.ok) {
         const errorData = await response.json();
         console.error('서버 에러 상세:', errorData);
-        throw new Error(errorData.message || '회원가입 요청이 거절되었습니다.');
+        throw new Error(errorData.message || '회원가입 요청이 거절되었습니다. 아이디 중복을 확인해주세요.');
       }
 
-      const responseData = await response.json();
-      const { accessToken, refreshToken } = responseData;
-
-      if (accessToken) {
-        localStorage.setItem('accessToken', accessToken);
-        if (refreshToken) {
-          localStorage.setItem('refreshToken', refreshToken);
-        }
-        console.log('가입 성공 및 자동 로그인 처리 완료');
-
-        alert('가입이 완료되었습니다!');
-        navigate('/signup/owner-success');
-      } else {
-        throw new Error('회원가입은 성공했으나 토큰을 받지 못했습니다.');
-      }
+      alert('가입이 완료되었습니다!');
+      navigate('/signup/owner-success');
     } catch (error: any) {
       console.error('회원가입 오류:', error);
       alert(error.message);
