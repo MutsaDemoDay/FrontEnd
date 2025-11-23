@@ -1,7 +1,7 @@
-import backButton2 from '../assets/BackButton2.png';
+import backButton3 from '../assets/backbutton3_icon.png';
 import { useNavigate } from 'react-router-dom';
 
-export const BackButton2 = () => {
+export const BackButton3 = () => {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
@@ -10,8 +10,8 @@ export const BackButton2 = () => {
 
   return (
     <img
-      src={backButton2}
-      className="w-[48px] h-[48px] m-3 cursor-pointer"
+      src={backButton3}
+      className="w-[12px] h-[20px] m-3 cursor-pointer"
       alt="뒤로 가기"
       onClick={handleGoBack}
     />
