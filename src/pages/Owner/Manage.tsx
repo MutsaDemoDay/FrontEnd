@@ -2,16 +2,21 @@ import { OwnerBottomBar } from '../../components/OwnerBottomBar';
 import goto_icon from '../../assets/goto_icon.png';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
+import logo_gt from '../../assets/logo_gt.png';
 
 export const Manage = () => {
   const navigate = useNavigate();
 
-  const handleGotoStampAccumulation = () => {
-    navigate('/owner/stamp-accumulation');
+  const handleGotoStampEarn = () => {
+    navigate('/owner/stamp-earn');
   };
 
   const handleGotoStampHistory = () => {
-    navigate('/owner/stamp-history');
+    navigate('/owner/stamphistory');
+  };
+
+  const handleGotoStampSetting = () => {
+    navigate('/owner/stampsetting');
   };
 
   return (
@@ -25,20 +30,20 @@ export const Manage = () => {
       </p>
 
       <div className="flex flex-col w-full gap-3">
-        <div className="flex flex-row w-full justify-between mt-5">
-          <div className="w-[160px] h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
+        <div className="flex flex-row w-full justify-between mt-5 gap-3">
+          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
             <p className="font-semibold text-[14px]">스탬프 적립하기</p>
             <div className="flex flex-row self-end">
               <img
                 src={goto_icon}
                 alt=""
                 className="w-[40px] h-[40px]"
-                onClick={handleGotoStampAccumulation}
+                onClick={handleGotoStampEarn}
               />
             </div>
           </div>
 
-          <div className="w-[160px] h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
+          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
             <p className="font-semibold text-[14px]">적립 내역</p>
             <div className="flex flex-row self-end">
               <img
@@ -51,10 +56,14 @@ export const Manage = () => {
           </div>
         </div>
 
-        <div className="w-full h-[170px] flex flex-col p-3 px-5 bg-(--fill-color1) text-(--fill-color7) rounded-[20px]">
-          <p className="text-[14px] text-(--fill-color7) font-semibold">
-            스탬프 설정
-          </p>
+        <div className="w-full h-[170px] flex flex-col p-4 px-5 bg-(--fill-color1) text-(--fill-color7) rounded-[20px] justify-between">
+          <div className="w-full flex flex-row justify-between">
+            <p className="text-[14px] text-(--fill-color7) font-semibold">
+              스탬프 설정
+            </p>
+            <img src={logo_gt} alt="" className="w-[9px] h-[14px] mx-1 mt-1" onClick={handleGotoStampSetting} />
+          </div>
+
           <div className="flex flex-row gap-3">
             <div className="flex flex-col mt-5">
               <p className="text-[12px] text-(--fill-color7) font-semibold">

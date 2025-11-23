@@ -10,8 +10,8 @@ export const Dashboard = () => {
       </p>
 
       <div className="flex flex-col w-full gap-3">
-        <div className="flex flex-row w-full justify-between mt-5">
-          <div className="w-[160px] h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
+        <div className="flex flex-row w-full justify-between mt-5 gap-3">
+          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
             <p className="font-semibold text-[14px]">오늘 적립</p>
             <div className="flex flex-row self-end items-center text-center">
               <p className="text-[34px] font-semibold">20</p>
@@ -19,7 +19,7 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          <div className="w-[160px] h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
+          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
             <p className="font-semibold text-[14px]">오늘 교환된 리워드</p>
             <div className="flex flex-row self-end items-center text-center">
               <p className="text-[34px] font-semibold">5</p>

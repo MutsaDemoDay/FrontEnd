@@ -10,7 +10,7 @@ export const BackButton = () => {
 
   return (
     <div>
-      <img src={backbutton} className='w-[14px] h-[14px]' alt="뒤로 가기" onClick={handleGoBack} />
+      <img src={backbutton} className='w-[14px] h-[14px] cursor-pointer' alt="뒤로 가기" onClick={handleGoBack} />
     </div>
   );
 };
