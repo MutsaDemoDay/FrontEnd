@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // import React, { useState, useRef, useCallback, useEffect } from 'react';
 // import Plus from '../assets/plus.svg';
 // import ThreeDots from '../assets/threedots.svg';

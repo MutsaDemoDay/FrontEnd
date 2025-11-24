@@ -48,12 +48,14 @@ export const Manage = () => {
           </div>
           <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
             <p className="ont-semibold text-[14px]">QR 생성하기</p>
-            <img
+            <div className="flex flex-row self-end">
+              <img
                 src={goto_icon}
                 alt=""
                 className="w-[40px] h-[40px]"
                 onClick={handleGotoQRGenerate}
               />
+            </div>
           </div>
         </div>
 
