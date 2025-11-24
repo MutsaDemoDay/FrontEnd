@@ -1,57 +1,35 @@
 import { useRef, useState, useEffect } from 'react';
 import { BackButton3 } from '../../components/BackButton3';
 import stamp_inform from '../../assets/stamp_inform.png';
+import { useNavigate } from 'react-router-dom';
 
-// 서버로부터 받아올 데이터 타입 정의 (예시)
+// 서버로부터 받아올 데이터 타입 정의
 interface StampSettingsResponse {
-  imageUrl?: string;
-  minOrderAmount: number;
-  rewardType: 'beverage' | 'other';
-  stampCount: number;
+  storeName: string;
+  requiredAmount: number;
+  reward: string;
+  maxCnt: number;
+  imgurl: string | null;
 }
 
 export const OwnerStampSetting = () => {
+  const navigate = useNavigate();
+
   // --- 상태 관리 ---
-  const [stampImagePreview, setStampImagePreview] = useState<string | null>(null);
+  const [storeName, setStoreName] = useState('');
+  const [stampImagePreview, setStampImagePreview] = useState<string | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   // 실제 파일 전송을 위해 파일 객체 상태 추가
   const [stampFile, setStampFile] = useState<File | null>(null);
 
   // 적립 조건 및 리워드
   const [minOrderAmount, setMinOrderAmount] = useState('');
-  const [rewardType, setRewardType] = useState<'beverage' | 'other'>('beverage');
+  const [rewardType, setRewardType] = useState<'beverage' | 'other'>(
+    'beverage'
+  );
   const [stampCount, setStampCount] = useState('');
-
-  // --- 1. GET 요청: 초기 데이터 불러오기 ---
-  useEffect(() => {
-    const apiUri = import.meta.env.VITE_API_URI;
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(`${apiUri}/v1/stamps/settings`);
-        
-        if (!response.ok) {
-          throw new Error('설정 정보를 불러오는데 실패했습니다.');
-        }
-
-        const data: StampSettingsResponse = await response.json();
-
-        // 받아온 데이터로 상태 업데이트
-        if (data.imageUrl) {
-          setStampImagePreview(data.imageUrl); // 서버에 저장된 이미지 URL 표시
-        }
-        // 숫자형 데이터를 문자열로 변환하여 input value에 바인딩
-        setMinOrderAmount(data.minOrderAmount ? data.minOrderAmount.toString() : '');
-        setRewardType(data.rewardType || 'beverage');
-        setStampCount(data.stampCount ? data.stampCount.toString() : '');
-
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-        // 필요 시 에러 처리 로직 (예: alert('정보를 불러오지 못했습니다.'))
-      }
-    };
-
-    fetchSettings();
-  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,38 +52,135 @@ export const OwnerStampSetting = () => {
     }
   };
 
+  // --- 1. 초기 데이터 로드 (프로필 조회 -> 스탬프 설정 조회) ---
+  useEffect(() => {
+    const apiUri = import.meta.env.VITE_API_URI;
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        // [Step 1] 관리자 프로필에서 가게 이름(storeName) 가져오기
+        const profileResponse = await fetch(`${apiUri}/v1/managers/profile`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const profileJson = await profileResponse.json();
+        let currentStoreName = '';
+
+        if (profileJson.code === 100 && profileJson.data?.store) {
+          currentStoreName = profileJson.data.store.storeName;
+          setStoreName(currentStoreName);
+        } else {
+            console.error('Failed to fetch store profile');
+            return;
+        }
+
+        // [Step 2] 가져온 가게 이름을 기반으로 스탬프 설정 조회하기
+        if (currentStoreName) {
+            const settingsResponse = await fetch(
+                `${apiUri}/v1/stamps/manager/settings?storeName=${encodeURIComponent(currentStoreName)}`, 
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (settingsResponse.ok) {
+                const settingsData: StampSettingsResponse = await settingsResponse.json();
+                
+                // 받아온 데이터로 State 업데이트
+                if (settingsData) {
+                    // 1. 적립 금액
+                    setMinOrderAmount(settingsData.requiredAmount.toString());
+                    
+                    // 2. 스탬프 개수
+                    setStampCount(settingsData.maxCnt.toString());
+                    
+                    // 3. 이미지 URL
+                    if (settingsData.imgurl) {
+                        setStampImagePreview(settingsData.imgurl);
+                    }
+
+                    // 4. 리워드 타입 매핑
+                    // 서버 데이터가 "매장 음료 1잔" 등의 텍스트로 온다고 가정하고 매핑
+                    if (settingsData.reward === '매장 음료 1잔') {
+                        setRewardType('beverage');
+                    } else {
+                        setRewardType('other');
+                    }
+                }
+            } else {
+                console.log('기존 스탬프 설정이 없거나 불러오지 못했습니다.');
+            }
+        }
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [navigate]);
+
   // --- 2. POST 요청: 설정 저장하기 ---
   const handleSubmit = async () => {
     const apiUri = import.meta.env.VITE_API_URI;
+    const token = localStorage.getItem('accessToken');
+
+    if (!storeName) {
+        alert('가게 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+        return;
+    }
+
     try {
       const formData = new FormData();
 
-      // (1) image: string($binary)
-      // 사용자가 새 이미지를 업로드한 경우에만 추가
+      // (1) image: Binary File
       if (stampFile) {
         formData.append('image', stampFile);
       }
 
-      // (2) data: string (JSON 문자열)
-      const settingsData = {
-        minOrderAmount: parseInt(minOrderAmount) || 0,
-        rewardType: rewardType,
-        stampCount: parseInt(stampCount) || 0,
+      // (2) data: JSON String
+      // 요청 스펙: storeName, requiredAmount, reward, maxCnt
+      const requestData = {
+        storeName: storeName, // useEffect에서 세팅된 가게 이름
+        requiredAmount: parseInt(minOrderAmount) || 0,
+        reward: rewardType === 'beverage' ? '매장 음료 1잔' : '기타 아이템', // 라디오 버튼 값을 텍스트로 변환
+        maxCnt: parseInt(stampCount) || 0,
       };
-      
-      // 객체를 JSON 문자열로 변환하여 'data' 필드에 추가
-      formData.append('data', JSON.stringify(settingsData));
 
-      // 전송
-      const response = await fetch(`${apiUri}/v1/stamps/settings`, {
+      // "data" 키에 JSON 문자열을 담습니다.
+      formData.append('data', JSON.stringify(requestData));
+      
+      // 만약 백엔드(Spring 등)에서 @RequestPart("data")의 Content-Type을 application/json으로 강제한다면 아래 코드를 사용하세요.
+      // formData.append('data', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
+
+      const response = await fetch(`${apiUri}/v1/stamps/manager/settings`, {
         method: 'POST',
-        body: formData, // FormData 전송 시 Content-Type은 브라우저가 자동 설정
+        headers: {
+            Authorization: `Bearer ${token}`, 
+            // 주의: FormData 전송 시 'Content-Type': 'multipart/form-data' 헤더를 직접 설정하면 안 됩니다.
+            // 브라우저가 자동으로 boundary를 포함하여 설정합니다.
+        },
+        body: formData,
       });
 
       if (response.ok) {
-        // 성공 시 로직 (예: 페이지 이동 또는 알림)
         alert('저장되었습니다.');
-        console.log('Settings saved successfully');
+        navigate(-1);
       } else {
         const errorText = await response.text();
         console.error('Failed to save settings:', errorText);
@@ -156,7 +231,7 @@ export const OwnerStampSetting = () => {
                 <img
                   src={stampImagePreview}
                   alt="Stamp Preview"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               ) : (
                 <div className="flex flex-col items-center text-gray-400">

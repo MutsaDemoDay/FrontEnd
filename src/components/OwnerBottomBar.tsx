@@ -3,8 +3,10 @@ import dashBoardOn from '../assets/dashBoardOn.png';
 import dashBoardOff from '../assets/dashBoardOff.png';
 import manageOff from '../assets/manageOff.png';
 import manageOn from '../assets/manageOn.png';
-import event from '../assets/event.png';
-import settings from '../assets/settings.png';
+import eventOn from '../assets/eventOn.png';
+import eventOff from '../assets/eventOff.png';
+import settingOn from '../assets/settingOn.png';
+import settingOff from '../assets/settingOff.png';
 
 const navItems = [
     {
@@ -25,13 +27,15 @@ const navItems = [
         id: 'event',
         label: '이벤트',
         path: '/owner/eventmanage',
-        imgOn: event,
+        imgOn: eventOn,
+        imgOff: eventOff,
     },
     {
         id: 'settings',
         label: '설정',
         path: '/owner/settings',
-        imgOn: settings,
+        imgOn: settingOn,
+        imgOff: settingOff,
     }
 ]
 

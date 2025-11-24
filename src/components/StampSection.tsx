@@ -1,3 +1,401 @@
+<<<<<<< HEAD
+=======
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// import React, { useState, useRef, useCallback, useEffect } from 'react';
+// import Plus from '../assets/plus.svg';
+// import ThreeDots from '../assets/threedots.svg';
+
+// // --- 타입 정의 ---
+
+// interface StampResponse {
+//   storeName: string;
+//   currentCount: number;
+//   maxCount: number;
+//   stampImageUrl: string;
+// }
+
+// interface StampCardData {
+//   id: number;
+//   name: string;
+//   currentStamps: number;
+//   totalStamps: number;
+// }
+
+// // 환경 변수 설정
+// const API_BASE_URL = import.meta.env.VITE_API_URI || 'http://localhost:8080';
+// const SWIPE_THRESHOLD = 10;
+
+// // ✅ [수정 1] 카드 내부 레이아웃 변경 (하단 텍스트 추가)
+// const StampCardContent = ({
+//   currentStamps,
+//   totalStamps,
+// }: {
+//   currentStamps: number;
+//   totalStamps: number;
+// }) => (
+//   <div className="w-full h-full px-4 py-3 flex flex-col justify-between select-none pointer-events-none">
+//     {/* 스탬프 그리드 영역 (중앙 정렬) */}
+//     <div className="flex-1 flex items-center justify-center">
+//       <div className="grid grid-cols-5 gap-x-2 gap-y-3">
+//         {Array.from({ length: totalStamps }).map((_, i) => (
+//           <div
+//             key={i}
+//             className={`w-6 h-6 rounded-full border-2 ${
+//               i < currentStamps
+//                 ? 'border-orange-500 bg-orange-100'
+//                 : 'border-dashed border-gray-300'
+//             } flex items-center justify-center`}
+//           >
+//             {i < currentStamps ? (
+//               <svg
+//                 className="w-4 h-4 text-orange-500"
+//                 fill="none"
+//                 stroke="currentColor"
+//                 viewBox="0 0 24 24"
+//                 xmlns="http://www.w3.org/2000/svg"
+//               >
+//                 <path
+//                   strokeLinecap="round"
+//                   strokeLinejoin="round"
+//                   strokeWidth="2"
+//                   d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"
+//                 />
+//                 {/* 아이콘은 기존 커피잔 모양 등으로 교체 가능. 현재는 예시 */}
+//                 <path
+//                   strokeLinecap="round"
+//                   strokeLinejoin="round"
+//                   strokeWidth="2"
+//                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+//                 />
+//               </svg>
+//             ) : (
+//               <svg
+//                 className="w-4 h-4 text-gray-300"
+//                 fill="none"
+//                 stroke="currentColor"
+//                 viewBox="0 0 24 24"
+//                 xmlns="http://www.w3.org/2000/svg"
+//               >
+//                 <path
+//                   strokeLinecap="round"
+//                   strokeLinejoin="round"
+//                   strokeWidth="2"
+//                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+//                 />
+//               </svg>
+//             )}
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+
+//     {/* 하단 안내 문구 영역 */}
+//     <div className="flex justify-center mt-1">
+//       <div className="bg-gray-200 rounded-full px-3 py-1.5 flex items-center">
+//         <span className="text-[9px] text-gray-600 font-bold tracking-tight">
+//           스탬프 10개 아메리카노 1잔 무료로 드려요
+//         </span>
+//       </div>
+//     </div>
+//   </div>
+// );
+
+// const StampSection = () => {
+//   // --- 상태 관리 ---
+//   const [stampCards, setStampCards] = useState<StampCardData[]>([]);
+//   const [isLoading, setIsLoading] = useState(true);
+//   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+//   const [activeIndex, setActiveIndex] = useState(0);
+//   const [currentY, setCurrentY] = useState(0);
+
+//   const totalCardsRef = useRef(0);
+
+//   useEffect(() => {
+//     const fetchStamps = async () => {
+//       try {
+//         setIsLoading(true);
+//         setErrorMsg(null);
+//         const token = localStorage.getItem('accessToken');
+
+//         const response = await fetch(`${API_BASE_URL}/v1/users/stamps`, {
+//           method: 'GET',
+//           headers: {
+//             'Content-Type': 'application/json',
+//             ...(token && { Authorization: `Bearer ${token}` }),
+//           },
+//         });
+
+//         if (!response.ok) {
+//           const errorText = await response.text();
+//           throw new Error(`서버 에러 (${response.status}): ${errorText}`);
+//         }
+
+//         const data: StampResponse[] = await response.json();
+
+//         const formattedData: StampCardData[] = data.map((item, index) => ({
+//           id: index,
+//           name: item.storeName,
+//           currentStamps: item.currentCount,
+//           totalStamps: item.maxCount,
+//         }));
+
+//         setStampCards(formattedData);
+//         totalCardsRef.current = formattedData.length;
+//       } catch (error: any) {
+//         console.error('Failed to fetch stamps:', error);
+//         setErrorMsg(error.message);
+//         setStampCards([]);
+//         totalCardsRef.current = 0;
+//       } finally {
+//         setIsLoading(false);
+//       }
+//     };
+
+//     fetchStamps();
+//   }, []);
+
+//   useEffect(() => {
+//     totalCardsRef.current = stampCards.length;
+//   }, [stampCards]);
+
+//   // --- 드래그 로직 ---
+//   const isDraggingRef = useRef(false);
+//   const startYRef = useRef(0);
+
+//   const handleDragEnd = useCallback(() => {
+//     if (!isDraggingRef.current) return;
+//     isDraggingRef.current = false;
+//     setCurrentY(0);
+//     window.removeEventListener('mousemove', handleDragMove);
+//     window.removeEventListener('mouseup', handleDragEnd);
+//     window.removeEventListener('touchmove', handleTouchMove);
+//     window.removeEventListener('touchend', handleDragEnd);
+//   }, []);
+
+//   const processMove = (y: number) => {
+//     const total = totalCardsRef.current;
+//     if (total === 0) return;
+
+//     const deltaY = y - startYRef.current;
+
+//     if (deltaY < -SWIPE_THRESHOLD) {
+//       setActiveIndex((prevIndex) => (prevIndex + 1) % total);
+//       startYRef.current = y;
+//       setCurrentY(0);
+//     } else if (deltaY > SWIPE_THRESHOLD) {
+//       setActiveIndex((prevIndex) => (prevIndex - 1 + total) % total);
+//       startYRef.current = y;
+//       setCurrentY(0);
+//     } else {
+//       setCurrentY(deltaY);
+//     }
+//   };
+
+//   const handleDragMove = useCallback((e: MouseEvent) => {
+//     if (!isDraggingRef.current) return;
+//     e.preventDefault();
+//     processMove(e.clientY);
+//   }, []);
+
+//   const handleTouchMove = useCallback((e: TouchEvent) => {
+//     if (!isDraggingRef.current) return;
+//     processMove(e.touches[0].clientY);
+//   }, []);
+
+//   const handleDragStart = (y: number) => {
+//     if (totalCardsRef.current === 0) return;
+//     isDraggingRef.current = true;
+//     startYRef.current = y;
+//     setCurrentY(0);
+//     window.addEventListener('mousemove', handleDragMove);
+//     window.addEventListener('mouseup', handleDragEnd);
+//     window.addEventListener('touchmove', handleTouchMove, { passive: true });
+//     window.addEventListener('touchend', handleDragEnd);
+//   };
+//   // --- 드래그 로직 끝 ---
+
+//   if (isLoading) {
+//     return (
+//       <div className="bg-white rounded-lg p-4 h-48 flex items-center justify-center text-gray-400 animate-pulse">
+//         스탬프 정보를 불러오는 중...
+//       </div>
+//     );
+//   }
+
+//   if (errorMsg) {
+//     return (
+//       <div className="bg-white rounded-lg p-4 h-48 flex flex-col items-center justify-center text-red-400 gap-2">
+//         <p className="text-sm text-center">{errorMsg}</p>
+//         <p className="text-xs text-gray-400 text-center">
+//           로그인이 되어있는지 확인해주세요.
+//         </p>
+//       </div>
+//     );
+//   }
+
+//   if (stampCards.length === 0) {
+//     return (
+//       <div className="bg-white rounded-lg p-4 h-48 flex items-center justify-center text-gray-400">
+//         진행 중인 스탬프가 없습니다.
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="bg-white rounded-lg p-4 pb-6 overflow-hidden">
+//       {/* 섹션 헤더 */}
+//       <div className="flex justify-between items-center mb-6">
+//         <div className="flex items-center gap-2">
+//           <div className="w-8 h-8 bg-white rounded-full border border-gray-200 flex items-center justify-center -translate-x-1"></div>
+//           <h2 className="font-bold text-lg">
+//             현재 스탬프({stampCards.length})
+//           </h2>
+//         </div>
+//         <div className="flex gap-2 items-center text-(--fill-color3)">
+//           <img src={Plus} alt="Plus" className="w-6 h-6" />
+//           <img src={ThreeDots} alt="ThreeDots" className="w-6 h-6" />
+//         </div>
+//       </div>
+
+//       {/* --- 카드 스택 컨테이너 --- */}
+//       <div
+//         className="relative h-48 w-full flex items-center mb-8"
+//         onMouseDown={(e: React.MouseEvent) => handleDragStart(e.clientY)}
+//         onTouchStart={(e: React.TouchEvent) =>
+//           handleDragStart(e.touches[0].clientY)
+//         }
+//       >
+//         {/* 옅은 주황색 홀더 */}
+//         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[78px] h-[198px] bg-[#F60] rounded-r-[20px] z-0"></div>
+
+//         {/* 짙은 주황색 홀더 */}
+//         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[39px] h-[172px] bg-[#EF6000] rounded-r-[10px] border-r-[3px] border-r-[rgba(0,0,0,0.60)] z-20"></div>
+
+//         {/* 카드 스택 */}
+//         <div
+//           className={`relative w-[230.51px] h-[74.879px] ml-[39px] z-10 ${
+//             isDraggingRef.current ? 'cursor-grabbing' : 'cursor-grab'
+//           }`}
+//         >
+//           {stampCards.map((card, index) => {
+//             const total = stampCards.length;
+//             let offset = index - activeIndex;
+//             if (offset > total / 2) offset -= total;
+//             else if (offset < -total / 2) offset += total;
+
+//             let translateY, scale, opacity, zIndex, rotate;
+//             let transformOrigin = 'left center';
+
+//             if (offset === 0) {
+//               // (Active Card)
+//               translateY = currentY;
+//               scale = 1;
+//               opacity = 1;
+//               zIndex = 10;
+//               rotate = '0deg';
+//               transformOrigin = 'center center';
+//             } else if (offset > 0) {
+//               // (Future Cards)
+//               const baseTranslateY = 10 * offset;
+//               const baseScale = 1 - 0.05 * offset;
+//               const baseRotate = 4 * offset;
+//               const progress = Math.min(
+//                 1,
+//                 Math.max(0, -currentY / (SWIPE_THRESHOLD * 1.5))
+//               );
+
+//               translateY = baseTranslateY * (1 - progress);
+//               scale = baseScale + (1 - baseScale) * progress;
+//               rotate = `${baseRotate * (1 - progress)}deg`;
+
+//               opacity = offset <= 2 ? 0.8 - 0.4 * (offset - 1) : 0;
+//               zIndex = 10 - offset;
+//             } else {
+//               // (Past Cards)
+//               const progress = Math.min(
+//                 1,
+//                 Math.max(0, currentY / (SWIPE_THRESHOLD * 1.5))
+//               );
+
+//               const currentOffset = Math.abs(offset);
+//               const baseTranslateY = -10 * currentOffset;
+//               const baseScale = 1 - 0.05 * currentOffset;
+//               const baseRotate = -4 * currentOffset;
+
+//               translateY = baseTranslateY + (0 - baseTranslateY) * progress;
+//               scale = baseScale + (1 - baseScale) * progress;
+//               rotate = `${baseRotate + (0 - baseRotate) * progress}deg`;
+
+//               opacity =
+//                 currentOffset <= 2 ? 0.8 - 0.4 * (currentOffset - 1) : 0;
+//               zIndex = 5 - currentOffset;
+//             }
+
+//             const transitionClass = isDraggingRef.current
+//               ? ''
+//               : 'transition-all duration-500 ease-out';
+
+//             return (
+//               <div
+//                 key={card.id}
+//                 className={`absolute w-full h-full flex-shrink-0 bg-white rounded-[5px] shadow-[4px_4px_8px_6px_rgba(0,0,0,0.10)] overflow-hidden ${transitionClass}`}
+//                 style={{
+//                   transform: `translateY(${translateY}px) scale(${scale}) rotate(${rotate})`,
+//                   opacity,
+//                   zIndex,
+//                   transformOrigin: transformOrigin,
+//                 }}
+//               >
+//                 {/* 활성 카드일 때만 내용물 렌더링 */}
+//                 {offset === 0 ? (
+//                   <StampCardContent
+//                     currentStamps={card.currentStamps}
+//                     totalStamps={card.totalStamps}
+//                   />
+//                 ) : null}
+//               </div>
+//             );
+//           })}
+//         </div>
+//       </div>
+
+//       {/* ✅ [수정 2] 하단 가게 이름 & 스탬프 개수 (카드 밑으로 이동) */}
+//       {stampCards.length > 0 && (
+//         <div className="flex flex-col items-center justify-center space-y-1 mt-4">
+//           <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+//             {/* 커피 아이콘 SVG */}
+//             <svg
+//               width="20"
+//               height="20"
+//               viewBox="0 0 24 24"
+//               fill="none"
+//               stroke="currentColor"
+//               strokeWidth="2"
+//               strokeLinecap="round"
+//               strokeLinejoin="round"
+//               className="text-gray-800"
+//             >
+//               <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+//               <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+//               <line x1="6" y1="1" x2="6" y2="4" />
+//               <line x1="10" y1="1" x2="10" y2="4" />
+//               <line x1="14" y1="1" x2="14" y2="4" />
+//             </svg>
+//             {stampCards[activeIndex]?.name || ''}
+//           </h3>
+//           <p className="text-gray-500 font-medium">
+//             {stampCards[activeIndex]?.currentStamps}/
+//             {stampCards[activeIndex]?.totalStamps}
+//           </p>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default StampSection;
+
+>>>>>>> main
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Plus from '../assets/plus.svg';
 import ThreeDots from '../assets/threedots.svg';
