@@ -45,6 +45,7 @@ import { EventCreate } from './pages/Owner/EventCreate';
 import { PastEvent } from './pages/Owner/PastEvent';
 import { OwnerAccountInfo } from './pages/Owner/OwnerAccountInfo';
 import { OwnerShopProfile } from './pages/Owner/OwnerShopProfile';
+import Statistics from './pages/Owner/Statistics';
 
 function App() {
   return (
@@ -126,6 +127,7 @@ function App() {
           <Route path='/owner/pastevent' element={<PastEvent />} />
           <Route path='/owner/accountinfo' element={<OwnerAccountInfo/>} />
           <Route path='/owner/shopprofile' element={<OwnerShopProfile/>} />
+          <Route path='/owner/statistics' element={<Statistics/>} />
         </Route>
       </Routes>
     </BrowserRouter>
