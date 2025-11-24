@@ -1,156 +1,226 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ChevronLeft, Pencil, MoreVertical, Plus, Star } from 'lucide-react';
 import BackButton from '../../components/BackButton';
-import Plus from '../../assets/plus.svg';
-import FilledStar from '../../assets/filledstar.svg';
-import ThreeDots from '../../assets/threedots.svg';
-import { UserBottomBar } from '../../components/UserBottomBar';
 
-// '칭호' 섹션의 아이콘을 위한 임시 컴포넌트
-// 이미지의 로고를 단순한 형태로 대체했습니다.
-const TitleIcon = () => (
-  <div className="w-16 h-16 rounded-full bg-white border border-gray-300 flex items-center justify-center">
-    <div className="w-12 h-12 rounded-full bg-black text-white text-xs flex items-center justify-center font-bold">
-      ICON
-    </div>
-  </div>
-);
+const ProfileSetting = () => {
+  // 상태 관리 (UI 상호작용을 위해 추가)
+  const [nickname, setNickname] = useState('김멋사');
+  const [gender, setGender] = useState('male'); // 'male' | 'female'
+  const [selectedTitle, setSelectedTitle] = useState(0); // 0: 첫번째, 1: 두번째 ...
 
-const ProfileSetting: React.FC = () => {
-  // 가로 스크롤바 숨기기 위한 스타일
-  const scrollbarHideStyle: React.CSSProperties = {
-    scrollbarWidth: 'none', // Firefox
-    msOverflowStyle: 'none', // IE and Edge
-  };
+  // 칭호 더미 데이터
+  const titles = [
+    { id: 0, name: '전설의 바리스타', icon: '☕' },
+    { id: 1, name: '테이크아웃 장인', icon: '🏃' },
+    { id: 2, name: '고독한 미식가', icon: '🥘' },
+  ];
 
   return (
-    <div className="w-screen mx-4 min-h-screen bg-white text-gray-900">
-      {/* 1. 헤더 (뒤로가기 버튼, 타이틀) */}
-      <header className="relative flex items-center justify-center border-b border-gray-200">
-        <div className="absolute left-4">
-          <BackButton />
-        </div>
-        <h1 className="text-lg font-semibold">프로필 설정</h1>
-      </header>
-
-      {/* 2. 메인 컨텐츠 영역 */}
-      <main className="mx-4 space-y-8">
-        {/* 프로필 이미지 섹션 */}
-        <div className="flex justify-center mt-4">
-          <div className="relative w-32 h-32 bg-gray-200 rounded-2xl">
-            {/* 이미지 업로드 버튼 (이미지의 원형 버튼) */}
-            <button className="absolute top-[-10px] right-[-10px] w-9 h-9 bg-white rounded-full border border-gray-300 shadow flex items-center justify-center">
-              {/* 기능적으로 Camera 아이콘을 추가하는 것이 좋습니다. */}
-              <img src={FilledStar} alt="FilledStar" className="w-6 h-6" />
-            </button>
+    <div className="flex justify-center bg-gray-50 min-h-screen py-10">
+      {/* 모바일 컨테이너: 가로 390px 고정 */}
+      <div className="w-[390px] bg-white shadow-xl rounded-xl overflow-hidden flex flex-col relative pb-6">
+        {/* 1. 헤더 */}
+        <header className="relative flex items-center h-14 px-4 mt-2">
+          <div className="absolute left-4">
+            <BackButton />
           </div>
+          <h1 className="absolute left-0 right-0 text-center text-lg font-bold text-gray-800 pointer-events-none">
+            {/* 중앙 정렬을 위한 공간 확보, 텍스트는 좌측 정렬된 것처럼 보일 수 있으나 이미지상 타이틀 위치 확인하여 조정 */}
+          </h1>
+          {/* 이미지상의 "프로필 설정" 텍스트 위치가 헤더 하단 혹은 좌측 상단일 수 있어 레이아웃 조정 */}
+        </header>
+
+        {/* 헤더 타이틀 (이미지 스타일: 좌측 정렬, 굵게) */}
+        <div className="px-5 mb-6">
+          <h1 className="text-xl font-bold text-gray-800">프로필 설정</h1>
         </div>
 
-        {/* 닉네임 섹션 */}
-        <div className="space-y-2">
-          <label
-            htmlFor="nickname"
-            className="text-sm font-medium text-gray-700"
-          >
-            닉네임
-          </label>
-          <div className="relative flex items-end border-b border-gray-300 focus-within:border-black">
-            <input
-              type="text"
-              id="nickname"
-              defaultValue="김철수"
-              maxLength={12}
-              className="flex-1 pb-2 text-lg bg-transparent focus:outline-none"
-            />
-            <span className="pb-2 text-sm text-(--fill-color3)">3/12</span>
-          </div>
-        </div>
-
-        {/* 칭호 섹션 (가로 스크롤) */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-700">칭호</label>
-          <div
-            className="flex space-x-3 overflow-x-auto pb-2"
-            // 스크롤바 숨김 (tailwind-scrollbar-hide 플러그인 없이)
-            style={scrollbarHideStyle}
-          >
-            {/* Item 1 (Active) */}
-            <div className="flex-shrink-0 flex flex-col items-center space-y-2 p-4 rounded-xl w-32 border-2 border-orange-500 bg-white cursor-pointer">
-              <TitleIcon />
-              <span className="text-sm font-medium text-orange-500">
-                고독한 미식가
-              </span>
-            </div>
-            {/* Item 2 (Inactive) */}
-            <div className="flex-shrink-0 flex flex-col items-center space-y-2 p-4 rounded-xl w-32 bg-gray-100 cursor-pointer">
-              <TitleIcon />
-              <span className="text-sm font-medium text-gray-500">
-                테이크아웃 장인
-              </span>
-            </div>
-            {/* Item 3 (Inactive) */}
-            <div className="flex-shrink-0 flex flex-col items-center space-y-2 p-4 rounded-xl w-32 bg-gray-100 cursor-pointer">
-              <TitleIcon />
-              <span className="text-sm font-medium text-gray-500">
-                고독한 미식가
-              </span>
-            </div>
-            {/* Item 4 (Inactive) - 스크롤을 위해 추가 */}
-            <div className="flex-shrink-0 flex flex-col items-center space-y-2 p-4 rounded-xl w-32 bg-gray-100 cursor-pointer">
-              <TitleIcon />
-              <span className="text-sm font-medium text-gray-500">
-                새로운 칭호
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 성별 섹션 */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-700">성별</label>
-          <div className="grid grid-cols-2 gap-3">
-            {/* Selected Button (이미지 기준) */}
-            <button className="py-3 px-6 rounded-lg bg-white text-black font-medium border border-gray-900">
-              남
-            </button>
-            {/* Unselected Button */}
-            <button className="py-3 px-6 rounded-lg bg-white text-(--fill-color3) border border-gray-300">
-              여
-            </button>
-          </div>
-        </div>
-
-        {/* 단골 가게 등록 섹션 */}
-        <div className="space-y-3 pb-10">
-          <label className="text-sm font-medium text-gray-700">
-            단골 가게 등록
-          </label>
-          <div className="space-y-3">
-            {/* Store 1 (Filled) */}
-            <div className="flex items-center w-full p-3 rounded-lg bg-white border border-gray-300">
-              <div className="flex-1">
-                <span className="text-sm font-medium text-black">카페나무</span>
-                <p className="text-xs text-gray-500">
-                  서울 마포구 와우산로 94 롯폰기 1층 (상수)
-                </p>
+        {/* 메인 스크롤 영역 */}
+        <main className="flex-1 px-5 overflow-y-auto scrollbar-hide pb-24">
+          {/* 2. 프로필 이미지 */}
+          <div className="flex justify-center mb-8">
+            <div className="relative">
+              <div className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
+                {/* 임시 프로필 이미지 (사람 얼굴) */}
+                <img
+                  src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80"
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <button className="p-1 text-(--fill-color3) hover:text-black">
-                <img src={ThreeDots} alt="ThreeDots" className="w-6 h-6" />
+              {/* 편집 버튼 (연필) */}
+              <button className="absolute top-0 right-0 bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                <Pencil size={14} fill="white" />
               </button>
             </div>
-
-            {/* Store 2 (Empty) */}
-            <button className="flex items-center justify-center w-full py-5 rounded-lg bg-white border border-gray-300 text-(--fill-color3) hover:border-gray-500 hover:text-gray-500 transition-colors">
-              <img src={Plus} alt="Plus" className="w-6 h-6" />
-            </button>
-
-            {/* Store 3 (Empty) */}
-            <button className="flex items-center justify-center w-full py-5 rounded-lg bg-white border border-gray-300 text-(--fill-color3) hover:border-gray-500 hover:text-gray-500 transition-colors">
-              <img src={Plus} alt="Plus" className="w-6 h-6" />
-            </button>
           </div>
+
+          {/* 3. 닉네임 */}
+          <div className="mb-8">
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              닉네임
+            </label>
+            <div className="flex items-center border-b border-gray-200 focus-within:border-black pb-2">
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                maxLength={10}
+                className="flex-1 text-base font-medium text-gray-900 bg-transparent focus:outline-none placeholder-gray-300"
+              />
+              <span className="text-xs text-gray-400">
+                {nickname.length}/10
+              </span>
+            </div>
+          </div>
+
+          {/* 4. 대표 칭호 */}
+          <div className="mb-8">
+            <label className="block text-xs font-medium text-gray-500 mb-3">
+              대표 칭호
+            </label>
+            {/* 칭호 컨테이너 (박스 형태) */}
+            <div className="border border-gray-200 rounded-2xl p-4 flex justify-between items-center bg-white">
+              {titles.map((title, index) => {
+                const isSelected = selectedTitle === index;
+                return (
+                  <div
+                    key={title.id}
+                    onClick={() => setSelectedTitle(index)}
+                    className="flex flex-col items-center cursor-pointer w-1/3"
+                  >
+                    {/* 칭호 아이콘 (원형) */}
+                    <div
+                      className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 transition-all border-2 relative
+                      ${
+                        isSelected
+                          ? 'border-orange-500 bg-white'
+                          : 'border-gray-800 bg-white'
+                      }`}
+                    >
+                      {/* 뱃지 내부 디자인 (별 모양 흉내) */}
+                      <div className="text-center">
+                        <div className="flex justify-center space-x-[2px] mb-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              size={6}
+                              fill="black"
+                              stroke="none"
+                            />
+                          ))}
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                          VENVATO
+                        </span>
+                        <div className="w-full h-[1px] bg-gray-200 my-[2px]"></div>
+                        {/* 실제 아이콘이나 텍스트 대신 간단한 이모지 사용 */}
+                        <div className="text-lg">{title.icon}</div>
+                      </div>
+                    </div>
+
+                    {/* 칭호 이름 */}
+                    <span
+                      className={`text-[10px] font-bold tracking-tight whitespace-nowrap
+                      ${isSelected ? 'text-orange-500' : 'text-gray-800'}`}
+                    >
+                      {title.name}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 5. 성별 */}
+          <div className="mb-8">
+            <label className="block text-xs font-medium text-gray-500 mb-2">
+              성별
+            </label>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setGender('male')}
+                className={`flex-1 py-3 rounded-lg border text-sm font-medium transition-colors
+                  ${
+                    gender === 'male'
+                      ? 'border-orange-500 text-gray-900 bg-white ring-1 ring-orange-500'
+                      : 'border-gray-200 text-gray-400 bg-white hover:bg-gray-50'
+                  }`}
+              >
+                남
+              </button>
+              <button
+                onClick={() => setGender('female')}
+                className={`flex-1 py-3 rounded-lg border text-sm font-medium transition-colors
+                  ${
+                    gender === 'female'
+                      ? 'border-orange-500 text-gray-900 bg-white ring-1 ring-orange-500'
+                      : 'border-gray-200 text-gray-400 bg-white hover:bg-gray-50'
+                  }`}
+              >
+                여
+              </button>
+            </div>
+          </div>
+
+          {/* 6. 주소지 (기존 코드에 없었으나 이미지에 있어 추가) */}
+          <div className="mb-8">
+            <label className="block text-xs font-medium text-gray-500 mb-2">
+              주소지
+            </label>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="지번, 도로명, 건물명으로 검색"
+                className="flex-1 border border-gray-200 rounded-lg px-4 py-3 text-xs placeholder-gray-300 focus:outline-none focus:border-orange-500"
+              />
+              <button className="bg-gray-100 text-gray-600 px-5 rounded-lg text-xs font-medium whitespace-nowrap">
+                검색
+              </button>
+            </div>
+          </div>
+
+          {/* 7. 단골 가게 등록 */}
+          <div className="mb-8">
+            <label className="block text-xs font-medium text-gray-500 mb-2">
+              단골 가게 등록
+            </label>
+            <div className="space-y-2">
+              {/* 등록된 가게 아이템 */}
+              <div className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-900">
+                    카페나무
+                  </span>
+                  <span className="text-[10px] text-gray-400 mt-0.5">
+                    서울 마포구 와우산로 94 롯폰기 1층 (상수동)
+                  </span>
+                </div>
+                <button className="text-gray-300">
+                  <MoreVertical size={16} />
+                </button>
+              </div>
+
+              {/* 빈 슬롯 1 */}
+              <button className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-gray-400 transition-colors">
+                <Plus size={20} strokeWidth={1.5} />
+              </button>
+
+              {/* 빈 슬롯 2 */}
+              <button className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-gray-400 transition-colors">
+                <Plus size={20} strokeWidth={1.5} />
+              </button>
+            </div>
+          </div>
+        </main>
+
+        {/* 8. 하단 저장 버튼 */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 bg-white bg-opacity-90 backdrop-blur-sm">
+          <button className="w-full bg-[#FF5F00] hover:bg-[#e55600] text-white font-bold py-4 rounded-full text-sm shadow-md transition-colors">
+            저장
+          </button>
         </div>
-      </main>
-      <UserBottomBar />
+      </div>
     </div>
   );
 };

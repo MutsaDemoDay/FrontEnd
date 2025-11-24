@@ -15,25 +15,30 @@ const apiUri = import.meta.env.VITE_API_URI || 'http://localhost:8080';
 interface StampItem {
   id: number;
   name: string;
-  count: string;
+  countDisplay: string;
+  currentCount: number;
+  maxCount: number;
   isFavorite: boolean;
   theme: 'standard' | 'text' | 'green' | 'yellow';
 }
 
-// GET 요청 시 서버 응답 데이터 타입 (스탬프 목록)
+// GET 요청 시 서버 응답 데이터 타입
+// (목록 조회 시 찜 여부인 isFavorite가 넘어온다고 가정하고 추가했습니다)
 interface StampResponseDto {
   storeName: string;
   currentCount: number;
   maxCount: number;
   stampImageUrl: string;
-  stampId?: number; // 삭제를 위해선 DB의 PK(ID)가 필수입니다.
+  stampId?: number;
+  isFavorite?: boolean; // 서버 응답에 찜 상태 필드 추가 필요
 }
 
-// DELETE 요청 시 서버 응답 데이터 타입
-interface DeleteApiResponse {
+// DELETE, POST 등 일반적인 응답 타입
+interface CommonApiResponse {
   timestamp: string;
   code: number;
   message: string;
+  data: object;
 }
 
 const StampSetting = () => {
@@ -70,12 +75,13 @@ const StampSetting = () => {
 
         // DTO -> UI State 변환
         const formattedStamps: StampItem[] = data.map((item, index) => ({
-          // [중요] 실제 삭제 API 호출을 위해선 서버에서 주는 고유 ID(stampId)를 사용해야 합니다.
-          // stampId가 없다면 임시로 index를 쓰지만, 이 경우 삭제가 정상 동작하지 않을 수 있습니다.
           id: item.stampId || index,
           name: item.storeName,
-          count: `${item.currentCount}/${item.maxCount}`,
-          isFavorite: false, // 즐겨찾기 정보가 API에 없다면 기본값 false
+          countDisplay: `${item.currentCount}/${item.maxCount}`,
+          currentCount: item.currentCount,
+          maxCount: item.maxCount,
+          // 서버에서 값을 주지 않으면 기본값 false
+          isFavorite: item.isFavorite || false,
           theme: ['standard', 'text', 'green', 'yellow'][
             index % 4
           ] as StampItem['theme'],
@@ -90,20 +96,58 @@ const StampSetting = () => {
     fetchStamps();
   }, [navigate]);
 
-  // --- 일반 핸들러 ---
-
-  // 즐겨찾기 토글
-  const toggleFavorite = (id: number) => {
+  // --- API 연동: 즐겨찾기(찜) 토글 핸들러 ---
+  const toggleFavorite = async (id: number) => {
     if (isDeleteMode) return;
-    setStamps((prevStamps) =>
-      prevStamps.map((stamp) =>
-        stamp.id === id ? { ...stamp, isFavorite: !stamp.isFavorite } : stamp
-      )
-    );
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    // 1. 현재 클릭한 스탬프 찾기
+    const targetStamp = stamps.find((s) => s.id === id);
+    if (!targetStamp) return;
+
+    // 2. 현재 상태 확인 (찜 되어있으면 true)
+    const currentStatus = targetStamp.isFavorite;
+
+    try {
+      if (currentStatus) {
+        // --- [DELETE] 찜 해제 요청 ---
+        // 조건: 찜이 되어있으면(Filled) -> 해제(Empty)
+        await axios.delete<CommonApiResponse>(
+          `${apiUri}/v1/stamps/${id}/favorite`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      } else {
+        // --- [POST] 찜 등록 요청 ---
+        // 조건: 찜이 안되어있으면(Empty) -> 등록(Filled)
+        await axios.post<CommonApiResponse>(
+          `${apiUri}/v1/stamps/${id}/favorite`,
+          {}, // POST body는 비워둠 (요청 명세에 body data 명시 없음)
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
+
+      // 3. API 성공 시 UI 상태 업데이트 (토글)
+      setStamps((prevStamps) =>
+        prevStamps.map((stamp) =>
+          stamp.id === id ? { ...stamp, isFavorite: !stamp.isFavorite } : stamp
+        )
+      );
+    } catch (error) {
+      console.error('즐겨찾기 변경 실패:', error);
+      alert('즐겨찾기 상태 변경 중 오류가 발생했습니다.');
+    }
   };
 
   // --- 삭제 모드 관련 핸들러 ---
-
   const toggleSelection = (id: number) => {
     const newSelectedIds = new Set(selectedIds);
     if (newSelectedIds.has(id)) {
@@ -129,46 +173,35 @@ const StampSetting = () => {
     setIsModalOpen(true);
   };
 
-  // ★ 수정된 삭제 로직 (DELETE API 연동) ★
   const handleConfirmDelete = async () => {
     const token = localStorage.getItem('accessToken');
-
     if (!token) {
       alert('로그인이 필요합니다.');
       return;
     }
 
     try {
-      // 선택된 ID들에 대해 병렬로 DELETE 요청 전송
+      // 선택된 ID들에 대해 개별 DELETE 요청
       const deletePromises = Array.from(selectedIds).map(async (id) => {
-        // [요청] DELETE /v1/stamps/{stampId}
-        const response = await axios.delete<DeleteApiResponse>(
+        const response = await axios.delete<CommonApiResponse>(
           `${apiUri}/v1/stamps/${id}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
-
-        // 서버 응답 확인 (옵션: code가 100인지 확인 등)
-        console.log(`ID ${id} 삭제 결과:`, response.data);
         return response.data;
       });
 
-      // 모든 삭제 요청 대기
       await Promise.all(deletePromises);
 
-      // UI 업데이트: 삭제 성공한 항목들을 화면 목록에서 제거
+      // UI 상태 업데이트: 삭제된 항목 제거
       setStamps((prevStamps) =>
         prevStamps.filter((stamp) => !selectedIds.has(stamp.id))
       );
 
-      // 모드 및 상태 초기화
       setIsModalOpen(false);
       setIsDeleteMode(false);
       setSelectedIds(new Set());
-
       alert('삭제되었습니다.');
     } catch (error) {
       console.error('스탬프 삭제 실패:', error);
@@ -176,65 +209,70 @@ const StampSetting = () => {
     }
   };
 
-  // --- 렌더링 헬퍼 (썸네일) ---
-  const renderThumbnail = (theme: string) => {
-    const baseClass =
-      'w-[80px] h-[50px] rounded-md shadow-sm flex items-center justify-center overflow-hidden relative border border-gray-100';
-
-    switch (theme) {
-      case 'standard':
-        return (
-          <div className={`${baseClass} bg-white`}>
-            <div className="grid grid-cols-5 gap-0.5">
-              {[...Array(10)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-1 h-1 rounded-full border border-gray-400"
-                ></div>
-              ))}
-            </div>
-            <div className="absolute bottom-1 text-[3px] bg-gray-100 px-1 rounded-full">
-              COFFEE
-            </div>
+  // --- 렌더링 헬퍼: 썸네일 ---
+  const renderThumbnail = (currentCount: number, maxCount: number) => {
+    return (
+      <div className="w-[80px] h-[50px] bg-white rounded-md shadow-sm border border-gray-200 flex flex-col items-center justify-between py-1 px-1.5 overflow-hidden">
+        <div className="flex-1 flex items-center justify-center w-full">
+          <div className="grid grid-cols-5 gap-x-0.5 gap-y-0.5">
+            {Array.from({ length: maxCount }).map((_, i) => {
+              const isFilled = i < currentCount;
+              return (
+                <div key={i} className="flex items-center justify-center">
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={isFilled ? 'text-gray-800' : 'text-gray-300'}
+                  >
+                    <path
+                      d="M18 8H19C20.1046 8 21 8.89543 21 10V12C21 13.1046 20.1046 14 19 14H18V8Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M2 8H18V15C18 17.2091 16.2091 19 14 19H6C3.79086 19 2 17.2091 2 15V8Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M6 1V4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M10 1V4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M14 1V4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              );
+            })}
           </div>
-        );
-      case 'text':
-        return (
-          <div className={`${baseClass} bg-white`}>
-            <div className="flex flex-col items-center">
-              <div className="w-full h-[1px] border-t border-dashed border-gray-300 mb-1"></div>
-              <span className="text-[4px] font-bold text-gray-600">
-                Your Cafe
-              </span>
-              <div className="w-full h-[1px] border-t border-dashed border-gray-300 mt-1"></div>
-            </div>
-          </div>
-        );
-      case 'green':
-        return (
-          <div className={`${baseClass} bg-[#1E4D45]`}>
-            <div className="text-[4px] text-white absolute top-1 left-1">
-              Coffee
-            </div>
-            <div className="w-full h-[1px] bg-white/20 rotate-12"></div>
-          </div>
-        );
-      case 'yellow':
-        return (
-          <div className={`${baseClass} bg-[#FFD700]`}>
-            <div className="grid grid-cols-5 gap-1">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-2 h-2 rounded-full bg-white border border-yellow-600"
-                ></div>
-              ))}
-            </div>
-          </div>
-        );
-      default:
-        return <div className={`${baseClass} bg-gray-200`} />;
-    }
+        </div>
+        <div className="w-full flex justify-center mt-0.5">
+          <div className="bg-gray-200 rounded-full w-[90%] h-[4px]"></div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -245,7 +283,7 @@ const StampSetting = () => {
         <h1 className="text-2xl font-bold text-gray-800 mt-4">스탬프 관리</h1>
       </div>
 
-      {/* 2. Action Bar (삭제 모드 아닐 때) */}
+      {/* 2. Action Bar */}
       {!isDeleteMode && (
         <div className="flex justify-end space-x-2 mb-3">
           <button
@@ -289,19 +327,22 @@ const StampSetting = () => {
                 </div>
               )}
 
-              {renderThumbnail(stamp.theme)}
+              {renderThumbnail(stamp.currentCount, stamp.maxCount)}
 
               <div>
                 <h3 className="font-bold text-gray-800 text-sm mb-0.5">
                   {stamp.name}
                 </h3>
-                <p className="text-gray-400 text-xs">{stamp.count}</p>
+                <p className="text-gray-400 text-xs">{stamp.countDisplay}</p>
               </div>
             </div>
 
-            {/* Right: Star Toggle (삭제 모드가 아닐 때) */}
+            {/* Right: Star Toggle */}
             {!isDeleteMode && (
               <button onClick={() => toggleFavorite(stamp.id)} className="p-2">
+                {/* isFavorite가 true이면 YellowStar(채워진 별/하트 역할)
+                  isFavorite가 false이면 EmptyStar(빈 별/하트 역할)
+                */}
                 <img
                   src={stamp.isFavorite ? YellowStar : EmptyStar}
                   alt="favorite"
@@ -313,7 +354,7 @@ const StampSetting = () => {
         ))}
       </div>
 
-      {/* 4. Delete Mode Buttons (Fixed at bottom) */}
+      {/* 4. Delete Mode Buttons */}
       {isDeleteMode && (
         <div className="fixed bottom-0 left-0 right-0 z-10 grid grid-cols-2 gap-3 p-5 bg-white border-t border-gray-100">
           <button
