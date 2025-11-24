@@ -5,7 +5,7 @@ import goto_icon from '../../assets/goto_icon.png';
 import logo_gt from '../../assets/logo_gt.png';
 
 // 서버로부터 받아올 데이터 타입 정의
-interface StampSettingsResponse {
+export interface StampSettingsResponse {
   storeName: string;
   requiredAmount: number;
   reward: string;
