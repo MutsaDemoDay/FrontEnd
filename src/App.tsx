@@ -36,11 +36,13 @@ import { RewardInfo } from './pages/Reward/RewardInfo';
 import { Dashboard } from './pages/Owner/Dashboard';
 import { EventManage } from './pages/Owner/EventManage';
 import { Manage } from './pages/Owner/Manage';
-import { Settings } from './pages/Owner/Settings';
+import { OwnerSettings } from './pages/Owner/OwnerSettings';
 import { StampEarn } from './pages/Owner/StampEarn';
 import { QRScan } from './pages/Owner/QRScan';
 import { StampEarnWithId } from './pages/Owner/StampEarnWithId';
 import { OwnerStampSetting } from './pages/Owner/OwnerStampSetting';
+import { EventCreate } from './pages/Owner/EventCreate';
+import { PastEvent } from './pages/Owner/PastEvent';
 
 function App() {
   return (
@@ -111,13 +113,15 @@ function App() {
           <Route path="/owner/dashboard" element={<Dashboard />} />
           <Route path="/owner/manage" element={<Manage />} />
           <Route path="/owner/eventmanage" element={<EventManage />} />
-          <Route path="/owner/settings" element={<Settings />} />
+          <Route path="/owner/settings" element={<OwnerSettings />} />
           <Route path="/owner/stamp-earn" element={<StampEarn />} />
           <Route path="/owner/stamp-earn/qr-scan" element={<QRScan />} />
           <Route path="/owner/stamp-earn/id-input" element={<StampEarnWithId />} />
           <Route path="/owner/stamp-earn/confirm/:userId" element={<StampEarnWithId />} />
           <Route path='/owner/stampsetting' element={<OwnerStampSetting />} />
           <Route path='/owner/stamphistory' element={<StampHistory />} />
+          <Route path="/owner/eventcreate" element={<EventCreate />} />
+          <Route path='/owner/pastevent' element={<PastEvent />} />
         </Route>
       </Routes>
     </BrowserRouter>

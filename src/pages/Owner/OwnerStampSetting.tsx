@@ -22,37 +22,6 @@ export const OwnerStampSetting = () => {
   const [rewardType, setRewardType] = useState<'beverage' | 'other'>('beverage');
   const [stampCount, setStampCount] = useState('');
 
-  // --- 1. GET 요청: 초기 데이터 불러오기 ---
-  useEffect(() => {
-    const apiUri = import.meta.env.VITE_API_URI;
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(`${apiUri}/v1/stamps/settings`);
-        
-        if (!response.ok) {
-          throw new Error('설정 정보를 불러오는데 실패했습니다.');
-        }
-
-        const data: StampSettingsResponse = await response.json();
-
-        // 받아온 데이터로 상태 업데이트
-        if (data.imageUrl) {
-          setStampImagePreview(data.imageUrl); // 서버에 저장된 이미지 URL 표시
-        }
-        // 숫자형 데이터를 문자열로 변환하여 input value에 바인딩
-        setMinOrderAmount(data.minOrderAmount ? data.minOrderAmount.toString() : '');
-        setRewardType(data.rewardType || 'beverage');
-        setStampCount(data.stampCount ? data.stampCount.toString() : '');
-
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-        // 필요 시 에러 처리 로직 (예: alert('정보를 불러오지 못했습니다.'))
-      }
-    };
-
-    fetchSettings();
-  }, []);
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
