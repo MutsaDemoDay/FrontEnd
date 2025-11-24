@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import pinIcon from '../assets/pinIcon.png'; 
+import pinIcon from '../assets/pinIcon.png';
 import backbutton3_icon from '../assets/backbutton3_icon.png';
 
 export interface SearchApiResponse {
@@ -22,53 +22,93 @@ interface SearchModalProps {
   onSelectStore: (storeData: SearchApiResponse) => void;
 }
 
-export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSelectStore }) => {
+export const SearchModal: React.FC<SearchModalProps> = ({
+  isOpen,
+  onClose,
+  onSelectStore,
+}) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchApiResponse[]>([]);
-  const [hasSearched, setHasSearched] = useState(false); // 검색 실행 여부 체크
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
+  const apiUri = import.meta.env.VITE_API_URI;
+
+  // 모달 열릴 때 스크롤 막기
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
-      // 모달 닫힐 때 상태 초기화 (원하시면 주석 해제)
+      // 닫힐 때 상태 초기화 (필요시 주석 해제)
       // setQuery('');
       // setResults([]);
       // setHasSearched(false);
     }
-    return () => { document.body.style.overflow = 'unset'; };
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
-  const handleSearch = async () => {
-    if (!query.trim()) return;
-
-    try {
-      const response = await fetch(`/api/v1/stores/search?storeName=${encodeURIComponent(query)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setResults(data);
-      } else {
-        setResults([]);
-      }
-    } catch (e) {
-      console.error(e);
+  // --- [핵심] 실시간 검색 로직 (디바운싱 적용) ---
+  useEffect(() => {
+    // 1. 검색어가 없으면 결과 초기화
+    if (!query.trim()) {
       setResults([]);
-    } finally {
-      setHasSearched(true);
+      setHasSearched(false);
+      return;
     }
-  };
 
+    // 2. 0.3초 딜레이 후 API 호출
+    const debounceTimer = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem('accessToken');
+        
+        // [중요] 400 에러 방지: 파라미터 이름을 keyword로 통일하고 인코딩 적용
+        // 만약 백엔드가 storeName을 강제한다면 ?storeName=${encodeURIComponent(query)} 로 변경하세요.
+        const response = await fetch(
+          `/api/v1/stores/search?storeName=${encodeURIComponent(query)}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token || ''}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          // 데이터 구조가 배열인지, {data: []} 형태인지 확인하여 처리
+          const list = Array.isArray(data) ? data : data.data || [];
+          setResults(list);
+        } else {
+          setResults([]);
+        }
+      } catch (e) {
+        console.error('검색 실패:', e);
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+        setHasSearched(true);
+      }
+    }, 300); // 300ms 딜레이
+
+    return () => clearTimeout(debounceTimer);
+  }, [query]); // query가 변경될 때마다 실행
+
+  // 검색어 하이라이팅 함수
   const highlightText = (text: string, highlight: string) => {
     if (!highlight.trim()) return <span>{text}</span>;
     const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
     return (
       <span>
-        {parts.map((part, i) => 
+        {parts.map((part, i) =>
           part.toLowerCase() === highlight.toLowerCase() ? (
-            <span key={i} className="text-(--main-color) font-bold">{part}</span>
+            <span key={i} className="text-[#FF6B00] font-bold">
+              {part}
+            </span>
           ) : (
             <span key={i}>{part}</span>
           )
@@ -77,66 +117,96 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
     );
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col w-full h-full">
-      {/* 헤더 */}
-      <div className="flex items-center gap-3 p-4 bg-white border-b border-gray-100">
-        <button onClick={onClose} className="flex w-[11px] h-[20px]">
+      {/* --- [UI 수정] 헤더 영역 (고정) --- */}
+      {/* 검색창을 헤더에 포함시켜 스크롤되지 않도록 변경 */}
+      <div className="flex items-center gap-3 p-4 bg-white border-b border-gray-100 shrink-0">
+        {/* 뒤로가기 버튼 */}
+        <button onClick={onClose} className="p-2 -ml-2">
           <img src={backbutton3_icon} alt="Back" className="w-[11px] h-[20px]" />
         </button>
-      </div>
 
-      {/* 컨텐츠 */}
-      <div className="flex-1 p-3 overflow-y-auto bg-white">
-        <div className='flex flex-row gap-3'>
-            <div className="flex-1 flex items-center bg-gray-100 rounded-[8px] h-[45px] overflow-hidden">
+        {/* 검색 입력창 */}
+        <div className="flex-1 flex items-center bg-gray-100 rounded-[8px] h-[40px] px-3">
           <input
             autoFocus
             type="text"
-            className="flex-1 bg-transparent outline-none px-4 text-[15px] placeholder-gray-400"
+            className="flex-1 bg-transparent outline-none text-[15px] placeholder-gray-400 text-black"
             placeholder="지역, 건물, 주소 검색"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
+          {/* 입력 내용이 있을 때 X 버튼 (선택사항) */}
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="ml-2 text-gray-400 hover:text-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
         </div>
 
-        <button 
-          onClick={handleSearch}
-          className="w-[45px] h-[45px] bg-(--main-color) rounded-[8px] flex items-center justify-center flex-shrink-0"
+        {/* 검색 버튼 (장식용 또는 강제 검색용) */}
+        <button
+          className="w-[40px] h-[40px] bg-[#FF6B00] rounded-[8px] flex items-center justify-center flex-shrink-0"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </button>
-        </div>
+      </div>
+
+      {/* --- 컨텐츠 영역 (스크롤 가능) --- */}
+      <div className="flex-1 overflow-y-auto bg-white">
         
-        {/* Case 1: 검색 전 (안내 문구 또는 빈 화면) */}
-        {!hasSearched && (
+        {/* 로딩 중 */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center h-[200px] text-gray-400 text-sm">
+            검색중...
+          </div>
+        )}
+
+        {/* Case 1: 검색 전 */}
+        {!hasSearched && !isLoading && (
           <div className="flex flex-col items-center justify-center h-[50vh] text-gray-400 text-sm">
             검색어를 입력해주세요.
           </div>
         )}
 
         {/* Case 2: 검색 결과 리스트 */}
-        {hasSearched && results.length > 0 && (
+        {!isLoading && hasSearched && results.length > 0 && (
           <ul>
             {results.map((store) => (
               <li
                 key={store.storeId}
-                className="flex items-center gap-3 p-5 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors"
+                className="flex items-start gap-3 p-5 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => onSelectStore(store)}
               >
-                <div className="w-5 h-[18px] flex-shrink-0 mt-1 mr-4">
-                   <img src={pinIcon} alt="location" className="w-full h-full object-contain opacity-70" />
+                <div className="w-5 h-5 flex-shrink-0 mt-1">
+                  <img
+                    src={pinIcon}
+                    alt="location"
+                    className="w-full h-full object-contain opacity-70"
+                  />
                 </div>
                 <div className="flex flex-col">
-                  <div className="text-[16px] font-medium text-gray-900">
+                  <div className="text-[16px] font-medium text-gray-900 leading-tight mb-1">
                     {highlightText(store.storeName, query)}
                   </div>
                   <div className="text-[13px] text-gray-400 font-light">
                     {store.storeAddress}
+                  </div>
+                  <div className="mt-1">
+                    <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                        {store.category || '기타'}
+                    </span>
                   </div>
                 </div>
               </li>
@@ -145,13 +215,13 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
         )}
 
         {/* Case 3: 결과 없음 */}
-        {hasSearched && results.length === 0 && (
+        {!isLoading && hasSearched && results.length === 0 && (
           <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
             <div className="text-[18px] font-medium text-gray-800 mb-2">
               검색 결과가 없습니다.
             </div>
             <div className="text-[14px] text-gray-500 leading-relaxed">
-              검색어가 올바르지 않거나,<br/>
+              검색어가 올바르지 않거나,<br />
               해당 매장이 제휴매장이 아닐 수도 있어요!
             </div>
           </div>
