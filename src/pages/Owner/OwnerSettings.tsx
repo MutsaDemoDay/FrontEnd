@@ -50,7 +50,7 @@ export const OwnerSettings = () => {
       </h1>
 
       <div className='w-[340px] h-[128px] flex flex-col items-center justify-between mb-10'>
-        <div className='w-full h-[60px] bg-(--fill-color1) rounded-[20px] flex flex-row items-center px-6'>
+        <div className='w-full h-[60px] bg-(--fill-color1) rounded-[20px] flex flex-row items-center px-6' onClick={() => navigate('/owner/shopprofile')}>
           <img src={profile_icon} alt="Profile Icon" className='w-[22px] h-[22px] mr-4' />
           <p className='text-[13px] text-(--fill-color7) font-medium'>매장 프로필</p>
         </div>
