@@ -43,6 +43,7 @@ import { StampEarnWithId } from './pages/Owner/StampEarnWithId';
 import { OwnerStampSetting } from './pages/Owner/OwnerStampSetting';
 import { EventCreate } from './pages/Owner/EventCreate';
 import { PastEvent } from './pages/Owner/PastEvent';
+import { OwnerAccountInfo } from './pages/Owner/OwnerAccountInfo';
 
 function App() {
   return (
@@ -122,6 +123,7 @@ function App() {
           <Route path='/owner/stamphistory' element={<StampHistory />} />
           <Route path="/owner/eventcreate" element={<EventCreate />} />
           <Route path='/owner/pastevent' element={<PastEvent />} />
+          <Route path='/owner/accountinfo' element={<OwnerAccountInfo/>} />
         </Route>
       </Routes>
     </BrowserRouter>
