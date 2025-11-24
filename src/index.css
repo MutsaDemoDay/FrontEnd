@@ -25,3 +25,8 @@
   --fill-color6: #5B5B5B;
   --fill-color7: #323232;
 }
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
