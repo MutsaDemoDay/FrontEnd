@@ -5,9 +5,10 @@ import { UserBottomBar } from '../components/UserBottomBar';
 import { StoreSlider, type Store } from '../components/StoreSlider';
 import { SearchModal, type SearchApiResponse } from '../components/SearchModal';
 import marker_icon from '../assets/marker_icon.png';
+import { FavoriteBottomSheet } from '../components/FavoriteBottomSheet';
 
 // --- [API 응답 타입 정의] ---
-interface NearbyStoreResponse {
+interface StoreApiResponse {
   storeId: number;
   storeName: string | null;
   storeAddress: string;
@@ -19,10 +20,11 @@ interface NearbyStoreResponse {
   stampReward: string | null;
   sns: string | null;
   storeUrl: string | null;
-  distanceMeters: number;
+  distanceMeters: number | null;
+  favorite?: boolean;
 }
 
-// --- 헬퍼 컴포넌트: 필터 탭 ---
+// --- 필터 탭 ---
 type StoreListMode = 'nearby' | 'ai' | 'favorites';
 
 const RadioTab: React.FC<{
@@ -47,19 +49,41 @@ const RadioTab: React.FC<{
   );
 };
 
+// --- 거리 계산 함수 ---
+const getDistanceFromLatLonInMeters = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) => {
+  const R = 6371;
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c;
+  return Math.floor(d * 1000);
+};
+
+const deg2rad = (deg: number) => {
+  return deg * (Math.PI / 180);
+};
+
 // --- MapPage 본문 ---
 export const MapPage: React.FC = () => {
   const mapRef = useRef<any | null>(null);
   const geocoderRef = useRef<any | null>(null);
-
-  // 마커 관리를 위한 Ref (탭 변경 시 기존 마커 삭제용)
   const markersRef = useRef<any[]>([]);
   const overlaysRef = useRef<any[]>([]);
 
-  // 상태 관리
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [sliderStores, setSliderStores] = useState<Store[]>([]);
-  const [mode, setMode] = useState<StoreListMode>('nearby');
+  const [mode, setMode] = useState<'nearby' | 'ai' | 'favorites'>('nearby');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(true);
 
@@ -68,9 +92,9 @@ export const MapPage: React.FC = () => {
     lng: 126.978,
   });
 
-  const apiUri = import.meta.env.VITE_API_URI; // 환경변수 사용
+  const apiUri = import.meta.env.VITE_API_URI;
 
-  // --- [1] 유틸 함수: 주소 -> 좌표 변환 ---
+  // --- 유틸 함수 ---
   const getCoordsFromAddress = (
     address: string
   ): Promise<{ lat: number; lng: number } | null> => {
@@ -90,25 +114,20 @@ export const MapPage: React.FC = () => {
   };
 
   const clearMarkers = () => {
-    // 마커 삭제
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
-
-    // 오버레이(텍스트) 삭제
     overlaysRef.current.forEach((overlay) => overlay.setMap(null));
     overlaysRef.current = [];
   };
 
-  // [3] 다중 마커 + 텍스트 그리기
+  // --- 마커 그리기 ---
   const drawMarkers = (stores: Store[]) => {
     if (!mapRef.current) return;
 
-    // 기존 마커/오버레이 삭제
     clearMarkers();
 
     const imageSize = new window.kakao.maps.Size(35, 35);
-    const imageOption = { offset: new window.kakao.maps.Point(17.5, 35) }; // 마커의 바닥 중앙이 좌표
-
+    const imageOption = { offset: new window.kakao.maps.Point(17.5, 35) };
     const markerImage = new window.kakao.maps.MarkerImage(
       marker_icon,
       imageSize,
@@ -118,7 +137,6 @@ export const MapPage: React.FC = () => {
     stores.forEach((store) => {
       const pos = new window.kakao.maps.LatLng(store.lat, store.lng);
 
-      // 1. 마커 생성
       const marker = new window.kakao.maps.Marker({
         position: pos,
         map: mapRef.current,
@@ -126,11 +144,8 @@ export const MapPage: React.FC = () => {
         image: markerImage,
       });
 
-      // 2. 커스텀 오버레이(텍스트) 생성
-      // yAnchor: 0 (상단이 좌표에 위치) -> 마커 끝부분 바로 밑에 글씨가 옴
-      // xAnchor: 0.5 (가로 중앙 정렬)
       const content = `
-        <div class="custom-overlay-label">
+        <div class="custom-overlay-label" style="padding:2px 5px; background:white; border:1px solid #ccc; border-radius:4px; font-size:11px;">
           ${store.name}
         </div>
       `;
@@ -139,25 +154,23 @@ export const MapPage: React.FC = () => {
         position: pos,
         content: content,
         xAnchor: 0.5,
-        yAnchor: 0, // 마커 이미지 높이에 따라 살짝 간격 조절 (음수면 아래로 내려감)
+        yAnchor: 2.2,
       });
 
-      overlay.setMap(mapRef.current); // 지도에 표시
+      overlay.setMap(mapRef.current);
 
-      // 이벤트 등록
       window.kakao.maps.event.addListener(marker, 'click', () => {
         setSelectedStore(store);
-        setIsSliderOpen(true);
+        setIsSliderOpen(true); // 마커 클릭 시 슬라이더 열기
         mapRef.current.panTo(pos);
       });
 
-      // Ref에 저장
       markersRef.current.push(marker);
       overlaysRef.current.push(overlay);
     });
   };
 
-  // [4] 단일 검색 결과 업데이트 함수 수정
+  // --- 단일 검색 결과 업데이트 ---
   const updateMapWithStore = (store: Store) => {
     if (!mapRef.current) return;
     const moveLatLon = new window.kakao.maps.LatLng(store.lat, store.lng);
@@ -165,7 +178,6 @@ export const MapPage: React.FC = () => {
 
     clearMarkers();
 
-    // 마커 이미지 설정
     const imageSize = new window.kakao.maps.Size(35, 35);
     const imageOption = { offset: new window.kakao.maps.Point(17.5, 35) };
     const markerImage = new window.kakao.maps.MarkerImage(
@@ -174,7 +186,6 @@ export const MapPage: React.FC = () => {
       imageOption
     );
 
-    // 1. 마커 생성
     const marker = new window.kakao.maps.Marker({
       position: moveLatLon,
       map: mapRef.current,
@@ -182,9 +193,8 @@ export const MapPage: React.FC = () => {
       image: markerImage,
     });
 
-    // 2. 오버레이 생성
     const content = `
-      <div class="custom-overlay-label">
+      <div class="custom-overlay-label" style="padding:2px 5px; background:white; border:1px solid #ccc; border-radius:4px; font-size:11px;">
         ${store.name}
       </div>
     `;
@@ -192,8 +202,8 @@ export const MapPage: React.FC = () => {
     const overlay = new window.kakao.maps.CustomOverlay({
       position: moveLatLon,
       content: content,
-      xAnchor: 0,
-      yAnchor: 0.5,
+      xAnchor: 0.5,
+      yAnchor: 2.2,
     });
     overlay.setMap(mapRef.current);
 
@@ -204,76 +214,90 @@ export const MapPage: React.FC = () => {
     });
 
     markersRef.current.push(marker);
-    overlaysRef.current.push(overlay); // 오버레이도 저장
+    overlaysRef.current.push(overlay);
 
     setSliderStores([store]);
     setSelectedStore(store);
     setIsSliderOpen(true);
   };
 
-  // --- [3] API 호출: 내 주변 가게 조회 ---
-  const fetchNearbyStores = async (latitude: number, longitude: number) => {
+  // --- API 호출: 모든 가게 불러오기 ---
+  const fetchAllStores = async (currentLat: number, currentLng: number) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(
-        `${apiUri}/v1/stores/nearby?latitude=${latitude}&longitude=${longitude}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token || ''}`,
-          },
-        }
-      );
 
-      if (!response.ok) throw new Error('Failed to fetch nearby stores');
+      const response = await fetch(`${apiUri}/v1/stores`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token || ''}`,
+        },
+      });
 
-      const data: NearbyStoreResponse[] = await response.json();
+      if (!response.ok) throw new Error('Failed to fetch stores');
 
-      // API 응답에는 lat/lng가 없으므로 주소 변환 병렬 처리
+      const jsonResponse = await response.json();
+      const storeList: StoreApiResponse[] = jsonResponse.data;
+
       const mappedStores = await Promise.all(
-        data.map(async (item) => {
+        storeList.map(async (item) => {
+          if (!item.storeName) return null;
+
           const coords = await getCoordsFromAddress(item.storeAddress);
+          const storeLat = coords ? coords.lat : 0;
+          const storeLng = coords ? coords.lng : 0;
+
+          let dist = item.distanceMeters;
+          if (dist === null && storeLat !== 0 && storeLng !== 0) {
+            dist = getDistanceFromLatLonInMeters(
+              currentLat,
+              currentLng,
+              storeLat,
+              storeLng
+            );
+          }
+
           return {
             id: item.storeId,
-            name: item.storeName || '이름 없음', // null 처리
+            name: item.storeName || '이름 없음',
             category: item.category || '기타',
             address: item.storeAddress,
-            lat: coords ? coords.lat : 0,
-            lng: coords ? coords.lng : 0,
+            lat: storeLat,
+            lng: storeLng,
             image: item.storeImageUrl || undefined,
-            rating: 0, // 정보 없음
-            reviewCount: 0, // 정보 없음
-            description: item.reward || item.storeName || '',
-            distance: item.distanceMeters,
+            rating: 0,
+            reviewCount: 0,
+            description: item.reward || '이벤트 정보 없음',
+            distance: dist || 0,
           } as Store;
         })
       );
 
-      // 좌표 변환에 성공한 매장만 필터링
-      const validStores = mappedStores.filter((s) => s.lat !== 0);
+      const validStores = mappedStores.filter(
+        (s): s is Store => s !== null && s.lat !== 0
+      );
+
+      // 거리순 정렬 (undefined 방지 코드 추가 완료)
+      validStores.sort((a, b) => (a.distance || 0) - (b.distance || 0));
 
       setSliderStores(validStores);
 
       if (validStores.length > 0) {
-        setSliderStores(validStores);
-        setSelectedStore(validStores[0]);
         drawMarkers(validStores);
       } else {
         clearMarkers();
         setSliderStores([]);
       }
     } catch (error) {
-      console.error('Error fetching nearby stores:', error);
+      console.error('Error fetching stores:', error);
     }
   };
 
-  // --- [4] API 호출: AI 추천 ---
+  // --- API 호출: AI 추천 ---
   const fetchAiRecommendations = async () => {
     try {
-      const currentUserId = 2; // 실제 유저 ID 필요
+      const currentUserId = 2;
       const response = await fetch(`${apiUri}/v1/ai/call`, {
-        // 경로 수정
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -310,6 +334,7 @@ export const MapPage: React.FC = () => {
             rating: 4.5,
             reviewCount: 10,
             description: 'AI가 추천하는 장소입니다.',
+            distance: 0,
           } as Store;
         })
       );
@@ -327,25 +352,153 @@ export const MapPage: React.FC = () => {
     }
   };
 
-  // --- [5] 탭 변경 핸들러 ---
+  // --- 즐겨찾기 목록 API 호출 ---
+  const fetchFavorites = async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      alert('로그인이 필요한 서비스입니다.');
+      return;
+    }
+
+    try {
+      // 1. GET 요청
+      const response = await fetch(`${apiUri}/v1/favstores`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // 즐겨찾기 데이터가 없는 경우
+          setSliderStores([]);
+          clearMarkers();
+          return;
+        }
+        throw new Error('Failed to fetch favorites');
+      }
+
+      const result = await response.json();
+      const favList: any[] = Array.isArray(result.data) ? result.data : [];
+
+      const mappedStores = await Promise.all(
+        favList.map(async (item) => {
+          const address = item.storeAddress || item.address || '';
+          const name = item.storeName || item.name || '이름 없음';
+
+          const coords = await getCoordsFromAddress(address);
+          const storeLat = coords ? coords.lat : 0;
+          const storeLng = coords ? coords.lng : 0;
+
+          let dist = 0;
+          if (storeLat !== 0 && storeLng !== 0) {
+            // dist = getDistanceFromLatLonInMeters(center.lat, center.lng, storeLat, storeLng);
+          }
+
+          return {
+            id: item.storeId,
+            name: name,
+            category: item.category || '기타',
+            address: address,
+            lat: storeLat,
+            lng: storeLng,
+            image: item.storeImageUrl,
+            rating: 0,
+            reviewCount: 0,
+            description: '즐겨찾는 매장',
+            distance: dist,
+          } as Store;
+        })
+      );
+
+      // 4. 유효한 좌표만 필터링
+      const validStores = mappedStores.filter((s) => s.lat !== 0);
+
+      // 5. 상태 업데이트
+      setSliderStores(validStores);
+
+      if (validStores.length > 0) {
+        drawMarkers(validStores); // 지도에 마커 표시
+
+        // [옵션] 목록 첫 번째 가게로 지도 이동
+        if (mapRef.current) {
+          const moveLatLon = new window.kakao.maps.LatLng(
+            validStores[0].lat,
+            validStores[0].lng
+          );
+          mapRef.current.panTo(moveLatLon);
+        }
+      } else {
+        clearMarkers();
+      }
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      setSliderStores([]); // 에러 시 빈 목록
+    }
+  };
+  
+  // --- 즐겨찾기 삭제 처리 ---
+  const handleDeleteFavorite = async (storeId: number) => {
+    if (!confirm('정말 즐겨찾기를 해제하시겠습니까?')) return;
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      alert('로그인 정보가 없습니다.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiUri}/v1/favstores/${storeId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const updatedStores = sliderStores.filter(
+          (store) => store.id !== storeId
+        );
+
+        setSliderStores(updatedStores);
+        drawMarkers(updatedStores);
+
+        if (selectedStore?.id === storeId) {
+          setSelectedStore(null);
+        }
+
+        alert('즐겨찾기가 해제되었습니다.');
+      } else {
+        throw new Error('삭제 실패');
+      }
+    } catch (error) {
+      console.error('즐겨찾기 삭제 중 오류:', error);
+      alert('삭제 처리에 실패했습니다.');
+    }
+  };
+
+  // --- 탭 변경 핸들러 ---
   const updateSliderContent = (newMode: StoreListMode) => {
     setMode(newMode);
-    // 모드 변경 시 선택된 가게 초기화
     setSelectedStore(null);
 
     if (newMode === 'ai') {
       fetchAiRecommendations();
     } else if (newMode === 'nearby') {
-      // 현재 중심 좌표 기준으로 다시 검색
-      fetchNearbyStores(center.lat, center.lng);
+      fetchAllStores(center.lat, center.lng);
+    } else if (newMode === 'favorites') {
+      fetchFavorites(); // [New] 즐겨찾기 호출
     } else {
-      // favorites (미구현)
       setSliderStores([]);
       clearMarkers();
     }
   };
 
-  // --- [6] 검색 모달 결과 처리 ---
+  // --- [7] 검색 모달 결과 처리 ---
   const handleSelectSearchResult = async (searchData: SearchApiResponse) => {
     setIsSearchModalOpen(false);
     const coords = await getCoordsFromAddress(searchData.storeAddress);
@@ -354,6 +507,13 @@ export const MapPage: React.FC = () => {
       alert('매장의 위치 정보를 찾을 수 없습니다.');
       return;
     }
+
+    const dist = getDistanceFromLatLonInMeters(
+      center.lat,
+      center.lng,
+      coords.lat,
+      coords.lng
+    );
 
     const newStore: Store = {
       id: searchData.storeId,
@@ -366,14 +526,13 @@ export const MapPage: React.FC = () => {
       rating: 0,
       reviewCount: 0,
       description: searchData.reward || '이벤트 정보 없음',
-      distance: 0,
+      distance: dist,
     };
 
-    // 검색 결과는 모드와 상관없이 지도에 표시
     updateMapWithStore(newStore);
   };
 
-  // --- [7] 초기화 (지도 로드 -> 내 위치 -> 내 주변 API 호출) ---
+  // --- [8] 초기화 ---
   useEffect(() => {
     const initializeMap = (initialPosition: { lat: number; lng: number }) => {
       if (window.kakao && window.kakao.maps && window.kakao.maps.load) {
@@ -384,44 +543,52 @@ export const MapPage: React.FC = () => {
               initialPosition.lat,
               initialPosition.lng
             );
-            const options = { center: mapCenter, level: 3 };
+            const options = { center: mapCenter, level: 4 };
             const kakaoMap = new window.kakao.maps.Map(container, options);
 
             mapRef.current = kakaoMap;
             geocoderRef.current = new window.kakao.maps.services.Geocoder();
 
+            // [복구 완료] 지도 빈 곳 클릭 시 슬라이더 닫기
             window.kakao.maps.event.addListener(kakaoMap, 'click', () => {
               setIsSliderOpen((prev) => !prev);
             });
 
-            // 내 주변 가게 불러오기
-            fetchNearbyStores(initialPosition.lat, initialPosition.lng);
+            fetchAllStores(initialPosition.lat, initialPosition.lng);
           }
         });
       }
     };
 
     navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        initializeMap({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (pos) => {
+        const currentPos = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        setCenter(currentPos);
+        initializeMap(currentPos);
+      },
       (err) => {
         console.warn('Geolocation Error:', err);
-        const defaultPos = { lat: 37.5665, lng: 126.978 }; // 서울시청
+        const defaultPos = { lat: 37.5665, lng: 126.978 };
+        setCenter(defaultPos);
         initializeMap(defaultPos);
       },
       { enableHighAccuracy: true }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="w-full h-screen flex flex-col justify-center relative overflow-hidden bg-white">
       <style>{`
         .custom-overlay-label {
-          font-size: 12px;
-          font-weight: 600;
-          color: #black;
-          white-space: nowrap; /* 줄바꿈 방지 */
-        }
+font-size: 12px;
+font-weight: 600;
+color: #black;
+white-space: nowrap; /* 줄바꿈 방지 */
+}
       `}</style>
 
       {/* Title */}
@@ -469,24 +636,41 @@ export const MapPage: React.FC = () => {
         <div id="map" className="w-full h-full z-0"></div>
       </div>
 
-      {/* 슬라이더 */}
-      <StoreSlider
-        stores={sliderStores}
-        selectedStore={selectedStore}
-        isOpen={isSliderOpen} // [추가]
-        onStoreSelect={(store) => {
-          setSelectedStore(store);
-          setIsSliderOpen(true); // 슬라이더 내 카드 클릭 시 확실히 열림 상태 유지
-          if (mapRef.current) {
-            const pos = new window.kakao.maps.LatLng(store.lat, store.lng);
-            mapRef.current.panTo(pos);
-          }
-        }}
-      />
+      {/* 슬라이더, 즐겨찾기 */}
+      {isSliderOpen &&
+        (mode === 'favorites' ? (
+          <FavoriteBottomSheet
+            stores={sliderStores}
+            onStoreClick={(store) => {
+              // 리스트 아이템 클릭 시 지도 이동
+              if (mapRef.current) {
+                const moveLatLon = new window.kakao.maps.LatLng(
+                  store.lat,
+                  store.lng
+                );
+                mapRef.current.panTo(moveLatLon);
+              }
+            }}
+            onDeleteRequest={handleDeleteFavorite}
+          />
+        ) : (
+          <StoreSlider
+            stores={sliderStores}
+            selectedStore={selectedStore}
+            isOpen={isSliderOpen}
+            onStoreSelect={(store) => {
+              setSelectedStore(store);
+              setIsSliderOpen(true);
+              if (mapRef.current) {
+                const pos = new window.kakao.maps.LatLng(store.lat, store.lng);
+                mapRef.current.panTo(pos);
+              }
+            }}
+          />
+        ))}
 
       <UserBottomBar />
 
-      {/* 검색 모달 */}
       <SearchModal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}

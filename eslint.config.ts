@@ -10,7 +10,7 @@ export default defineConfig([
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     plugins: { js },
-    extends: ['js/recommended'],
+    extends: ['js/recommended', 'plugin:tailwindcss/recommended'],
     languageOptions: { globals: globals.browser },
 
     rules: {
@@ -20,6 +20,7 @@ export default defineConfig([
 
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
+      "tailwindcss/classnames-order": "off"
     },
   },
 ]);
