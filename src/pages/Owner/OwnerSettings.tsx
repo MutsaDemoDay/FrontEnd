@@ -55,7 +55,7 @@ export const OwnerSettings = () => {
           <p className='text-[13px] text-(--fill-color7) font-medium'>매장 프로필</p>
         </div>
 
-        <div className='w-full h-[60px] bg-(--fill-color1) rounded-[20px] flex flex-row items-center px-6'>
+        <div className='w-full h-[60px] bg-(--fill-color1) rounded-[20px] flex flex-row items-center px-6' onClick={() => navigate('/owner/accountinfo')}>
           <img src={setting_icon} alt="Setting Icon" className='w-[22px] h-[22px] mr-4' />
           <p className='text-[13px] text-(--fill-color7) font-medium'>계정 정보</p>
         </div>

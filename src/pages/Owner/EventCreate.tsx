@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { BackButton3 } from '../../components/BackButton3';
+import { useNavigate } from 'react-router-dom'; // 페이지 이동용 (필요 시)
 
 // API 응답 데이터 타입 정의
 interface EventCategory {
@@ -12,6 +13,7 @@ interface EventCategory {
 }
 
 export const EventCreate = () => {
+  const navigate = useNavigate(); // 완료 후 이동을 위해 추가
   const [isOpen, setIsOpen] = useState(false);
 
   // 전체 카테고리 목록 저장
@@ -20,6 +22,9 @@ export const EventCreate = () => {
   // 현재 선택된 카테고리 (초기값 null)
   const [selectedCategory, setSelectedCategory] =
     useState<EventCategory | null>(null);
+
+  // 메뉴 이름 입력 상태 관리 (3개 고정)
+  const [menuNames, setMenuNames] = useState<string[]>(['', '', '']);
 
   const apiUri = import.meta.env.VITE_API_URI;
 
@@ -56,7 +61,7 @@ export const EventCreate = () => {
     setIsOpen(false);
   };
 
-  // 날짜 포맷팅 함수 (2025-11-01T00... -> 2025. 11. 01)
+  // 날짜 포맷팅 함수
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -65,7 +70,55 @@ export const EventCreate = () => {
     return `${year}. ${month}. ${day}`;
   };
 
-  // 데이터 로딩 중일 때 처리 (선택사항)
+  // 메뉴 이름 입력 핸들러
+  const handleMenuNameChange = (index: number, value: string) => {
+    const newMenuNames = [...menuNames];
+    newMenuNames[index] = value;
+    setMenuNames(newMenuNames);
+  };
+
+  // 이벤트 신청 핸들러 (POST 요청)
+  const handleApply = async () => {
+    if (!selectedCategory) return;
+
+    // 빈 값이 있는지 체크 (선택 사항)
+    const filledMenus = menuNames.filter((name) => name.trim() !== '');
+    if (filledMenus.length === 0) {
+      alert('최소 1개 이상의 메뉴를 입력해주세요.');
+      return;
+    }
+
+    const token = localStorage.getItem('accessToken');
+
+    try {
+      const response = await fetch(
+        `${apiUri}/v1/events/${selectedCategory.eventType}/apply`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            menuNames: menuNames, // ["메뉴1", "메뉴2", "메뉴3"]
+          }),
+        }
+      );
+
+      const json = await response.json();
+
+      if (json.code === 100 || response.ok) {
+        alert('이벤트 신청이 완료되었습니다.');
+        navigate(-1); // 또는 원하는 페이지로 이동
+      } else {
+        alert(`신청 실패: ${json.message || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('이벤트 신청 중 오류 발생:', error);
+      alert('서버 통신 중 오류가 발생했습니다.');
+    }
+  };
+
   if (!selectedCategory) {
     return <div className="p-4">로딩 중...</div>;
   }
@@ -89,7 +142,6 @@ export const EventCreate = () => {
           </h2>
 
           <div className="relative">
-            {/* Selected Box */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className={`w-full text-left px-4 py-3 text-[12px] flex justify-between items-center border rounded-lg bg-white
@@ -109,7 +161,6 @@ export const EventCreate = () => {
               )}
             </button>
 
-            {/* Dropdown List */}
             {isOpen && (
               <div className="w-full bg-[#F5F5F5] border border-t-0 border-gray-200 rounded-b-lg overflow-hidden mt-1">
                 {categories.map((category, index) => (
@@ -131,7 +182,7 @@ export const EventCreate = () => {
           </div>
         </section>
 
-        {/* Section 2: Event Period (Dynamic Data) */}
+        {/* Section 2: Event Period */}
         <section className="mb-12">
           <h2 className="text-sm font-bold mb-2 text-gray-800">이벤트 기간</h2>
           <p className="text-sm text-gray-500">
@@ -140,10 +191,11 @@ export const EventCreate = () => {
           </p>
         </section>
 
-        {/* Section 3: Event Content (Static Text) */}
-        {/* API 응답에 상세 설명 본문이 없으므로 기존 텍스트 유지 */}
+        {/* Section 3: Event Content */}
         <section className="mb-8">
-          <h2 className="text-sm font-bold mb-3 text-gray-800">신규 매장 오픈 기념 스탬프 1+1 적립:</h2>
+          <h2 className="text-sm font-bold mb-3 text-gray-800">
+            {selectedCategory.description}
+          </h2>
           <div className="text-sm text-gray-600 space-y-4 leading-relaxed">
             <p>
               당고와 제휴를 맺은 매장 중 신규 오픈한 가게들을 대상으로 진행되는
@@ -159,51 +211,64 @@ export const EventCreate = () => {
           </div>
         </section>
 
-        <section className="mb-8">
-          <h2 className="text-sm font-bold mb-3 text-gray-800">가을맞이 음료 10% 할인:</h2>
-          <div className="text-sm text-gray-600 space-y-4 leading-relaxed">
-            <p>
-              당고와 제휴를 맺은 매장 중 신규 오픈한 가게들을 대상으로 진행되는
-              이벤트입니다. (개점일로부터 한달이 지나지 않은 가게)
-            </p>
-            <p>
-              스탬프가 자동으로 1+1 적립되며, 해당 이벤트에 참여중임이 고객
-              계정의 EVENT 탭과 지도 AI추천 탭에 노출되게 됩니다.
-            </p>
-            <p>
-              이벤트 참여기간동안은 어플 내 프리미엄 모델이 사용 가능합니다.
-            </p>
-          </div>
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-sm font-bold mb-3 text-gray-800">인증샷 업로드시 매장 굿즈 증정:</h2>
-          <div className="text-sm text-gray-600 space-y-4 leading-relaxed">
-            <p>
-              당고와 제휴를 맺은 매장 중, 자체 굿즈가 있는 가게들을 대상으로 진행되는 이벤트입니다.
-            </p>
-            <p>
-              매장에서 메뉴를 주문하고, 이를 SNS에 올리면 직원의 확인 후 매장 MD가 리워드로 지급되게 됩니다. <br />해당 이벤트에 참여중임이 고객 계정의 EVENT 탭과 지도 AI추천 탭에 노출되게 됩니다. 
-            </p>
-            <p>
-              이벤트 참여기간동안은 어플 내 프리미엄 모델이 사용 가능합니다.
-            </p>
-          </div>
-        </section>
-
-        <section className="mb-12">
+        <section className="">
           <h2 className="text-sm font-bold mb-3 text-gray-800">
             이벤트 대표메뉴 설정
           </h2>
           <p className="text-sm text-gray-600 space-y-4 leading-relaxed">
             이벤트 카드에 들어갈 메뉴 3개를 선정해주세요.
           </p>
+
+          {/* 메뉴 입력 필드 1 */}
+          <section className="mt-4 flex flex-row gap-4 items-center">
+            <p className="text-[12px] font-semibold whitespace-nowrap">
+              메뉴명:
+            </p>
+            <input
+              type="text"
+              value={menuNames[0]}
+              onChange={(e) => handleMenuNameChange(0, e.target.value)}
+              placeholder="메뉴 1"
+              className="w-[140px] border-b border-(--fill-color3) py-2 px-1 text-[14px] bg-transparent outline-none focus:border-(--main-color) transition-colors rounded-none"
+            />
+          </section>
+
+          {/* 메뉴 입력 필드 2 */}
+          <section className="mt-4 flex flex-row gap-4 items-center">
+            <p className="text-[12px] font-semibold whitespace-nowrap">
+              메뉴명:
+            </p>
+            <input
+              type="text"
+              value={menuNames[1]}
+              onChange={(e) => handleMenuNameChange(1, e.target.value)}
+              placeholder="메뉴 2"
+              className="w-[140px] border-b border-(--fill-color3) py-2 px-1 text-[14px] bg-transparent outline-none focus:border-(--main-color) transition-colors rounded-none"
+            />
+          </section>
+
+          {/* 메뉴 입력 필드 3 */}
+          <section className="mt-4 flex flex-row gap-4 items-center">
+            <p className="text-[12px] font-semibold whitespace-nowrap">
+              메뉴명:
+            </p>
+            <input
+              type="text"
+              value={menuNames[2]}
+              onChange={(e) => handleMenuNameChange(2, e.target.value)}
+              placeholder="메뉴 3"
+              className="w-[140px] border-b border-(--fill-color3) py-2 px-1 text-[14px] bg-transparent outline-none focus:border-(--main-color) transition-colors rounded-none"
+            />
+          </section>
         </section>
       </div>
 
       {/* Footer: Confirm Button */}
       <div className="p-6 w-full border-gray-100">
-        <button className="w-[316px] h-[55px] flex items-center justify-center bg-(--main-color) text-white py-4 rounded-[40px] font-bold text-[24px] shadow-sm hover:bg-orange-600 transition-colors">
+        <button
+          onClick={handleApply}
+          className="w-[316px] h-[55px] flex items-center justify-center bg-(--main-color) text-white py-4 rounded-[40px] font-bold text-[24px] shadow-sm hover:bg-orange-600 transition-colors"
+        >
           확인
         </button>
       </div>
