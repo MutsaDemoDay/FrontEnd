@@ -49,6 +49,7 @@ import Statistics from './pages/Owner/Statistics';
 import { StoreReview } from './pages/Store/StoreReview';
 import { StampEarnConfirmWithId } from './pages/Owner/StampEarnConfirmWithId';
 import { CustomerList } from './pages/Owner/CustomerList';
+import { ReviewerProfile } from './pages/Store/ReviewerProfile';
 
 function App() {
   return (
@@ -104,6 +105,7 @@ function App() {
           {/* 가게 상세/리뷰 */}
           <Route path="/store/:storeId" element={<StoreInfo />} />
           <Route path="/store/:storeId/review" element={<StoreReview />} />
+          <Route path="/reviewer/:userId" element={<ReviewerProfile />} />
           {/* 사장님 전용 페이지 */}
           <Route path="/owner/dashboard" element={<Dashboard />} />
           <Route path="/owner/manage" element={<Manage />} />
