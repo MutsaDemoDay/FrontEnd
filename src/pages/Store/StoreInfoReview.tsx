@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type ReviewResponse } from '../../type/Store'; // 경로 확인 필요
+import { type ReviewResponse } from '../../type/Store';
 
 // 이미지 import
 import star_empty_icon from '../../assets/star_empty_icon.png';
@@ -49,7 +49,7 @@ export const StoreInfoReview: React.FC<StoreInfoReviewProps> = ({
     navigate(`/store/${storeId}/review`);
   };
 
-  // 헬퍼 함수
+  // 날짜 포맷 헬퍼
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
@@ -58,6 +58,7 @@ export const StoreInfoReview: React.FC<StoreInfoReviewProps> = ({
     )}.${String(date.getDate()).padStart(2, '0')}`;
   };
 
+  // 별점 렌더링 헬퍼
   const renderStars = (rate: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <img
@@ -69,55 +70,116 @@ export const StoreInfoReview: React.FC<StoreInfoReviewProps> = ({
     ));
   };
 
+  // [NEW] 그래프 렌더링 컴포넌트
+  const ReviewSummaryGraph = () => {
+    if (!reviewData) return null;
+    const { averageRating, totalReviewCount, ratingDistribution } = reviewData;
+    const starLevels = ['5', '4', '3', '2', '1']; // 위에서부터 5점
+
+    return (
+      <div className="w-full flex items-center justify-center gap-6 mt-4 mb-8">
+        {/* 왼쪽: 평점 점수 */}
+        <div className="flex flex-col items-center justify-center">
+          {/* 사진처럼 큰 별 아이콘과 점수 배치 */}
+          <div className="flex items-center gap-2">
+            <img
+              src={star_full_icon}
+              alt="score-star"
+              className="w-[36px] h-[36px]"
+            />
+            <span className="text-[32px] font-bold text-[#FF7F23]">
+              {averageRating.toFixed(1)}
+            </span>
+            <span className="text-[16px] text-[var(--fill-color5)] mt-2">
+              /5.0
+            </span>
+          </div>
+        </div>
+
+        {/* 오른쪽: 막대 그래프 */}
+        <div className="flex flex-col gap-1.5 w-[180px]">
+          {starLevels.map((score) => {
+            // 해당 점수의 개수 (데이터가 없으면 0)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const count = (ratingDistribution as any)[score] || 0;
+            // 퍼센트 계산
+            const percent =
+              totalReviewCount > 0 ? (count / totalReviewCount) * 100 : 0;
+
+            return (
+              <div
+                key={score}
+                className="flex items-center text-[12px] h-[10px]"
+              >
+                {/* 점수 라벨 (5, 4...) */}
+                <span className="w-4 font-bold text-[#FF7F23] mr-2 text-right">
+                  {score}
+                </span>
+
+                {/* 막대 배경 */}
+                <div className="flex-1 h-[8px] bg-[var(--fill-color2)] rounded-full overflow-hidden">
+                  {/* 채워지는 막대 (width로 제어) */}
+                  <div
+                    className="h-full bg-[#FF7F23] rounded-full transition-all duration-500"
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full flex flex-col items-center pb-10">
-      {/* 1. 상단 작성 UI (조건부 렌더링) */}
-      <div className="w-full p-10 text-center">
+      {/* 1. 리뷰 헤더 및 그래프 영역 */}
+      <div className="w-full px-6 pt-6">
+        {/* 제목: 리뷰 (개수) */}
+        <p className="font-bold text-[18px] text-[#333]">
+          리뷰 ({reviewData?.totalReviewCount || 0})
+        </p>
+
+        {/* 요약 그래프 (데이터 있을 때만 표시) */}
+        {reviewData && <ReviewSummaryGraph />}
+      </div>
+
+      {/* 2. 작성 권한 안내 (사진의 회색 박스) */}
+      <div className="w-full px-6 mb-8">
         {reviewAvailable ? (
-          <>
-            <div className="flex flex-col items-center justify-center w-full h-[80px]">
-              <p className="text-[14px] text-[var(--fill-color6)]">
-                방문 후기를 남겨주세요!
-              </p>
-              <div
-                className="flex flex-row justify-center mt-4 gap-2 cursor-pointer"
-                onClick={handleGoToReview}
-              >
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <img
-                    key={i}
-                    src={star_empty_icon}
-                    className="w-[30px] h-[30px]"
-                    alt="review-star"
-                  />
-                ))}
-              </div>
-            </div>
-          </>
+          // 리뷰 작성이 가능한 경우 -> 버튼이나 UI 표시 (필요시 디자인 수정 가능)
+          <button
+            onClick={handleGoToReview}
+            className="w-full h-[48px] bg-[#FF7F23] text-white font-bold rounded-[12px] text-[15px]"
+          >
+            리뷰 작성하기
+          </button>
         ) : (
-          <div className="w-full bg-[var(--fill-color1)] h-10 flex items-center justify-center text-[var(--fill-color5)] text-[12px] rounded-[50px]">
-            해당 가게의 스탬프를 완성한 유저만{' '}
-            <br/> 리뷰를 작성할 수 있어요!
+          // 리뷰 작성이 불가능한 경우 -> 회색 안내 박스
+          <div className="w-full h-[52px] bg-[#F5F5F5] flex items-center justify-center text-[#999] text-[13px] rounded-[12px] text-center leading-tight">
+            해당 가게의 스탬프를 완성한 유저만 <br />
+            리뷰를 작성할 수 있어요!
           </div>
         )}
       </div>
 
-      <div className="w-full h-px bg-[var(--fill-color2)] mb-4" />
+      {/* 구분선 (필요 없다면 제거 가능) */}
+      {/* <div className="w-full h-px bg-[var(--fill-color2)] mb-4" /> */}
 
-      {/* 2. 리뷰 리스트 */}
+      {/* 3. 리뷰 리스트 */}
       <div className="w-full px-6">
         {reviewData?.reviews && reviewData.reviews.length > 0 ? (
           <div className="flex flex-col gap-6">
-            <p className="font-semibold text-[16px] text-[var(--fill-color7)] mb-2">
-              최신 리뷰 {reviewData.totalReviewCount}개
-            </p>
+            {/* 정렬 옵션 등은 여기에 추가 가능 (레벨 순 v) */}
 
             {reviewData.reviews.map((review) => (
               <div
                 key={review.reviewId}
                 className="w-full flex flex-col border-b border-[var(--fill-color2)] pb-6 last:border-0"
               >
-                <div className="flex flex-row justify-between items-start mb-3">
+                {/* 유저 정보 헤더 */}
+                <div className="flex flex-row justify-between items-start mb-2">
                   <div className="flex flex-row gap-3 items-center">
                     <img
                       src={review.profileImageUrl || user_default_profile}
@@ -125,21 +187,34 @@ export const StoreInfoReview: React.FC<StoreInfoReviewProps> = ({
                       className="w-[40px] h-[40px] rounded-full object-cover border border-gray-100"
                     />
                     <div className="flex flex-col">
-                      <p className="text-[14px] font-semibold text-[var(--fill-color7)] text-left">
-                        {review.nickname}
-                      </p>
-                      <div className="flex gap-0.5 mt-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[14px] font-bold text-[#333]">
+                          {review.nickname}
+                        </span>
+                        {/* 레벨 뱃지 (API에 있다면 추가) */}
+                        <span className="text-[10px] text-[#999] bg-[#f0f0f0] px-1.5 py-0.5 rounded">
+                          Lv.5
+                        </span>
+                      </div>
+                      {/* 칭호 뱃지 예시 */}
+                      {/* <span className="text-[10px] text-white bg-[#8B6E60] px-2 py-0.5 rounded-full w-fit mt-1">카페 그랜드마스터</span> */}
+
+                      <div className="flex gap-0.5 mt-1">
                         {renderStars(review.rate)}
                       </div>
                     </div>
                   </div>
-                  <span className="text-[12px] text-[var(--fill-color4)]">
+                  <span className="text-[12px] text-[#999]">
                     {formatDate(review.createdAt)}
                   </span>
                 </div>
-                <p className="text-[14px] text-[var(--fill-color6)] leading-relaxed text-left whitespace-pre-wrap">
+
+                {/* 리뷰 내용 */}
+                <p className="text-[14px] text-[#555] leading-relaxed text-left whitespace-pre-wrap mt-2">
                   {review.content}
                 </p>
+
+                {/* 첨부 이미지 */}
                 {review.reviewImageUrl && (
                   <div className="w-full h-[200px] rounded-[12px] overflow-hidden mt-3">
                     <img

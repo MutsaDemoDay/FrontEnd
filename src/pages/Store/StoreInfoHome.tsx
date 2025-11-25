@@ -8,8 +8,6 @@ import internet_icon from '../../assets/internet_icon.png';
 import instagram_icon from '../../assets/instagram_icon.png';
 import default_store_stamp from '../../assets/store_stamp.png';
 import gift_icon from '../../assets/gift_icon.png';
-// americano 이미지는 API 데이터가 없을 때를 대비한 백업용으로 남겨둠
-import default_menu_img from '../../assets/americano.png';
 
 interface StoreInfoHomeProps {
   storeDetail: StoreDetail | null;
@@ -109,7 +107,7 @@ export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
             >
               <div className="flex flex-row items-center w-[350px] h-[120px]">
                 <img
-                  src={menu.menuImageUrl || default_menu_img}
+                  src={menu.menuImageUrl}
                   alt={menu.menuName}
                   className="w-[120px] h-[120px] object-cover rounded-md"
                 />

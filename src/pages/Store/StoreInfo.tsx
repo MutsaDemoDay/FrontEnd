@@ -28,7 +28,6 @@ export const StoreInfo = () => {
   useEffect(() => {
     if (!storeId) return;
 
-    // 실제 API 호출 함수 (위도, 경도를 인자로 받음)
     const fetchStoreDetail = async (lat: number, lng: number) => {
       const token = localStorage.getItem('accessToken');
       
@@ -39,7 +38,6 @@ export const StoreInfo = () => {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              // reviewAvailable 확인을 위해 토큰이 있다면 같이 보내줍니다.
               ...(token && { Authorization: `Bearer ${token}` }),
             },
           }
@@ -198,7 +196,6 @@ export const StoreInfo = () => {
         storeId && (
           <StoreInfoReview 
             storeId={storeId}
-            // API 응답의 reviewAvailable 값을 자식 컴포넌트에 전달
             reviewAvailable={storeDetail?.reviewAvailable || false} 
           />
         )
