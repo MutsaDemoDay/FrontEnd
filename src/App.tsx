@@ -31,7 +31,6 @@ import { ShopProfile } from './pages/Onboarding/ShopProfile';
 import { FindOwnerIdConfirm } from './pages/SignUp/FindOwnerIdConfirm';
 import { StoreInfo } from './pages/Store/StoreInfo';
 import { ResetPassword } from './pages/SignUp/ResetPassword';
-import { StoreReview } from './pages/Store/StoreReview';
 import { RewardInfo } from './pages/Reward/RewardInfo';
 import { Dashboard } from './pages/Owner/Dashboard';
 import { EventManage } from './pages/Owner/EventManage';
@@ -46,6 +45,7 @@ import { PastEvent } from './pages/Owner/PastEvent';
 import { OwnerAccountInfo } from './pages/Owner/OwnerAccountInfo';
 import { OwnerShopProfile } from './pages/Owner/OwnerShopProfile';
 import Statistics from './pages/Owner/Statistics';
+import { StoreReview } from './pages/Store/StoreReview';
 
 function App() {
   return (
@@ -61,7 +61,7 @@ function App() {
           <Route path="/signup/owner-fail" element={<OwnerFail />} />
           <Route path="/shop-profile" element={<ShopProfile />} />
           <Route path="/signup/customer" element={<CustomerSignup />} />
-          
+
           {/* 마이페이지 관련 */}
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/myPage/setting" element={<Setting />} />
@@ -69,11 +69,14 @@ function App() {
           <Route path="/myPage/accountsetting" element={<AccountSetting />} />
           <Route path="/myPage/couponbox" element={<CouponBox />} />
           <Route path="/myPage/coupon" element={<Coupon />} />
-          
+
           {/* 온보딩/인증 */}
           <Route path="/onboarding/customer" element={<CustomerOnboarding />} />
-          <Route path="/signup/customer-confirm" element={<CustomerConfirm />} />
-          
+          <Route
+            path="/signup/customer-confirm"
+            element={<CustomerConfirm />}
+          />
+
           {/* 리워드/스탬프 */}
           <Route path="/reward" element={<Reward />} />
           <Route path="/reward/info" element={<RewardInfo />} />
@@ -86,14 +89,20 @@ function App() {
 
           {/* 아이디/비번 찾기 */}
           <Route path="/find-id" element={<FindId />} />
-          <Route path="/find-customer-id-confirm" element={<FindCustomerIdConfirm />} />
-          <Route path="/find-owner-id-confirm" element={<FindOwnerIdConfirm />} />
+          <Route
+            path="/find-customer-id-confirm"
+            element={<FindCustomerIdConfirm />}
+          />
+          <Route
+            path="/find-owner-id-confirm"
+            element={<FindOwnerIdConfirm />}
+          />
           <Route path="/find-password" element={<FindPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* 소셜 로그인 콜백 */}
           <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
-          
+
           {/* 가게 상세/리뷰 */}
           <Route path="/store/:storeId" element={<StoreInfo />} />
           <Route path="/store/:storeId/review" element={<StoreReview />} />
@@ -105,15 +114,21 @@ function App() {
           <Route path="/owner/settings" element={<OwnerSettings />} />
           <Route path="/owner/stamp-earn" element={<StampEarn />} />
           <Route path="/owner/stamp-earn/qr-scan" element={<QRScan />} />
-          <Route path="/owner/stamp-earn/id-input" element={<StampEarnWithId />} />
-          <Route path="/owner/stamp-earn/confirm/:userId" element={<StampEarnWithId />} />
-          <Route path='/owner/stampsetting' element={<OwnerStampSetting />} />
-          <Route path='/owner/stamphistory' element={<StampHistory />} />
+          <Route
+            path="/owner/stamp-earn/id-input"
+            element={<StampEarnWithId />}
+          />
+          <Route
+            path="/owner/stamp-earn/confirm/:userId"
+            element={<StampEarnWithId />}
+          />
+          <Route path="/owner/stampsetting" element={<OwnerStampSetting />} />
+          <Route path="/owner/stamphistory" element={<StampHistory />} />
           <Route path="/owner/eventcreate" element={<EventCreate />} />
-          <Route path='/owner/pastevent' element={<PastEvent />} />
-          <Route path='/owner/accountinfo' element={<OwnerAccountInfo/>} />
-          <Route path='/owner/shopprofile' element={<OwnerShopProfile/>} />
-          <Route path='/owner/statistics' element={<Statistics/>} />
+          <Route path="/owner/pastevent" element={<PastEvent />} />
+          <Route path="/owner/accountinfo" element={<OwnerAccountInfo />} />
+          <Route path="/owner/shopprofile" element={<OwnerShopProfile />} />
+          <Route path="/owner/statistics" element={<Statistics />} />
         </Route>
       </Routes>
     </BrowserRouter>
