@@ -103,7 +103,7 @@ export const Manage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col w-full px-6 py-4 mb-10">
+    <div className="flex flex-col w-full px-6 py-4 mb-30">
       <h1 className="text-[25px] text-(--fill-color6) font-normal">
         Management
       </h1>
