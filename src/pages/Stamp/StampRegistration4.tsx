@@ -417,7 +417,7 @@ export const StampRegistration4 = () => {
   }
 
   return (
-    <div className="w-[430px] min-h-screen bg-white flex flex-col mx-auto relative shadow-lg">
+    <div className="w-full min-h-screen bg-white flex flex-col mx-auto relative shadow-lg">
       {/* 상단 영역 (스크롤 가능) */}
       <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
         {/* 1. 매장 이미지 헤더 */}

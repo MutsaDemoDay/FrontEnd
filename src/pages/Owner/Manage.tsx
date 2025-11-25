@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { OwnerBottomBar } from '../../components/OwnerBottomBar';
 import goto_icon from '../../assets/goto_icon.png';
 import logo_gt from '../../assets/logo_gt.png';
+import qr_scan from '../../assets/qr_scan.png';
+import check_id from '../../assets/check_id.png';
 
 // 서버로부터 받아올 데이터 타입 정의
 export interface StampSettingsResponse {
@@ -17,7 +19,8 @@ export const Manage = () => {
   const navigate = useNavigate();
 
   // --- 상태 관리 ---
-  const [stampSettings, setStampSettings] = useState<StampSettingsResponse | null>(null);
+  const [stampSettings, setStampSettings] =
+    useState<StampSettingsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // --- 네비게이션 핸들러 ---
@@ -31,6 +34,14 @@ export const Manage = () => {
 
   const handleGotoQRGenerate = () => {
     navigate('/owner/qr-generate');
+  };
+
+  const handleGoToQRScan = () => {
+    navigate('/owner/stamp-earn/qr-scan');
+  };
+
+  const handleGoToIdInput = () => {
+    navigate('/owner/stamp-earn/id-input');
   };
 
   // --- 데이터 불러오기 ---
@@ -63,7 +74,9 @@ export const Manage = () => {
         // [Step 2] 스탬프 설정 조회하기
         if (currentStoreName) {
           const settingsResponse = await fetch(
-            `${apiUri}/v1/stamps/manager/settings?storeName=${encodeURIComponent(currentStoreName)}`,
+            `${apiUri}/v1/stamps/manager/settings?storeName=${encodeURIComponent(
+              currentStoreName
+            )}`,
             {
               method: 'GET',
               headers: {
@@ -74,7 +87,8 @@ export const Manage = () => {
           );
 
           if (settingsResponse.ok) {
-            const settingsData: StampSettingsResponse = await settingsResponse.json();
+            const settingsData: StampSettingsResponse =
+              await settingsResponse.json();
             setStampSettings(settingsData);
           }
         }
@@ -89,7 +103,7 @@ export const Manage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col w-full px-6 py-4">
+    <div className="flex flex-col w-full px-6 py-4 mb-10">
       <h1 className="text-[25px] text-(--fill-color6) font-normal">
         Management
       </h1>
@@ -99,28 +113,24 @@ export const Manage = () => {
       </p>
 
       <div className="flex flex-col w-full gap-3">
-        <div className="flex flex-row w-full justify-between mt-5 gap-3">
-          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
-            <p className="font-semibold text-[14px]">스탬프 적립하기</p>
-            <div className="flex flex-row self-end">
-              <img
-                src={goto_icon}
-                alt="Go"
-                className="w-[40px] h-[40px] cursor-pointer"
-                onClick={handleGotoStampEarn}
-              />
-            </div>
+        <div className="w-full flex flex-row mt-5 gap-5 justify-center">
+          <div
+            onClick={handleGoToQRScan}
+            className="w-1/2 h-[170px] rounded-[20px] flex flex-col items-center justify-center bg-(--fill-color1) text-(--fill-color7) p-5 cursor-pointer"
+          >
+            <img src={qr_scan} alt="" className="w-[90px] h-[90px]" />
+            <p className="text-[14px] text-black font-medium mt-2">
+              유저 QR코드 인식
+            </p>
           </div>
-          <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-3 flex flex-col justify-between">
-            <p className="font-semibold text-[14px]">QR 생성하기</p>
-            <div className="flex flex-row self-end">
-              <img
-                src={goto_icon}
-                alt="Go"
-                className="w-[40px] h-[40px] cursor-pointer"
-                onClick={handleGotoQRGenerate}
-              />
-            </div>
+          <div
+            onClick={handleGoToIdInput}
+            className="w-1/2 h-[170px] rounded-[20px] flex flex-col items-center justify-center bg-(--fill-color1) text-(--fill-color7) p-5 cursor-pointer"
+          >
+            <img src={check_id} alt="" className="w-[90px] h-[90px]" />
+            <p className="text-[14px] text-black font-medium mt-2">
+              유저 ID 직접 입력
+            </p>
           </div>
         </div>
 
@@ -193,11 +203,11 @@ export const Manage = () => {
                 스탬프 개수
               </p>
               <p className="text-[12px] text-(--fill-color6) mt-4">
-                {isLoading 
-                    ? '로딩중...' 
-                    : stampSettings?.maxCnt
-                      ? `${stampSettings.maxCnt}개`
-                      : '설정 필요'}
+                {isLoading
+                  ? '로딩중...'
+                  : stampSettings?.maxCnt
+                  ? `${stampSettings.maxCnt}개`
+                  : '설정 필요'}
               </p>
             </div>
           </div>

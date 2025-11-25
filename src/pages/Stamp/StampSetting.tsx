@@ -417,9 +417,9 @@ interface StampDataDto {
   stampId: number;
   storeId: number;
   storeName: string;
+  stampImageUrl: string;
   currentCount: number;
   maxCount: number;
-  stampImageUrl: string;
   favorite: boolean;
 }
 
@@ -534,8 +534,11 @@ const StampSetting = () => {
       }
 
       setStamps((prevStamps) =>
-        prevStamps.map((stamp) =>
-          stamp.id === id ? { ...stamp, isFavorite: !stamp.isFavorite } : stamp
+        prevStamps.map(
+          (stamp) =>
+            stamp.id === id
+              ? { ...stamp, isFavorite: !stamp.isFavorite } // 타겟 아이템: 별 상태 반전
+              : stamp // 나머지 아이템: 그대로 유지
         )
       );
     } catch (error) {
@@ -733,6 +736,10 @@ const StampSetting = () => {
             </div>
 
             {/* Right: Star Toggle */}
+            {/* 삭제 모드가 아닐 때, 즐겨찾기 버튼을 노출합니다.
+              - isFavorite === true: 노란 별 (YellowStar)
+              - isFavorite === false: 빈 별 (EmptyStar)
+            */}
             {!isDeleteMode && (
               <button onClick={() => toggleFavorite(stamp.id)} className="p-2">
                 <img
