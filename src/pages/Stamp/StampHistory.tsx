@@ -1,9 +1,9 @@
 // import { useState, useRef, useEffect } from 'react';
 // import axios from 'axios';
+// import { useNavigate } from 'react-router-dom'; // [수정] 네비게이션 훅 임포트
 // import BackButton from '../../components/BackButton';
 
 // // Assets
-// import UploadIcon from '../../assets/upload.svg';
 // import RightCircleIcon from '../../assets/rightcircle.svg';
 
 // // API URI 상수는 실제 환경 변수나 설정 파일에서 가져오세요.
@@ -45,6 +45,7 @@
 
 // // --- [데이터 타입] ---
 // interface HistoryItem {
+//   storeId: number; // [수정] storeId 필드 추가 (API 응답 확인 필요)
 //   storeName: string;
 //   storeAddress: string;
 //   issuedDate: string;
@@ -57,6 +58,8 @@
 // }
 
 // const StampHistory = () => {
+//   const navigate = useNavigate(); // [수정] navigate 초기화
+
 //   // --- [상태 관리] ---
 //   const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
 //   const [loading, setLoading] = useState<boolean>(true);
@@ -142,9 +145,19 @@
 
 //   // 현재 보여줄 아이템
 //   const currentItem = getItem(currentDisplayIndex) || {
+//     storeId: 0, // [수정] 기본값 추가
 //     storeName: '-',
 //     storeAddress: '-',
 //     issuedDate: '-',
+//   };
+
+//   // [수정] 매장 이동 핸들러
+//   const handleGoToStore = () => {
+//     if (currentItem.storeId) {
+//       navigate(`/store/${currentItem.storeId}`);
+//     } else {
+//       console.warn('Store ID not found');
+//     }
 //   };
 
 //   // --- [렌더링: 데이터 없음] ---
@@ -167,10 +180,8 @@
 //   // --- [렌더링: 메인] ---
 //   return (
 //     <div className="min-h-screen bg-white flex flex-col relative overflow-hidden select-none font-sans">
-//       {/* 전체 배경 그라데이션 (위:흰색 -> 중간:연한살구 -> 아래:오렌지) */}
-//       <div className="absolute inset-0 bg-gradient-to-b from-white via-[#FFF0EB] to-[#FF9F65] z-0 pointer-events-none" />
-//       {/* 노이즈 텍스처 */}
-//       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/noise.png')] opacity-10 z-0 pointer-events-none" />
+//       <div className="absolute bottom-0 left-0 w-full h-[80%] bg-gradient-to-t from-[#FF9F65] via-[#FFF0EB] to-white z-0 pointer-events-none" />
+//       <div className="absolute bottom-0 left-0 w-full h-[80%] bg-[url('https://www.transparenttextures.com/patterns/noise.png')] opacity-10 z-0 pointer-events-none" />
 
 //       {/* Header */}
 //       <div className="px-5 py-4 flex items-center relative z-10 bg-transparent">
@@ -182,11 +193,7 @@
 
 //       {/* Info Section */}
 //       <div className="px-5 mt-2 relative z-10 flex flex-col items-center">
-//         <div className="absolute right-5 top-0">
-//           <button className="p-1">
-//             <img src={UploadIcon} alt="share" className="w-6 h-6 opacity-40" />
-//           </button>
-//         </div>
+//         <div className="absolute right-5 top-0"></div>
 
 //         <div className="text-center mt-6 transition-all duration-300">
 //           <h2 className="text-[22px] font-bold text-gray-800 leading-tight mb-2">
@@ -209,10 +216,12 @@
 //               <h3 className="text-lg font-extrabold text-gray-900">
 //                 {currentItem.storeName}
 //               </h3>
+//               {/* [수정] 아이콘 클릭 시 이동 처리 */}
 //               <img
 //                 src={RightCircleIcon}
 //                 alt="go"
-//                 className="w-4 h-4 opacity-60"
+//                 className="w-4 h-4 opacity-60 cursor-pointer hover:opacity-100 transition-opacity"
+//                 onClick={handleGoToStore}
 //               />
 //             </div>
 //             <p className="text-[11px] text-gray-400">
@@ -224,8 +233,6 @@
 
 //       {/* Card Fan Area */}
 //       <div
-//         // [변경] items-end -> items-start (위쪽 정렬)
-//         // [변경] pb-10 제거, pt-[33px] 추가 (위쪽 정보와 33px 간격)
 //         className="flex-1 relative flex items-start justify-center pt-[33px] overflow-hidden cursor-grab active:cursor-grabbing z-10"
 //         onTouchStart={(e) => handleStart(e.targetTouches[0].clientX)}
 //         onTouchMove={(e) => handleMove(e.targetTouches[0].clientX)}
@@ -239,7 +246,6 @@
 //         {loading ? (
 //           <div className="text-white text-sm animate-pulse">Loading...</div>
 //         ) : (
-//           // [변경] mb-12 제거 (위쪽 정렬이므로 하단 마진 불필요)
 //           <div className="relative w-[160px] h-[250px]">
 //             {[-4, -3, -2, -1, 0, 1, 2, 3, 4].map((offsetStep) => {
 //               const baseIndex = Math.floor(virtualIndex);
@@ -269,7 +275,7 @@
 //                         translateY(${translateY}px)
 //                         rotate(${rotate}deg)
 //                         scale(${scale})
-//                     `,
+//                       `,
 //                     transition: isDragging
 //                       ? 'none'
 //                       : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
@@ -328,13 +334,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
 
 // Assets
-import UploadIcon from '../../assets/upload.svg';
 import RightCircleIcon from '../../assets/rightcircle.svg';
 
-// API URI 상수는 실제 환경 변수나 설정 파일에서 가져오세요.
+// API URI
 const apiUri = import.meta.env.VITE_API_URI;
 
 // --- [아이콘 컴포넌트] ---
@@ -371,28 +377,32 @@ const StampIcon = () => (
   </svg>
 );
 
-// --- [데이터 타입] ---
+// --- [데이터 타입 정의] ---
+// API 응답 구조에 맞춘 타입
 interface HistoryItem {
-  storeName: string;
-  storeAddress: string;
-  issuedDate: string;
+  storeId: number; // 가게 ID (네비게이션용)
+  storeName: string; // 가게 이름
+  storeAddress: string; // 가게 주소
+  issuedDate: string; // 발급 날짜
 }
 
 interface StampHistoryResponse {
   totalStampSum: number;
   completedStampNum: number;
-  completedStamps: HistoryItem[] | null;
+  completedStamps: HistoryItem[];
 }
 
 const StampHistory = () => {
+  const navigate = useNavigate(); // 페이지 이동을 위한 훅
+
   // --- [상태 관리] ---
   const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // 캐러셀 관련 상태
   const [currentIndex, setCurrentIndex] = useState(1000);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-
   const startX = useRef<number | null>(null);
 
   // --- [API 호출] ---
@@ -401,7 +411,8 @@ const StampHistory = () => {
       const token = localStorage.getItem('accessToken');
 
       if (!token) {
-        console.warn('로그인 토큰이 없어 데이터를 불러올 수 없습니다.');
+        // 토큰이 없을 경우 처리 (로그인 페이지로 이동 등)
+        console.warn('로그인 토큰이 없습니다.');
         setLoading(false);
         return;
       }
@@ -416,9 +427,9 @@ const StampHistory = () => {
           }
         );
 
+        // API 응답에서 완료된 스탬프 리스트 추출
         const list = response.data?.completedStamps || [];
         setHistoryData(list);
-        console.log('데이터 로드 완료 (개수):', list.length);
       } catch (error) {
         console.error('스탬프 히스토리 조회 실패:', error);
         setHistoryData([]);
@@ -430,10 +441,11 @@ const StampHistory = () => {
     fetchHistory();
   }, []);
 
-  // --- [Helper] ---
+  // --- [Helper: 인덱스로 아이템 가져오기 (무한 루프)] ---
   const getItem = (index: number) => {
     if (historyData.length === 0) return null;
     const len = historyData.length;
+    // 음수 인덱스 처리 등을 포함한 안전한 모듈러 연산
     const wrappedIndex = ((index % len) + len) % len;
     return historyData[wrappedIndex];
   };
@@ -457,22 +469,34 @@ const StampHistory = () => {
     startX.current = null;
 
     const MOVE_THRESHOLD = 80;
+    // 드래그 거리에 따라 인덱스 변경 (반올림 처리)
     const movedCards = -Math.round(dragOffset / MOVE_THRESHOLD);
 
     setCurrentIndex((prev) => prev + movedCards);
     setDragOffset(0);
   };
 
-  // --- [계산 로직] ---
+  // --- [현재 표시 중인 아이템 계산] ---
   const MOVE_THRESHOLD = 80;
   const virtualIndex = currentIndex - dragOffset / MOVE_THRESHOLD;
   const currentDisplayIndex = Math.round(virtualIndex);
 
-  // 현재 보여줄 아이템
+  // 현재 화면 중앙에 보이는 아이템 (없을 경우를 대비한 Fallback 처리)
   const currentItem = getItem(currentDisplayIndex) || {
+    storeId: 0,
     storeName: '-',
     storeAddress: '-',
     issuedDate: '-',
+  };
+
+  // ✅ [기능 구현] 매장 상세 페이지 이동 핸들러
+  const handleGoToStore = () => {
+    // storeId가 유효한지 확인 (0이나 null이 아닌지)
+    if (currentItem && currentItem.storeId) {
+      navigate(`/store/${currentItem.storeId}`);
+    } else {
+      console.warn('유효하지 않은 매장 ID입니다.');
+    }
   };
 
   // --- [렌더링: 데이터 없음] ---
@@ -495,13 +519,8 @@ const StampHistory = () => {
   // --- [렌더링: 메인] ---
   return (
     <div className="min-h-screen bg-white flex flex-col relative overflow-hidden select-none font-sans">
-      {/* [수정됨] 배경 그라데이션 길이 조절 */}
-      {/* h-[80%]: 전체 높이의 80%만 차지 */}
-      {/* bottom-0: 바닥에 붙임 */}
-      {/* bg-gradient-to-t: 아래(오렌지)에서 위(흰색)로 올라가도록 방향 변경 */}
+      {/* 배경 그래픽 */}
       <div className="absolute bottom-0 left-0 w-full h-[80%] bg-gradient-to-t from-[#FF9F65] via-[#FFF0EB] to-white z-0 pointer-events-none" />
-
-      {/* 노이즈 텍스처 (그라데이션 영역에만 적용) */}
       <div className="absolute bottom-0 left-0 w-full h-[80%] bg-[url('https://www.transparenttextures.com/patterns/noise.png')] opacity-10 z-0 pointer-events-none" />
 
       {/* Header */}
@@ -514,12 +533,6 @@ const StampHistory = () => {
 
       {/* Info Section */}
       <div className="px-5 mt-2 relative z-10 flex flex-col items-center">
-        <div className="absolute right-5 top-0">
-          <button className="p-1">
-            <img src={UploadIcon} alt="share" className="w-6 h-6 opacity-40" />
-          </button>
-        </div>
-
         <div className="text-center mt-6 transition-all duration-300">
           <h2 className="text-[22px] font-bold text-gray-800 leading-tight mb-2">
             총 <span className="text-[#FF6B00]">{historyData.length}장</span>의
@@ -532,21 +545,29 @@ const StampHistory = () => {
             1년 이전의 내역은 고객센터로 문의해주세요.
           </p>
 
-          {/* Dynamic Info Area */}
+          {/* Dynamic Info Area (현재 선택된 카드의 정보) */}
           <div className="mb-4 animate-fade-in flex flex-col items-center">
+            {/* 날짜 */}
             <p className="text-xs text-gray-500 font-medium mb-1">
-              {currentItem.issuedDate}
+              {new Date(currentItem.issuedDate).toLocaleDateString()}
             </p>
+
+            {/* 가게 이름 및 이동 아이콘 */}
             <div className="flex items-center justify-center gap-1 mb-1">
               <h3 className="text-lg font-extrabold text-gray-900">
                 {currentItem.storeName}
               </h3>
+
+              {/* ✅ [수정] 클릭 시 상세 페이지로 이동 */}
               <img
                 src={RightCircleIcon}
-                alt="go"
-                className="w-4 h-4 opacity-60"
+                alt="매장 상세 보기"
+                className="w-4 h-4 opacity-60 cursor-pointer hover:opacity-100 transition-opacity"
+                onClick={handleGoToStore}
               />
             </div>
+
+            {/* 주소 */}
             <p className="text-[11px] text-gray-400">
               {currentItem.storeAddress}
             </p>
@@ -554,7 +575,7 @@ const StampHistory = () => {
         </div>
       </div>
 
-      {/* Card Fan Area */}
+      {/* Card Fan Area (캐러셀) */}
       <div
         className="flex-1 relative flex items-start justify-center pt-[33px] overflow-hidden cursor-grab active:cursor-grabbing z-10"
         onTouchStart={(e) => handleStart(e.targetTouches[0].clientX)}
@@ -565,20 +586,22 @@ const StampHistory = () => {
         onMouseUp={handleEnd}
         onMouseLeave={handleEnd}
       >
-        {/* Cards Container */}
         {loading ? (
           <div className="text-white text-sm animate-pulse">Loading...</div>
         ) : (
           <div className="relative w-[160px] h-[250px]">
+            {/* 주변 4개씩 총 9개의 카드 렌더링 */}
             {[-4, -3, -2, -1, 0, 1, 2, 3, 4].map((offsetStep) => {
               const baseIndex = Math.floor(virtualIndex);
               const renderIndex = baseIndex + offsetStep;
               const offset = renderIndex - virtualIndex;
 
+              // 화면 밖의 카드는 렌더링 생략
               if (offset < -3.8 || offset > 3.8) return null;
 
               const absOffset = Math.abs(offset);
 
+              // 3D 효과 및 위치 계산
               const translateX = offset * 10;
               const translateY = absOffset * 2;
               const rotate = offset * 5;
@@ -594,10 +617,10 @@ const StampHistory = () => {
                   style={{
                     zIndex: zIndex,
                     transform: `
-                        translateX(${translateX}px) 
-                        translateY(${translateY}px) 
-                        rotate(${rotate}deg) 
-                        scale(${scale})
+                      translateX(${translateX}px) 
+                      translateY(${translateY}px) 
+                      rotate(${rotate}deg) 
+                      scale(${scale})
                     `,
                     transition: isDragging
                       ? 'none'
@@ -605,9 +628,9 @@ const StampHistory = () => {
                     opacity: absOffset > 2.5 ? 0.5 : 1,
                   }}
                 >
-                  {/* Card Content */}
+                  {/* 실제 카드 디자인 */}
                   <div className="w-full h-full bg-white rounded-2xl shadow-[0_5px_15px_rgba(0,0,0,0.1)] border border-gray-100 p-3 flex relative overflow-hidden">
-                    {/* Left Gray Pill */}
+                    {/* 왼쪽 회색 띠 */}
                     <div className="w-7 h-full bg-[#F3F4F6] rounded-full flex items-center justify-center shrink-0 py-2">
                       <span
                         className="text-[8px] text-gray-400 font-medium tracking-tighter whitespace-nowrap"
@@ -619,13 +642,16 @@ const StampHistory = () => {
                       </span>
                     </div>
 
-                    {/* Stamp Grid */}
+                    {/* 스탬프 그리드 */}
                     <div className="flex-1 pl-2 flex flex-col">
                       <div className="text-[9px] text-gray-400 text-right mb-1 font-medium">
-                        {cardData ? cardData.issuedDate : ''}
+                        {cardData
+                          ? new Date(cardData.issuedDate).toLocaleDateString()
+                          : ''}
                       </div>
                       <div className="flex-1 flex items-center justify-center">
                         <div className="grid grid-cols-2 gap-x-3 gap-y-5">
+                          {/* 10개 스탬프 표시 */}
                           {[...Array(10)].map((_, i) => (
                             <div
                               key={i}
@@ -640,7 +666,7 @@ const StampHistory = () => {
                       </div>
                     </div>
 
-                    {/* Glossy Effect */}
+                    {/* 광택 효과 */}
                     <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-tr from-transparent via-white/30 to-white/60 opacity-50 pointer-events-none rounded-2xl"></div>
                   </div>
                 </div>

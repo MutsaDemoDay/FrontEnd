@@ -552,10 +552,6 @@ const StampPage = () => {
             <div className="mb-6 flex justify-center">
               <StampSection />
             </div>
-            <div className="mb-6">
-              {/* ✅ 수정한 StampCard에 API 데이터 전달 */}
-              <StampCard data={mainStamp} />
-            </div>
           </>
         ) : (
           <div className="mb-6">

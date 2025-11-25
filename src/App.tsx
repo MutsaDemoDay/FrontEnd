@@ -118,14 +118,20 @@ function App() {
           <Route path="/owner/settings" element={<OwnerSettings />} />
           <Route path="/owner/stamp-earn" element={<StampEarn />} />
           <Route path="/owner/stamp-earn/qr-scan" element={<QRScan />} />
-          <Route path="/owner/stamp-earn/id-input" element={<StampEarnWithId />} />
-          <Route path="/owner/stamp-earn/confirm/:userId" element={<StampEarnWithId />} />
-          <Route path='/owner/stampsetting' element={<OwnerStampSetting />} />
-          <Route path='/owner/stamphistory' element={<StampHistory />} />
+          <Route
+            path="/owner/stamp-earn/id-input"
+            element={<StampEarnWithId />}
+          />
+          <Route
+            path="/owner/stamp-earn/confirm/:userId"
+            element={<StampEarnWithId />}
+          />
+          <Route path="/owner/stampsetting" element={<OwnerStampSetting />} />
+          <Route path="/owner/stamphistory" element={<StampHistory />} />
           <Route path="/owner/eventcreate" element={<EventCreate />} />
-          <Route path='/owner/pastevent' element={<PastEvent />} />
-          <Route path='/owner/accountinfo' element={<OwnerAccountInfo/>} />
-          <Route path='/owner/shopprofile' element={<OwnerShopProfile/>} />
+          <Route path="/owner/pastevent" element={<PastEvent />} />
+          <Route path="/owner/accountinfo" element={<OwnerAccountInfo />} />
+          <Route path="/owner/shopprofile" element={<OwnerShopProfile />} />
         </Route>
       </Routes>
     </BrowserRouter>
