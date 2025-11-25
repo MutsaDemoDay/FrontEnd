@@ -108,7 +108,7 @@ export const EventManage = () => {
             />
           </div>
 
-          <div className="flex-1 flex flex-col justify-center px-4 pb-4 gap-3">
+          <div className="flex-1 flex flex-col justify-center px-4 pb-4 gap-3 cursor-pointer"  onClick={() => navigate('/stamp/event')}>
             {activeEvents.length > 0 ? (
               // [변경] 배열을 순회하며 렌더링
               activeEvents.map((event, index) => (
@@ -120,6 +120,7 @@ export const EventManage = () => {
                     {getEventBadgeText(event.eventType)} -{' '}
                     {event.buttonDescription}
                   </h3>
+                  
                 </div>
               ))
             ) : (

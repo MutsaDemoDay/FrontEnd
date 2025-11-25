@@ -1,23 +1,30 @@
-import React, { useState, useRef, type ChangeEvent } from 'react';
+import React, { useState, useRef, type ChangeEvent, use } from 'react';
+import { useNavigate, useParams } from 'react-router-dom'; // 라우팅 관련 훅 추가
 import BackButton from '../../components/BackButton';
 
 // 이미지 에셋 import
-// (TypeScript에서 svg/png import 오류가 난다면 global.d.ts 선언이 필요할 수 있습니다)
 import emptystar from '../../assets/emptystar.svg';
 import fullstar from '../../assets/star_full_icon.png';
 import insertPhotoIcon from '../../assets/insert_photo_icon.png';
-import photoEmptyIcon from '../../assets/photo_empty_icon.png';
+
+// .env 환경변수 사용 (Vite 기준)
+const API_URI = import.meta.env.VITE_API_URI;
 
 export const StoreReview: React.FC = () => {
-  // 1. 별점 상태 관리 (number 타입)
+  const navigate = useNavigate();
+  const { storeId } = useParams<{ storeId: string }>();
+
+  // 1. 별점 상태 관리
   const [score, setScore] = useState<number>(0);
   const [hoverScore, setHoverScore] = useState<number>(0);
 
-  // 2. 이미지 상태 관리 (File 객체 배열, URL string 배열)
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  // 2. 리뷰 텍스트 상태 관리
+  const [content, setContent] = useState<string>('');
 
-  // input 태그 제어를 위한 Ref
+  // 3. 이미지 상태 관리 (단일 파일)
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 별점 클릭 핸들러
@@ -25,35 +32,75 @@ export const StoreReview: React.FC = () => {
     setScore(idx + 1);
   };
 
-  // 이미지 업로드 핸들러
+  // 이미지 업로드 핸들러 (단일 파일)
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
-
-    // 파일이 선택되지 않았을 경우 처리
     if (!fileList || fileList.length === 0) return;
 
     const file = fileList[0];
 
-    // 최대 3장 제한
-    if (imageFiles.length >= 3) {
-      alert('사진은 최대 3장까지 업로드 가능합니다.');
-      return;
-    }
+    // 상태 업데이트 (기존 파일 덮어쓰기)
+    setImageFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
 
-    // 1. 백엔드 전송용 파일 저장 (불변성 유지)
-    setImageFiles((prev) => [...prev, file]);
-
-    // 2. 미리보기용 URL 생성 및 저장
-    const fileUrl = URL.createObjectURL(file);
-    setPreviewUrls((prev) => [...prev, fileUrl]);
-
-    // 연속해서 같은 파일을 올릴 수 있도록 input 값 초기화
+    // input 초기화 (같은 파일 다시 선택 가능하게)
     e.target.value = '';
   };
 
-  // 카메라 아이콘 클릭 시 hidden input 트리거
+  // 박스 클릭 시 파일 선택 트리거
   const triggerFileInput = () => {
     fileInputRef.current?.click();
+  };
+
+  // API 전송 핸들러
+  const handleSubmit = async () => {
+    // 1. 유효성 검사
+    if (!storeId) {
+      alert('가게 정보를 찾을 수 없습니다.');
+      return;
+    }
+    if (score === 0) {
+      alert('별점을 입력해주세요.');
+      return;
+    }
+    if (!content.trim()) {
+      alert('후기 내용을 입력해주세요.');
+      return;
+    }
+
+    // 2. FormData 생성
+    const formData = new FormData();
+
+    // 일반 필드 추가
+    formData.append('storeId', storeId); // 숫자형 변환이 필요하다면 Number(storeId)
+    formData.append('rate', score.toString());
+    formData.append('content', content);
+
+    // 이미지 파일 추가 (선택된 경우에만)
+    if (imageFile) {
+      formData.append('reviewImage', imageFile);
+    }
+
+    try {
+      const response = await fetch(`${API_URI}/v1/reviews`, {
+        method: 'POST',
+        // 주의: FormData 전송 시 Content-Type 헤더를 직접 설정하면 안 됩니다.
+        // 브라우저가 자동으로 boundary를 포함한 multipart/form-data로 설정합니다.
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert('리뷰가 성공적으로 등록되었습니다!');
+        navigate(-1); // 이전 페이지로 이동
+      } else {
+        const errorData = await response.json();
+        console.error('Error:', errorData);
+        alert('리뷰 등록에 실패했습니다. 다시 시도해주세요.');
+      }
+    } catch (error) {
+      console.error('Network Error:', error);
+      alert('서버와 통신 중 오류가 발생했습니다.');
+    }
   };
 
   return (
@@ -75,7 +122,6 @@ export const StoreReview: React.FC = () => {
           {[0, 1, 2, 3, 4].map((idx) => (
             <img
               key={idx}
-              // 마우스 오버 점수가 있으면 그걸 사용, 아니면 확정 점수 사용
               src={idx < (hoverScore || score) ? fullstar : emptystar}
               alt={`star-${idx + 1}`}
               className="w-[35px] h-[35px] cursor-pointer transition-transform hover:scale-110"
@@ -86,9 +132,8 @@ export const StoreReview: React.FC = () => {
           ))}
         </div>
 
-        {/* 2. 사진 업로드 섹션 */}
-        <div className="flex flex-row items-center justify-center mt-15 gap-3">
-          {/* 숨겨진 파일 Input */}
+        {/* 2. 사진 업로드 섹션 (단일 이미지 수정됨) */}
+        <div className="flex flex-row items-center justify-center mt-10">
           <input
             type="file"
             accept="image/*"
@@ -97,48 +142,42 @@ export const StoreReview: React.FC = () => {
             className="hidden"
           />
 
-          {/* 1번: 사진 추가 버튼 (클릭 시 파일창 열림) */}
+          {/* 이미지가 없으면: 사진 추가 아이콘
+            이미지가 있으면: 해당 이미지 미리보기 
+            클릭 시 파일 변경 가능
+          */}
           <div
             onClick={triggerFileInput}
-            className="w-[71px] h-[71px] rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
+            className="w-[100px] h-[100px] rounded-xl overflow-hidden cursor-pointer active:scale-95 transition-transform border border-gray-200 flex items-center justify-center bg-gray-50"
           >
-            <img
-              src={insertPhotoIcon}
-              alt="Add photo"
-              className="w-[71px] h-[71px]"
-            />
-          </div>
-
-          {/* 2번: 미리보기 슬롯 (3개 고정) */}
-          {[0, 1, 2].map((idx) => (
-            <div
-              key={idx}
-              className="w-[71px] h-[71px] rounded-lg overflow-hidden flex-shrink-0"
-            >
+            {previewUrl ? (
               <img
-                // 해당 인덱스에 이미지가 있으면 미리보기, 없으면 빈 아이콘
-                src={previewUrls[idx] ? previewUrls[idx] : photoEmptyIcon}
-                alt={`slot-${idx}`}
-                className={`w-full h-full ${
-                  previewUrls[idx] ? 'object-cover' : 'object-contain'
-                }`}
+                src={previewUrl}
+                alt="review-preview"
+                className="w-full h-full object-cover"
               />
-            </div>
-          ))}
+            ) : (
+              <img
+                src={insertPhotoIcon}
+                alt="Add photo"
+                className="w-[71px] h-[71px] opacity-80"
+              />
+            )}
+          </div>
         </div>
 
+        {/* 3. 텍스트 입력 섹션 */}
         <textarea
-          className="w-[340px] h-[168px] border border-(--fill-color3) rounded-[20px] p-4 mt-8 text-[13px] text-(--fill-color7) placeholder:text-(--fill-color3) focus:outline-none resize-none"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="w-[340px] h-[168px] border border-[var(--fill-color3)] rounded-[20px] p-4 mt-8 text-[13px] text-[var(--fill-color7)] placeholder:text-[var(--fill-color3)] focus:outline-none resize-none"
           placeholder={`유용한 후기를 알려주세요!\n작성 내용은 마이페이지와 가게 리뷰탭에 노출됩니다.`}
         />
 
-        {/* (테스트용) 데이터 확인 버튼 */}
+        {/* 4. 등록 버튼 */}
         <button
-          onClick={() => {
-            console.log('Score:', score);
-            console.log('Files:', imageFiles);
-          }}
-          className="mt-10 w-full max-w-[320px] h-[48px] bg-(--main-color) text-white py-3 rounded-[40px] font-bold transition-colors cursor-pointer"
+          onClick={handleSubmit}
+          className="mt-10 w-full max-w-[320px] h-[48px] bg-[var(--main-color)] text-white py-3 rounded-[40px] font-bold transition-colors cursor-pointer hover:opacity-90"
         >
           등록하기
         </button>

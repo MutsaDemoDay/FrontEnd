@@ -226,6 +226,8 @@
 // };
 
 // export default ProfileSetting;
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Pencil, MoreVertical, Plus, Star } from 'lucide-react';
 
@@ -366,7 +368,7 @@ const ProfileSetting = () => {
           <div className="flex justify-center mb-8">
             <div className="relative">
               <div className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
-                <img
+                {/* <img
                   src={
                     profileImage ||
                     'https://via.placeholder.com/150?text=No+Image'
@@ -377,7 +379,7 @@ const ProfileSetting = () => {
                     e.target.onerror = null;
                     e.target.src = 'https://via.placeholder.com/150?text=Error';
                   }}
-                />
+                /> */}
               </div>
               <button className="absolute top-0 right-0 bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm hover:bg-gray-500 transition-colors">
                 <Pencil size={14} fill="white" />
