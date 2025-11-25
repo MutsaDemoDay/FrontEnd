@@ -21,6 +21,7 @@ import { Event } from './pages/Stamp/Event';
 import StampHistory from './pages/Stamp/StampHistory';
 import StampSetting from './pages/Stamp/StampSetting';
 import { StampRegistration1 } from './pages/Stamp/StampRegistration1';
+import { StampRegistration2 } from './pages/Stamp/StampRegistration2';
 import { StampRegistration4 } from './pages/Stamp/StampRegistration4';
 import { FindId } from './pages/SignUp/FindId';
 import { FindPassword } from './pages/SignUp/FindPassword';
@@ -83,6 +84,7 @@ function App() {
           <Route path="/stamphistory" element={<StampHistory />} />
           <Route path="/stampsetting" element={<StampSetting />} />
           <Route path="/stampregistration1" element={<StampRegistration1 />} />
+          <Route path="/stampregistration2" element={<StampRegistration2 />} />
           <Route path="/stampregistration4" element={<StampRegistration4 />} />
           {/* 아이디/비번 찾기 */}
           <Route path="/find-id" element={<FindId />} />
