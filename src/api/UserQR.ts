@@ -4,7 +4,7 @@ export interface QrResponse {
   timestamp: string;
   code: number;
   message: string;
-  data: string; // Base64 이미지
+  data: string;
 }
 
 const BASE_URL = import.meta.env.VITE_API_URI;

@@ -5,7 +5,11 @@ import Plus from '../../assets/plus.svg';
 import ThreeDots from '../../assets/threedots.svg';
 import Hamburger from '../../assets/hamburger.svg';
 import StampSection from '../../components/StampSection';
+<<<<<<< HEAD
+import { type StampData } from '../../components/StampCard';
+=======
 import { type StampData } from '../../components/StampCard'; // StampCard는 사용 안하므로 타입만 import
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
 import { UserBottomBar } from '../../components/UserBottomBar';
 import Window from '../../components/Window';
 import { fetchUserQr } from '../../api/UserQR';
@@ -35,8 +39,13 @@ interface AccountApiResponse {
   code: number;
   message: string;
   data: {
+<<<<<<< HEAD
+    email: string;   // 요청용
+    loginId: string; // 표시용 (점주가 스캔할 데이터)
+=======
     email: string;
     loginId: string;
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
     joinedAt: string;
   };
 }
@@ -50,8 +59,14 @@ const StampPage = () => {
   const [qrImage, setQrImage] = useState<string>('');
   const [isLoadingQr, setIsLoadingQr] = useState(false);
 
+<<<<<<< HEAD
+  // ✅ [수정 1] 이메일과 로그인ID 둘 다 상태로 관리
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [userLoginId, setUserLoginId] = useState<string>('');
+=======
   // ✅ 유저 이메일 상태 (API로 가져옴)
   const [userEmail, setUserEmail] = useState<string>('');
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
 
   // ✅ 스탬프 데이터 상태
   const [stamps, setStamps] = useState<StampData[]>([]);
@@ -61,7 +76,11 @@ const StampPage = () => {
   const [events, setEvents] = useState<EventData[]>([]);
 
   // --------------------------------------------------------------------------
+<<<<<<< HEAD
+  // 1. 유저 계정 정보 가져오기 (Email & LoginId 둘 다 저장)
+=======
   // 1. [핵심] 유저 계정 정보(이메일) 가져오기
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
   // --------------------------------------------------------------------------
   useEffect(() => {
     const fetchAccountInfo = async () => {
@@ -69,7 +88,10 @@ const StampPage = () => {
         const token = localStorage.getItem('accessToken');
         if (!token) return;
 
+<<<<<<< HEAD
+=======
         // axios를 사용하여 계정 정보 조회
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
         const response = await axios.get<AccountApiResponse>(
           `${apiUri}/v1/mypage/account`,
           {
@@ -78,12 +100,21 @@ const StampPage = () => {
         );
 
         const resData = response.data;
+<<<<<<< HEAD
+        if (resData.code === 0 || resData.code === 200 || resData.data) {
+          console.log('✅ 유저 정보 확보:', resData.data);
+          // [중요] API 요청을 위해 이메일 저장
+          setUserEmail(resData.data.email);
+          // [중요] 화면 표시(및 점주 확인용)를 위해 아이디 저장
+          setUserLoginId(resData.data.loginId);
+=======
         // 성공 조건 (code 0 or 200)
         if (resData.code === 0 || resData.code === 200 || resData.data) {
           console.log('✅ 유저 이메일 확보:', resData.data.email);
           setUserEmail(resData.data.email);
         } else {
           console.error('계정 정보 조회 실패:', resData.message);
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
         }
       } catch (error) {
         console.error('계정 정보 API 호출 에러:', error);
@@ -160,10 +191,17 @@ const StampPage = () => {
   }, []);
 
   // --------------------------------------------------------------------------
+<<<<<<< HEAD
+  // 4. QR 버튼 클릭 핸들러
+  // --------------------------------------------------------------------------
+  const handleQrClick = async () => {
+    // [수정 2] API 요청에 필요한 이메일이 있는지 확인
+=======
   // 4. QR 버튼 클릭 핸들러 (수정됨)
   // --------------------------------------------------------------------------
   const handleQrClick = async () => {
     // [수정] userId가 아니라 위에서 저장한 userEmail을 체크해야 합니다.
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
     if (!userEmail) {
       alert('사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
       return;
@@ -174,6 +212,16 @@ const StampPage = () => {
     setQrImage('');
 
     try {
+<<<<<<< HEAD
+      console.log('QR 요청 이메일:', userEmail);
+
+      // [수정 3] 이메일을 파라미터로 QR 생성 요청
+      const res = await fetchUserQr(userEmail);
+
+      if (res.code === 200 || res.code === 100) {
+        // 백엔드가 이메일을 받아서 -> 해당 유저의 LoginId가 담긴 QR 이미지를 리턴해줌
+        setQrImage(res.data); 
+=======
       // [수정] 로그 및 API 호출 시 userEmail 사용
       console.log('QR 요청 이메일:', userEmail);
 
@@ -182,6 +230,7 @@ const StampPage = () => {
 
       if (res.code === 200 || res.code === 100) {
         setQrImage(res.data); // data: "data:image/png;base64,..."
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
       } else {
         alert(res.message || 'QR 생성에 실패했습니다.');
         setShowQrModal(false);
@@ -372,9 +421,15 @@ const StampPage = () => {
                 )}
               </div>
               <div className="text-center space-y-1">
+<<<<<<< HEAD
+                {/* [수정 4] 텍스트 표시는 유저 아이디(loginId)로 보여줌 */}
+                <p className="text-white text-base font-medium">
+                  회원ID: {userLoginId || '로딩중...'}
+=======
                 {/* 조회한 유저 이메일 표시 */}
                 <p className="text-white text-base font-medium">
                   {userEmail || '회원 정보 로딩중...'}
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
                 </p>
                 <p className="text-gray-300 text-xs">QR코드 유효시간 01:00</p>
               </div>
@@ -391,6 +446,9 @@ const StampPage = () => {
   );
 };
 
+<<<<<<< HEAD
+export default StampPage;
+=======
 export default StampPage;
 
 // import { useState, useEffect } from 'react';
@@ -732,3 +790,4 @@ export default StampPage;
 // };
 
 // export default StampPage;
+>>>>>>> 60acaaa902f0b55ee86da5b797e980adc07b9b54
