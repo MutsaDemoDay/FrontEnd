@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState } from 'react';
 import BackButton from '../../components/BackButton';
 import SignupInput, {
@@ -8,10 +9,12 @@ import { useNavigate } from 'react-router-dom';
 
 export const CustomerSignup = () => {
   const navigate = useNavigate();
+
   const [errors, setErrors] = useState<
     Partial<Record<keyof CustomerSignupFormData, string>>
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState<CustomerSignupFormData>({
     loginId: '',
     password: '',
@@ -19,13 +22,13 @@ export const CustomerSignup = () => {
     email: '',
     emailConfirm: '',
     nickname: '',
+    emailVerificationToken: '', // ✅ 토큰 초기값
   });
 
   const validateForm = () => {
     const newErrors: Partial<Record<keyof CustomerSignupFormData, string>> = {};
     let isValid = true;
 
-    // 이메일 정규식 (간단한 예시)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!formData.loginId) {
@@ -55,16 +58,35 @@ export const CustomerSignup = () => {
       isValid = false;
     }
 
+    // ✅ 이메일 인증 토큰 필수 체크
+    if (!formData.emailVerificationToken) {
+      newErrors.emailConfirm = '이메일 인증을 완료해주세요.';
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
 
   const handleCustomerData = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
+  };
+
+  // ✅ 이메일 인증 성공 시 토큰 저장
+  const handleVerificationSuccess = (token: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      emailVerificationToken: token,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      emailConfirm: undefined,
+    }));
+    console.log('이메일 인증 토큰 저장 완료:', token);
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -80,6 +102,17 @@ export const CustomerSignup = () => {
     setIsSubmitting(true);
 
     try {
+      const payload = {
+        loginId: formData.loginId,
+        password: formData.password,
+        passwordConfirm: formData.passwordConfirm,
+        email: formData.email,
+        nickname: formData.nickname,
+        emailVerificationToken: formData.emailVerificationToken, // ✅ 토큰 전송
+      };
+
+      console.log('개인 회원가입 payload:', payload);
+
       const response = await fetch(
         `${import.meta.env.VITE_API_URI}/v1/auth/user/join`,
         {
@@ -87,13 +120,7 @@ export const CustomerSignup = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            loginId: formData.loginId,
-            password: formData.password,
-            passwordConfirm: formData.passwordConfirm,
-            email: formData.email,
-            nickname: formData.nickname,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
@@ -134,6 +161,7 @@ export const CustomerSignup = () => {
         <p>개인 회원가입</p>
       </div>
       <div className="w-screen h-px mt-3 bg-gray-200" />
+
       <div className="flex items-start flex-col mt-10 w-[332px]">
         {/* 1. 이메일 입력창 */}
         <SignupInput
@@ -158,6 +186,7 @@ export const CustomerSignup = () => {
           variant="emailConfirm"
           placeholder="인증번호"
           emailForVerification={formData.email}
+          onVerifySuccess={handleVerificationSuccess} // ✅ 여기서 토큰 받기
         />
 
         <div className="flex flex-col items-start w-full mt-10 gap-2.5">
@@ -197,6 +226,7 @@ export const CustomerSignup = () => {
           />
         </div>
       </div>
+
       <form onSubmit={handleSubmit} className="flex flex-col items-center">
         <div className="flex justify-center mt-6">
           <button
