@@ -26,10 +26,7 @@ interface ActiveEventResponse {
 
 export const EventManage = () => {
   const navigate = useNavigate();
-  
-  // [변경] 여러 이벤트를 담기 위해 배열 상태로 관리
   const [activeEvents, setActiveEvents] = useState<ActiveEventResponse[]>([]);
-
   const apiUri = import.meta.env.VITE_API_URI;
 
   useEffect(() => {
@@ -52,17 +49,14 @@ export const EventManage = () => {
 
         const results = await Promise.all(promises);
 
-        // [변경] find 대신 모든 유효한 결과를 모아서 하나의 배열로 만듦 (flatMap 사용)
         const allFetchedEvents = results.flatMap((json) => {
           if (json.code === 100 && json.data) {
-            // data가 배열이면 그대로 반환, 객체면 배열로 감싸서 반환
             return Array.isArray(json.data) ? json.data : [json.data];
           }
-          return []; // 유효하지 않은 데이터는 빈 배열 반환 (flatMap이 제거해줌)
+          return [];
         });
 
         setActiveEvents(allFetchedEvents);
-
       } catch (error) {
         console.error('이벤트 목록을 불러오는데 실패했습니다:', error);
       }
@@ -71,14 +65,13 @@ export const EventManage = () => {
     fetchAllEvents();
   }, []);
 
-  // 뱃지 텍스트 변환
   const getEventBadgeText = (type: string) => {
     switch (type) {
       case 'OPEN_EVENT':
         return 'OPEN EVENT';
       case 'SPECIAL_EVENT':
         return 'SPECIAL EVENT';
-      case 'SNS_BONUS': // API 응답값에 맞춤 (SNS_BONUS)
+      case 'SNS_BONUS':
       case 'SNS BONUS':
         return 'SNS BONUS';
       default:
@@ -94,7 +87,6 @@ export const EventManage = () => {
 
       <div className="w-full justify-center items-center flex flex-col gap-5">
         {/* 진행중인 이벤트 카드 */}
-        {/* [변경] 높이를 유동적으로 변경 (h-[156px] -> min-h-[156px] h-auto) */}
         <div className="w-[340px] min-h-[156px] h-auto bg-(--fill-color1) rounded-[20px] p-2 flex flex-col shadow-sm">
           <div className="flex flex-row w-full p-2 mx-2 justify-between items-center mb-2">
             <p className="text-[14px] text-black font-medium">
@@ -108,19 +100,21 @@ export const EventManage = () => {
             />
           </div>
 
-          <div className="flex-1 flex flex-col justify-center px-4 pb-4 gap-3 cursor-pointer"  onClick={() => navigate('/stamp/event')}>
+          {/* 기존 onClick 제거 후 개별 아이템에 적용 */}
+          <div className="flex-1 flex flex-col justify-center px-4 pb-4 gap-3">
             {activeEvents.length > 0 ? (
-              // [변경] 배열을 순회하며 렌더링
               activeEvents.map((event, index) => (
-                <div 
-                  key={`${event.eventId}-${index}`} // 고유 key 설정
-                  className='flex flex-col justify-center w-full h-10 bg-white rounded-[20px] px-4 shadow-sm'
+                <div
+                  key={`${event.eventId}-${index}`}
+                  // [변경] 클릭 시 해당 이벤트 타입의 페이지로 이동하도록 수정
+                  // 주의: 라우터 설정에 맞게 경로를 수정하세요. (예: /event/:eventType)
+                  onClick={() => navigate(`/event/${event.eventType}`)}
+                  className="flex flex-col justify-center w-full h-10 bg-white rounded-[20px] px-4 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
                 >
                   <h3 className="text-[12px] font-medium text-(--fill-color7) truncate">
                     {getEventBadgeText(event.eventType)} -{' '}
                     {event.buttonDescription}
                   </h3>
-                  
                 </div>
               ))
             ) : (
