@@ -11,6 +11,7 @@ export interface OwnerSignupFormData {
   location: string;
   latitude: number;
   longitude: number;
+  emailVerificationToken: string;
 }
 
 export interface CustomerSignupFormData {

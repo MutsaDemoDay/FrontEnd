@@ -24,6 +24,7 @@ export const OwnerSignup = () => {
     location: '',
     latitude: 0,
     longitude: 0,
+    emailVerificationToken: '',
   });
 
   const validateForm = () => {
@@ -96,6 +97,7 @@ export const OwnerSignup = () => {
             address: formData.location,
             latitude: formData.latitude,
             longitude: formData.longitude,
+            emailVerificationToken: formData.emailVerificationToken,
           }),
         }
       );

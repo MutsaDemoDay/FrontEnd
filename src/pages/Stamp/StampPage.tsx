@@ -11,7 +11,7 @@ import Window from '../../components/Window';
 import { fetchUserQr } from '../../api/UserQR';
 
 // ✅ API 주소 설정
-const apiUri = import.meta.env.VITE_API_URI || 'http://localhost:8080';
+const apiUri = import.meta.env.VITE_API_URI;
 
 // ✅ 이벤트 데이터 타입 정의
 interface EventData {
