@@ -152,7 +152,6 @@ const SignupInput = ({
       // 이메일로 인증번호 전송
       await sendEmailVerificationCode(value);
     } else if (variant === 'emailConfirm') {
-      // 인증번호 확인 + 토큰 수신 후 부모로 전달
       if (emailForVerification) {
         const token = await verifyEmailCode(emailForVerification, value);
         if (token && onVerifySuccess) {

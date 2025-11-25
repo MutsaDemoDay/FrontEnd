@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BackButton from '../../components/BackButton';
 import SignupInput, {
   type CustomerSignupFormData,
@@ -25,6 +25,12 @@ export const CustomerSignup = () => {
     emailVerificationToken: '',
   });
 
+  useEffect(() => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    // console.log('회원가입 진입: 기존 토큰 삭제 완료'); // 디버깅용
+  }, []);
+  
   const validateForm = () => {
     const newErrors: Partial<Record<keyof CustomerSignupFormData, string>> = {};
     let isValid = true;

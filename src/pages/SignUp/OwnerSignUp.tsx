@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BackButton from '../../components/BackButton';
 import SignupInput, {
   type OwnerSignupFormData,
@@ -14,6 +14,12 @@ export const OwnerSignup = () => {
     Partial<Record<keyof OwnerSignupFormData, string>>
   >({});
 
+  useEffect(() => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    // console.log('회원가입 진입: 기존 토큰 삭제 완료'); // 디버깅용
+  }, []);
+  
   const [formData, setFormData] = useState<OwnerSignupFormData>({
     loginId: '',
     password: '',
@@ -24,7 +30,7 @@ export const OwnerSignup = () => {
     location: '',
     latitude: 0,
     longitude: 0,
-    emailVerificationToken: '', // 토큰 저장용 초기값
+    emailVerificationToken: '',
   });
 
   const validateForm = () => {

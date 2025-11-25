@@ -8,10 +8,13 @@ import internet_icon from '../../assets/internet_icon.png';
 import instagram_icon from '../../assets/instagram_icon.png';
 import default_store_stamp from '../../assets/store_stamp.png';
 import gift_icon from '../../assets/gift_icon.png';
+import { useNavigate } from 'react-router-dom';
 
 interface StoreInfoHomeProps {
   storeDetail: StoreDetail | null;
 }
+
+const navigate = useNavigate();
 
 export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
   storeDetail,
@@ -82,7 +85,7 @@ export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
               {storeDetail?.reward || '매장 보상 정보'}
             </p>
           </div>
-          <button className="w-[292px] h-[52px] bg-[var(--main-color)] text-[var(--fill-color1)] text-[16px] font-semibold rounded-[30px] mt-6 cursor-pointer">
+          <button className="w-[292px] h-[52px] bg-[var(--main-color)] text-[var(--fill-color1)] text-[16px] font-semibold rounded-[30px] mt-6 cursor-pointer" onClick={()=>navigate('/stampregistration1')}>
             스탬프 등록하기
           </button>
         </div>
