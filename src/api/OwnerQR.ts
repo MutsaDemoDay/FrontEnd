@@ -18,7 +18,10 @@ const BASE_URL = import.meta.env.VITE_API_URI;
  * @param storeId 가게 고유 ID
  * @param userId QR코드에서 인식된 사용자 ID
  */
-export const scanQrCode = async (storeId: string | number, userId: string): Promise<ScanResponse> => {
+export const scanQrCode = async (
+  storeId: string | number,
+  userId: string
+): Promise<ScanResponse> => {
   try {
     console.log(
       `Requesting (POST) to: ${BASE_URL}/v1/qr/scan?storeId=${storeId}&userId=${userId}`
