@@ -22,7 +22,7 @@ export const CustomerSignup = () => {
     email: '',
     emailConfirm: '',
     nickname: '',
-    emailVerificationToken: '', // ✅ 토큰 초기값
+    emailVerificationToken: '',
   });
 
   const validateForm = () => {
@@ -58,7 +58,6 @@ export const CustomerSignup = () => {
       isValid = false;
     }
 
-    // ✅ 이메일 인증 토큰 필수 체크
     if (!formData.emailVerificationToken) {
       newErrors.emailConfirm = '이메일 인증을 완료해주세요.';
       isValid = false;
@@ -76,7 +75,6 @@ export const CustomerSignup = () => {
     }));
   };
 
-  // ✅ 이메일 인증 성공 시 토큰 저장
   const handleVerificationSuccess = (token: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -108,7 +106,7 @@ export const CustomerSignup = () => {
         passwordConfirm: formData.passwordConfirm,
         email: formData.email,
         nickname: formData.nickname,
-        emailVerificationToken: formData.emailVerificationToken, // ✅ 토큰 전송
+        emailVerificationToken: formData.emailVerificationToken,
       };
 
       console.log('개인 회원가입 payload:', payload);
@@ -186,7 +184,7 @@ export const CustomerSignup = () => {
           variant="emailConfirm"
           placeholder="인증번호"
           emailForVerification={formData.email}
-          onVerifySuccess={handleVerificationSuccess} // ✅ 여기서 토큰 받기
+          onVerifySuccess={handleVerificationSuccess}
         />
 
         <div className="flex flex-col items-start w-full mt-10 gap-2.5">
