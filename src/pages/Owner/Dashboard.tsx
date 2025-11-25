@@ -2,18 +2,39 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { OwnerBottomBar } from '../../components/OwnerBottomBar';
-// [API] fetchTotals 추가
-import { fetchStats, fetchStoreName, fetchTotals } from '../../api/Stats';
+import {
+  fetchStats,
+  fetchStoreName,
+  fetchTotals,
+  fetchGenderStats,
+} from '../../api/Stats';
 import goto_icon from '../../assets/goto_icon.png';
+
+// 날짜 포맷팅 유틸 (YYYY-MM-DD)
+const getTodayDate = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const day = ('0' + date.getDate()).slice(-2);
+  return `${year}-${month}-${day}`;
+};
 
 export const Dashboard = () => {
   const navigate = useNavigate();
 
-  // 1. 적립 통계 탭 (daily | weekly | monthly)
-  const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  // 1. 적립 통계 탭
+  const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly'>(
+    'daily'
+  );
 
-  // 2. 등록 고객 수 통계 탭 (weekly | monthly) - 일간 제외
-  const [customerActiveTab, setCustomerActiveTab] = useState<'weekly' | 'monthly'>('weekly');
+  // 2. 등록 고객 수 통계 탭
+  const [customerActiveTab, setCustomerActiveTab] = useState<
+    'weekly' | 'monthly'
+  >('weekly');
+
+  // ----------------------------------------------------
+  // [Query] 데이터 조회
+  // ----------------------------------------------------
 
   // 1. 가게 이름 조회
   const { data: storeName } = useQuery({
@@ -21,7 +42,7 @@ export const Dashboard = () => {
     queryFn: fetchStoreName,
   });
 
-  // 2. [오늘의 요약] 오늘 적립 통계 (항상 daily)
+  // 2. [오늘의 요약] 오늘 적립 통계
   const { data: todayStats } = useQuery({
     queryKey: ['stats', storeName, 'daily-fixed'],
     queryFn: () => fetchStats(storeName!, 'daily'),
@@ -38,32 +59,66 @@ export const Dashboard = () => {
     enabled: !!storeName,
   });
 
-  // 4. [등록 고객 수 통계] 선택된 탭 데이터 (API 연동 완료)
+  // 4. [등록 고객 수 통계] 선택된 탭 데이터
   const { data: customerStats } = useQuery({
     queryKey: ['dashboard-customers', storeName, customerActiveTab],
     queryFn: () => {
       if (!storeName) return Promise.reject('No store name');
-      // 새로 만든 fetchTotals API 호출
       return fetchTotals(storeName, customerActiveTab);
     },
     enabled: !!storeName,
   });
 
+  // 5. [성별 통계] 주간 성별 데이터 (New)
+  const { data: genderStats } = useQuery({
+    queryKey: ['dashboard-gender', storeName],
+    queryFn: () => {
+      if (!storeName) return Promise.reject('No store name');
+      return fetchGenderStats(storeName, getTodayDate());
+    },
+    enabled: !!storeName,
+  });
+
+  // ----------------------------------------------------
   // [Variable] 데이터 가공
+  // ----------------------------------------------------
   const todayCount = todayStats?.data?.totalOrAvgCount ?? 0;
 
-  // 적립 통계 데이터
   const currentCount = currentStats?.data?.totalOrAvgCount ?? 0;
   const currentDateText = currentStats?.data?.periodText ?? '';
 
-  // 등록 고객 통계 데이터 (Response 구조: data -> data -> totalOrAvgCount)
   const customerCount = customerStats?.data?.totalOrAvgCount ?? 0;
   const customerDateText = customerStats?.data?.periodText ?? '';
 
   const labelText = '총';
 
+  // 성별 데이터 가공
+  const womanRatio = genderStats?.data?.womanRatio ?? 0; // 예: 70.0
+  const manRatio = genderStats?.data?.manRatio ?? 0; // 예: 30.0
+  const totalGenderCount = genderStats?.data?.total ?? 0;
+
+  // ----------------------------------------------------
+  // [Chart Utils] 도넛 차트 계산 로직
+  // ----------------------------------------------------
+  const size = 120; // SVG 전체 크기
+  const strokeWidth = 20; // 도넛 두께
+  const center = size / 2;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius; // 원의 둘레
+
+  // 여자가 차지하는 길이 (비율에 따름)
+  const womanStrokeDashoffset =
+    circumference - (womanRatio / 100) * circumference;
+  // 남자가 차지하는 길이 (비율에 따름) -> 시작점 조정을 위해 rotation 사용 예정
+  const manStrokeDashoffset = circumference - (manRatio / 100) * circumference;
+
+  // SVG 내에서 12시 방향부터 시작하도록 회전 (-90도)
+  // 여자는 0도부터 시작, 남자는 여자 끝난 지점부터 시작해야 함
+  const womanRotation = -90;
+  const manRotation = -90 + (womanRatio / 100) * 360;
+
   return (
-    <div className="flex flex-col w-full px-6 py-4 min-h-screen pb-[80px]">
+    <div className="flex flex-col w-full px-6 py-4 min-h-screen pb-[80px] bg-white mb-10">
       <h1 className="text-[25px] text-(--fill-color6) font-normal">
         Dashboard
       </h1>
@@ -74,7 +129,6 @@ export const Dashboard = () => {
       <div className="flex flex-col w-full gap-3">
         {/* --- [Section 1] 상단 요약 카드들 --- */}
         <div className="flex flex-row w-full justify-between mt-5 gap-3">
-          {/* 오늘 적립 카드 */}
           <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-4 flex flex-col justify-between shadow-sm">
             <p className="font-semibold text-[14px] text-gray-800">오늘 적립</p>
             <div className="flex flex-row self-end items-center text-center">
@@ -84,8 +138,6 @@ export const Dashboard = () => {
               <p className="text-[14px] font-medium mx-1 text-[#5B5B5B]">건</p>
             </div>
           </div>
-
-          {/* 오늘 교환된 리워드 */}
           <div className="w-1/2 h-[140px] bg-(--fill-color1) text-(--fill-color7) rounded-[20px] p-4 flex flex-col justify-between shadow-sm">
             <p className="font-semibold text-[14px] text-gray-800">
               오늘 교환된 리워드
@@ -100,25 +152,21 @@ export const Dashboard = () => {
         </div>
 
         {/* --- [Section 2] 적립 통계 카드 --- */}
-        <div className="w-full h-[170px] flex flex-col p-5 bg-(--fill-color1) rounded-[24px] shadow-sm relative">
+        <div className="w-full h-[170px] flex flex-col p-5 bg-(--fill-color1) rounded-[20px] shadow-sm relative">
           <div className="flex flex-row justify-between items-start">
             <p className="text-[16px] text-(--fill-color7) font-bold">
               적립 통계
             </p>
-
             <div className="flex flex-row gap-1 bg-white p-1 rounded-full shadow-sm">
               {(['daily', 'weekly', 'monthly'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`
-                    px-3 py-1 text-[12px] rounded-full transition-all
-                    ${
-                      activeTab === tab
-                        ? 'border border-gray-400 font-semibold text-gray-800'
-                        : 'text-(--fill-color7) hover:text-gray-600'
-                    }
-                  `}
+                  className={`px-3 py-1 text-[12px] rounded-full transition-all ${
+                    activeTab === tab
+                      ? 'border border-gray-400 font-semibold text-gray-800'
+                      : 'text-(--fill-color7) hover:text-gray-600'
+                  }`}
                 >
                   {tab === 'daily'
                     ? '일간'
@@ -129,7 +177,6 @@ export const Dashboard = () => {
               ))}
             </div>
           </div>
-
           <div className="mt-4">
             <p className="text-[12px] text-(--fill-color7) mb-1">{labelText}</p>
             <div className="flex flex-row items-baseline gap-1">
@@ -142,7 +189,6 @@ export const Dashboard = () => {
               {currentDateText || '-'}
             </p>
           </div>
-
           <div
             className="absolute bottom-5 right-5 flex items-center gap-2 cursor-pointer mb-10"
             onClick={() => navigate('/owner/statistics')}
@@ -157,34 +203,29 @@ export const Dashboard = () => {
         <p className="mt-10 text-[18px] text-(--main-color) font-semibold">
           단골 현황
         </p>
+
         {/* --- [Section 3] 등록 고객 수 통계 카드 --- */}
         <div className="w-full h-[170px] flex flex-col p-5 bg-(--fill-color1) rounded-[24px] shadow-sm relative">
           <div className="flex flex-row justify-between items-start">
             <p className="text-[16px] text-(--fill-color7) font-bold">
               등록 고객 수 통계
             </p>
-
-            {/* 탭 버튼: weekly, monthly만 표시 */}
             <div className="flex flex-row gap-1 bg-white p-1 rounded-full shadow-sm">
               {(['weekly', 'monthly'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setCustomerActiveTab(tab)}
-                  className={`
-                    px-3 py-1 text-[12px] rounded-full transition-all
-                    ${
-                      customerActiveTab === tab
-                        ? 'border border-gray-400 font-semibold text-gray-800'
-                        : 'text-(--fill-color7) hover:text-gray-600'
-                    }
-                  `}
+                  className={`px-3 py-1 text-[12px] rounded-full transition-all ${
+                    customerActiveTab === tab
+                      ? 'border border-gray-400 font-semibold text-gray-800'
+                      : 'text-(--fill-color7) hover:text-gray-600'
+                  }`}
                 >
                   {tab === 'weekly' ? '주간' : '월간'}
                 </button>
               ))}
             </div>
           </div>
-
           <div className="mt-4">
             <p className="text-[12px] text-(--fill-color7) mb-1">{labelText}</p>
             <div className="flex flex-row items-baseline gap-1">
@@ -197,7 +238,6 @@ export const Dashboard = () => {
               {customerDateText || '-'}
             </p>
           </div>
-
           <div
             className="absolute bottom-5 right-5 flex items-center gap-2 cursor-pointer mb-10"
             onClick={() => navigate('/owner/statistics')}
@@ -206,6 +246,126 @@ export const Dashboard = () => {
               그래프 보러가기
             </span>
             <img src={goto_icon} alt="" className="w-10 h-10" />
+          </div>
+        </div>
+
+        {/* --- [Section 4] 주간 고객 성별 평균 (New) --- */}
+        <div className="w-full h-[170px] flex flex-row items-center justify-between p-6 bg-(--fill-color1) rounded-[20px] shadow-sm">
+          {/* 왼쪽: 그래프 영역 */}
+          <div className="relative w-[120px] h-[120px] flex items-center justify-center">
+            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+              {/* Gradients 정의 */}
+              <defs>
+                <linearGradient
+                  id="womanGradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#EB4F8D" />
+                  <stop offset="100%" stopColor="#FFBBD6" />
+                </linearGradient>
+                <linearGradient
+                  id="manGradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#1417B9" />
+                  <stop offset="100%" stopColor="#9091CD" />
+                </linearGradient>
+              </defs>
+
+              {/* 배경 원 (데이터 없을 때 보임) */}
+              <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                fill="none"
+                stroke="#E5E7EB"
+                strokeWidth={strokeWidth}
+              />
+
+              {totalGenderCount > 0 && (
+                <>
+                  {/* 여자 차트 (Pink) */}
+                  <circle
+                    cx={center}
+                    cy={center}
+                    r={radius}
+                    fill="none"
+                    stroke="url(#womanGradient)"
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={circumference}
+                    strokeDashoffset={womanStrokeDashoffset}
+                    strokeLinecap="round"
+                    transform={`rotate(${womanRotation} ${center} ${center})`}
+                    className="transition-all duration-500 ease-out"
+                  />
+
+                  {/* 남자 차트 (Blue) */}
+                  <circle
+                    cx={center}
+                    cy={center}
+                    r={radius}
+                    fill="none"
+                    stroke="url(#manGradient)"
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={circumference}
+                    strokeDashoffset={manStrokeDashoffset}
+                    strokeLinecap="round"
+                    transform={`rotate(${manRotation} ${center} ${center})`}
+                    className="transition-all duration-500 ease-out"
+                  />
+                </>
+              )}
+            </svg>
+
+            {/* 가운데 구멍 (도넛 모양 유지용 - 배경색과 동일하게) */}
+            {/* SVG stroke만 사용하므로 별도 원 필요 없음, 필요시 텍스트 추가 가능 */}
+          </div>
+
+          {/* 오른쪽: 텍스트 정보 영역 */}
+          <div className="flex flex-col justify-center flex-1 ml-6 h-full">
+            <p className="text-[16px] text-(--fill-color7) font-bold mb-4">
+              주간 고객 성별 평균
+            </p>
+
+            <div className="flex flex-col gap-2">
+              {/* 여자 Label */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#EB4F8D]" />
+                  <span className="text-[14px] font-bold text-[#EB4F8D]">
+                    여자
+                  </span>
+                </div>
+                <div className="flex items-baseline">
+                  <span className="text-[20px] font-bold text-[#EB4F8D]">
+                    {womanRatio}
+                  </span>
+                  <span className="text-[12px] text-[#EB4F8D] ml-0.5">%</span>
+                </div>
+              </div>
+
+              {/* 남자 Label */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#1417B9]" />
+                  <span className="text-[14px] font-bold text-[#1417B9]">
+                    남자
+                  </span>
+                </div>
+                <div className="flex items-baseline">
+                  <span className="text-[20px] font-bold text-[#1417B9]">
+                    {manRatio}
+                  </span>
+                  <span className="text-[12px] text-[#1417B9] ml-0.5">%</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

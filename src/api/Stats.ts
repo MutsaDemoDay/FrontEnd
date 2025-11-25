@@ -84,3 +84,13 @@ export const fetchStoreName = async (): Promise<string | null> => {
     return null;
   }
 };
+
+export const fetchGenderStats = async (storeName: string, baseDate: string) => {
+  const response = await axios.get(`/api/v1/stamps/manager/gender/weekly`, {
+    params: {
+      storeName,
+      baseDate,
+    },
+  });
+  return response.data;
+};
