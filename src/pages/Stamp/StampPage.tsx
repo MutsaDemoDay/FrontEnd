@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // axios import 추가
+import axios from 'axios';
 import Plus from '../../assets/plus.svg';
 import ThreeDots from '../../assets/threedots.svg';
 import Hamburger from '../../assets/hamburger.svg';
 import StampSection from '../../components/StampSection';
-import { StampCard, type StampData } from '../../components/StampCard';
+import { type StampData } from '../../components/StampCard'; // StampCard는 사용 안하므로 타입만 import
 import { UserBottomBar } from '../../components/UserBottomBar';
 import Window from '../../components/Window';
 import { fetchUserQr } from '../../api/UserQR';
@@ -49,7 +49,7 @@ const StampPage = () => {
   const [showQrModal, setShowQrModal] = useState(false);
   const [qrImage, setQrImage] = useState<string>('');
   const [isLoadingQr, setIsLoadingQr] = useState(false);
-  
+
   // ✅ 유저 이메일 상태 (API로 가져옴)
   const [userEmail, setUserEmail] = useState<string>('');
 
@@ -70,9 +70,12 @@ const StampPage = () => {
         if (!token) return;
 
         // axios를 사용하여 계정 정보 조회
-        const response = await axios.get<AccountApiResponse>(`${apiUri}/v1/mypage/account`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get<AccountApiResponse>(
+          `${apiUri}/v1/mypage/account`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const resData = response.data;
         // 성공 조건 (code 0 or 200)
@@ -140,7 +143,11 @@ const StampPage = () => {
 
         if (response.ok) {
           const json: EventApiResponse = await response.json();
-          if (json.code === 0 || json.code === 200 || json.message.includes('정상')) {
+          if (
+            json.code === 0 ||
+            json.code === 200 ||
+            json.message.includes('정상')
+          ) {
             setEvents(json.data);
           }
         }
@@ -156,10 +163,9 @@ const StampPage = () => {
   // 4. QR 버튼 클릭 핸들러 (수정됨)
   // --------------------------------------------------------------------------
   const handleQrClick = async () => {
-    // 이메일이 아직 로드되지 않았을 경우 처리
+    // [수정] userId가 아니라 위에서 저장한 userEmail을 체크해야 합니다.
     if (!userEmail) {
       alert('사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-      // 혹시 모르니 다시 한번 fetch 시도해볼 수도 있음 (선택사항)
       return;
     }
 
@@ -168,11 +174,12 @@ const StampPage = () => {
     setQrImage('');
 
     try {
+      // [수정] 로그 및 API 호출 시 userEmail 사용
       console.log('QR 요청 이메일:', userEmail);
-      
+
       // 확보한 이메일로 QR API 호출
       const res = await fetchUserQr(userEmail);
-      
+
       if (res.code === 200 || res.code === 100) {
         setQrImage(res.data); // data: "data:image/png;base64,..."
       } else {
@@ -356,7 +363,8 @@ const StampPage = () => {
                   />
                 ) : (
                   <div className="text-red-400 text-sm text-center">
-                    QR을 불러올 수<br />없습니다.
+                    QR을 불러올 수<br />
+                    없습니다.
                   </div>
                 )}
               </div>
