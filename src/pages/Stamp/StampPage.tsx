@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // axios import 추가
 import Plus from '../../assets/plus.svg';
 import ThreeDots from '../../assets/threedots.svg';
 import Hamburger from '../../assets/hamburger.svg';
@@ -7,7 +8,6 @@ import StampSection from '../../components/StampSection';
 import { StampCard, type StampData } from '../../components/StampCard';
 import { UserBottomBar } from '../../components/UserBottomBar';
 import Window from '../../components/Window';
-// [API] 작성해주신 UserQR API import
 import { fetchUserQr } from '../../api/UserQR';
 
 // ✅ API 주소 설정
@@ -22,12 +22,23 @@ interface EventData {
   buttonImageUrl: string;
 }
 
-// API 전체 응답 타입
+// API 전체 응답 타입 (Event)
 interface EventApiResponse {
   timestamp: string;
   code: number;
   message: string;
   data: EventData[];
+}
+
+// API 전체 응답 타입 (Account)
+interface AccountApiResponse {
+  code: number;
+  message: string;
+  data: {
+    email: string;
+    loginId: string;
+    joinedAt: string;
+  };
 }
 
 const StampPage = () => {
@@ -38,32 +49,55 @@ const StampPage = () => {
   const [showQrModal, setShowQrModal] = useState(false);
   const [qrImage, setQrImage] = useState<string>('');
   const [isLoadingQr, setIsLoadingQr] = useState(false);
-  const [userEmail, setUserEmail] = useState<string>(''); // 유저 이메일 상태 추가
+  
+  // ✅ 유저 이메일 상태 (API로 가져옴)
+  const [userEmail, setUserEmail] = useState<string>('');
 
-  // ✅ 스탬프 데이터 상태 (List, Grid 모드 공용)
+  // ✅ 스탬프 데이터 상태
   const [stamps, setStamps] = useState<StampData[]>([]);
   const [isLoadingStamps, setIsLoadingStamps] = useState(false);
 
   // ✅ 이벤트 데이터 상태
   const [events, setEvents] = useState<EventData[]>([]);
 
-  // ✅ 0. 초기 로드 시 로컬스토리지에서 이메일 가져오기
+  // --------------------------------------------------------------------------
+  // 1. [핵심] 유저 계정 정보(이메일) 가져오기
+  // --------------------------------------------------------------------------
   useEffect(() => {
-    // 로그인 시 저장한 email 키값을 가져옵니다. (프로젝트 설정에 따라 'email', 'userEmail', 'id' 등으로 변경하세요)
-    const email = localStorage.getItem('email') || localStorage.getItem('userEmail');
-    if (email) {
-      setUserEmail(email);
-    }
+    const fetchAccountInfo = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return;
+
+        // axios를 사용하여 계정 정보 조회
+        const response = await axios.get<AccountApiResponse>(`${apiUri}/v1/mypage/account`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const resData = response.data;
+        // 성공 조건 (code 0 or 200)
+        if (resData.code === 0 || resData.code === 200 || resData.data) {
+          console.log('✅ 유저 이메일 확보:', resData.data.email);
+          setUserEmail(resData.data.email);
+        } else {
+          console.error('계정 정보 조회 실패:', resData.message);
+        }
+      } catch (error) {
+        console.error('계정 정보 API 호출 에러:', error);
+      }
+    };
+
+    fetchAccountInfo();
   }, []);
 
-  // ✅ 1. 스탬프 데이터 가져오기
+  // --------------------------------------------------------------------------
+  // 2. 스탬프 데이터 가져오기
+  // --------------------------------------------------------------------------
   useEffect(() => {
     const fetchStamps = async () => {
       setIsLoadingStamps(true);
       try {
-        const token =
-          localStorage.getItem('token') || localStorage.getItem('accessToken');
-
+        const token = localStorage.getItem('accessToken');
         const response = await fetch(`${apiUri}/v1/users/stamps`, {
           method: 'GET',
           headers: {
@@ -76,7 +110,6 @@ const StampPage = () => {
           const data: StampData[] = await response.json();
           setStamps(data);
         } else {
-          console.error(`Error fetching stamps: ${response.status}`);
           setStamps([]);
         }
       } catch (error) {
@@ -90,13 +123,13 @@ const StampPage = () => {
     fetchStamps();
   }, []);
 
-  // ✅ 2. 이벤트 목록 가져오기
+  // --------------------------------------------------------------------------
+  // 3. 이벤트 목록 가져오기
+  // --------------------------------------------------------------------------
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const token =
-          localStorage.getItem('token') || localStorage.getItem('accessToken');
-
+        const token = localStorage.getItem('accessToken');
         const response = await fetch(`${apiUri}/v1/events/board`, {
           method: 'GET',
           headers: {
@@ -107,15 +140,8 @@ const StampPage = () => {
 
         if (response.ok) {
           const json: EventApiResponse = await response.json();
-
-          if (
-            json.code === 0 ||
-            json.code === 200 ||
-            json.message.includes('정상')
-          ) {
+          if (json.code === 0 || json.code === 200 || json.message.includes('정상')) {
             setEvents(json.data);
-          } else {
-            console.error('Failed to fetch events:', json.message);
           }
         }
       } catch (error) {
@@ -126,11 +152,14 @@ const StampPage = () => {
     fetchEvents();
   }, []);
 
-  // ✅ QR 버튼 클릭 핸들러 (수정됨)
+  // --------------------------------------------------------------------------
+  // 4. QR 버튼 클릭 핸들러 (수정됨)
+  // --------------------------------------------------------------------------
   const handleQrClick = async () => {
-    // 이메일 정보가 없으면 경고
+    // 이메일이 아직 로드되지 않았을 경우 처리
     if (!userEmail) {
-      alert('로그인 정보(이메일)를 찾을 수 없습니다. 다시 로그인해주세요.');
+      alert('사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      // 혹시 모르니 다시 한번 fetch 시도해볼 수도 있음 (선택사항)
       return;
     }
 
@@ -141,7 +170,7 @@ const StampPage = () => {
     try {
       console.log('QR 요청 이메일:', userEmail);
       
-      // 실제 유저 이메일로 API 호출
+      // 확보한 이메일로 QR API 호출
       const res = await fetchUserQr(userEmail);
       
       if (res.code === 200 || res.code === 100) {
@@ -332,9 +361,9 @@ const StampPage = () => {
                 )}
               </div>
               <div className="text-center space-y-1">
-                {/* 실제 유저 이메일 표시 */}
+                {/* 조회한 유저 이메일 표시 */}
                 <p className="text-white text-base font-medium">
-                  {userEmail || '회원 정보 없음'}
+                  {userEmail || '회원 정보 로딩중...'}
                 </p>
                 <p className="text-gray-300 text-xs">QR코드 유효시간 01:00</p>
               </div>
