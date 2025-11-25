@@ -1,307 +1,3 @@
-// import { useEffect, useState } from 'react';
-// import axios from 'axios';
-// import { Link } from 'react-router-dom';
-
-// import BackButton from '../../components/BackButton';
-// import StampsSection from '../../components/StampSection';
-
-// import Setting from '../../assets/setting.svg';
-// import DownButton from '../../assets/downbutton.svg';
-// import FilledStar from '../../assets/filledstar.svg';
-// import EmptyStar from '../../assets/emptystar.svg';
-
-// import { UserBottomBar } from '../../components/UserBottomBar';
-
-// const apiUri = import.meta.env.VITE_API_URI || 'http://localhost:8080';
-
-// // 1. 새로운 API 명세에 맞춘 타입 정의
-// interface Stamp {
-//   storeName: string;
-//   date: string;
-//   stampImageUrl: string;
-//   stampReward: string;
-// }
-
-// interface Review {
-//   storeName: string;
-//   rate: string; // API 명세상 string이지만 별점을 위해 숫자 변환 고려 필요
-//   content: string;
-//   reviewDate: string;
-//   reviewImageUrl: string;
-// }
-
-// interface MyPageData {
-//   nickname: string;
-//   totalStampCount: number;
-//   reviewCount: number;
-//   stamps: Stamp[];
-//   reviews: Review[];
-//   // profileImageUrl과 badges는 새 API 명세에 없으므로 제외하거나 선택적으로 처리
-// }
-
-// interface MyPageResponse {
-//   timestamp: string;
-//   code: number;
-//   message: string;
-//   data: MyPageData;
-// }
-
-// export default function MyPage() {
-//   const [myInfo, setMyInfo] = useState<MyPageData | null>(null);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     const fetchProfileData = async () => {
-//       try {
-//         const token = localStorage.getItem('accessToken');
-
-//         const response = await axios.get<MyPageResponse>(
-//           `${apiUri}/v1/mypage/profile`,
-//           {
-//             headers: {
-//               Authorization: `Bearer ${token}`,
-//             },
-//           }
-//         );
-
-//         console.log('서버 응답 전체:', response.data);
-
-//         // 수정된 부분: 실제 서버 메시지("유저 프로필 조회가 완료되었습니다.")를 조건에 추가
-//         if (
-//           response.data.code === 0 ||
-//           response.data.code === 200 ||
-//           response.data.message === '유저 프로필 조회가 완료되었습니다.' ||
-//           response.data.message === '정상적으로 조회되었습니다.'
-//         ) {
-//           setMyInfo(response.data.data);
-//         } else {
-//           console.error('데이터 에러:', response.data.message);
-//         }
-//       } catch (error) {
-//         console.error('API 요청 에러:', error);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchProfileData();
-//   }, []);
-
-//   // API에 뱃지 정보가 없으므로 빈 배열 처리 (UI 유지 목적)
-//   const myBadges: string[] = [];
-
-//   return (
-//     <div className="w-[393px] min-h-screen bg-gray-100 mx-auto border border-gray-300 overflow-y-auto">
-//       <Header />
-
-//       <main className="flex flex-col">
-//         {loading ? (
-//           <div className="bg-white p-6 text-center py-20">
-//             <span className="text-gray-500">로딩 중...</span>
-//           </div>
-//         ) : (
-//           <ProfileCard
-//             nickname={myInfo?.nickname || '닉네임 없음'}
-//             stampCount={myInfo?.totalStampCount || 0}
-//             // API에 프로필 이미지가 없다면 빈 문자열 전달 (기본 이미지 표시됨)
-//             profileImageUrl={''}
-//             badges={myBadges}
-//             reviewCount={myInfo?.reviewCount || 0}
-//           />
-//         )}
-
-//         <div className="h-2 bg-gray-100"></div>
-
-//         {/* StampsSection은 내부 구현을 모르므로 그대로 둡니다.
-//             만약 API 데이터를 써야 한다면 props로 myInfo?.stamps를 전달해야 합니다. */}
-//         <StampsSection />
-
-//         <div className="h-2 bg-gray-100"></div>
-
-//         {/* 뱃지 데이터 없음 */}
-//         <BadgesSection badges={myBadges} />
-
-//         <div className="h-2 bg-gray-100"></div>
-
-//         {/* API에서 받아온 리뷰 데이터 전달 */}
-//         <ReviewsSection reviews={myInfo?.reviews || []} />
-//       </main>
-//     </div>
-//   );
-// }
-
-// const Header = () => (
-//   <header className="bg-white p-4 flex justify-between items-center sticky top-0 z-10 border-b border-gray-200">
-//     <BackButton />
-//     <Link to="/mypage/setting">
-//       <img src={Setting} alt="Setting" className="w-6 h-6" />
-//     </Link>
-//   </header>
-// );
-
-// interface ProfileCardProps {
-//   nickname: string;
-//   stampCount: number;
-//   profileImageUrl: string;
-//   badges: string[];
-//   reviewCount: number;
-// }
-
-// const ProfileCard = ({
-//   nickname,
-//   stampCount,
-//   profileImageUrl,
-//   badges,
-//   reviewCount,
-// }: ProfileCardProps) => (
-//   <div className="bg-white p-6 flex flex-col items-center">
-//     {profileImageUrl && profileImageUrl !== 'string' ? (
-//       <img
-//         src={profileImageUrl}
-//         alt="Profile"
-//         className="w-24 h-24 rounded-full mb-4 object-cover border border-gray-200"
-//         onError={(e) => {
-//           (e.target as HTMLImageElement).style.display = 'none';
-//           (e.target as HTMLImageElement).nextElementSibling?.classList.remove(
-//             'hidden'
-//           );
-//         }}
-//       />
-//     ) : (
-//       // 프로필 이미지가 없으므로 기본 박스 표시
-//       <div className="w-24 h-24 bg-gray-200 rounded-lg mb-4"></div>
-//     )}
-//     <div className="hidden w-24 h-24 bg-gray-200 rounded-lg mb-4"></div>
-
-//     <h1 className="text-2xl font-bold mb-2">{nickname}</h1>
-
-//     {/* 뱃지 영역 */}
-//     <div className="flex gap-2 my-2 flex-wrap justify-center">
-//       {badges.length > 0 ? (
-//         badges.map((badgeName, index) => (
-//           <span
-//             key={index}
-//             className="text-xs text-white bg-gray-800 px-3 py-1 rounded-full"
-//           >
-//             {badgeName}
-//           </span>
-//         ))
-//       ) : (
-//         <span className="text-xs text-gray-400">획득한 뱃지가 없습니다.</span>
-//       )}
-//     </div>
-
-//     <div className="flex justify-around w-full mt-6">
-//       <StatItem count={stampCount} label="현재 스탬프" />
-//       <StatItem count={badges.length} label="뱃지" />
-//       <StatItem count={reviewCount} label="쿠폰" />
-//     </div>
-//   </div>
-// );
-
-// const StatItem = ({ count, label }: { count: number; label: string }) => (
-//   <div className="text-center">
-//     <span className="text-2xl font-bold block">{count}</span>
-//     <span className="text-sm text-gray-500">{label}</span>
-//   </div>
-// );
-
-// // 3. BadgesSection (데이터 없으므로 빈 상태 유지)
-// const BadgesSection = ({ badges }: { badges: string[] }) => (
-//   <div className="bg-white rounded-lg p-4">
-//     <div className="flex justify-between items-center mb-4">
-//       <h2 className="font-bold text-lg">뱃지({badges.length})</h2>
-//       <img src={DownButton} alt="DownButton" className="w-6 h-6" />
-//     </div>
-//     <div className="flex gap-4 overflow-x-auto pb-2">
-//       {badges.length > 0 ? (
-//         badges.map((badgeName, index) => (
-//           <BadgeItem key={index} label={badgeName} />
-//         ))
-//       ) : (
-//         <div className="text-sm text-gray-400 py-4">
-//           아직 획득한 뱃지가 없어요.
-//         </div>
-//       )}
-//     </div>
-//   </div>
-// );
-
-// const BadgeItem = ({ label }: { label: string }) => (
-//   <div className="flex flex-col items-center gap-2 min-w-[80px]">
-//     <div className="w-20 h-20 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center">
-//       <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center relative overflow-hidden">
-//         <div className="w-12 h-12 rounded-full border-[3px] border-white"></div>
-//       </div>
-//     </div>
-//     <span className="text-sm text-gray-700 text-center">{label}</span>
-//   </div>
-// );
-
-// // 4. ReviewsSection 수정: 실제 데이터 매핑
-// const ReviewsSection = ({ reviews }: { reviews: Review[] }) => (
-//   <div className="bg-white rounded-lg p-4">
-//     <div className="flex justify-between items-center mb-4">
-//       <h2 className="font-bold text-lg">리뷰({reviews.length})</h2>
-//       <img src={DownButton} alt="DownButton" className="w-6 h-6" />
-//     </div>
-//     <div className="flex flex-col gap-8">
-//       {reviews.length > 0 ? (
-//         reviews.map((review, index) => <ReviewItem key={index} data={review} />)
-//       ) : (
-//         <div className="text-sm text-gray-400 py-4 text-center">
-//           작성한 리뷰가 없습니다.
-//         </div>
-//       )}
-//     </div>
-//   </div>
-// );
-
-// // ReviewItem 수정: 데이터 표시
-// const ReviewItem = ({ data }: { data: Review }) => {
-//   // rate 문자열을 숫자로 변환 (예외 처리 포함)
-//   const rating = parseFloat(data.rate) || 0;
-
-//   // 날짜 포맷팅 (ISO string -> YYYY. MM. DD)
-//   const formattedDate = new Date(data.reviewDate).toLocaleDateString('ko-KR', {
-//     year: 'numeric',
-//     month: '2-digit',
-//     day: '2-digit',
-//   });
-
-//   return (
-//     <div className="flex flex-col gap-2 border-b border-gray-100 pb-4 last:border-0">
-//       <div className="flex justify-between items-center">
-//         <h3 className="font-bold">{data.storeName}</h3>
-//         <span className="text-xs text-[#9CA3AF]">{formattedDate}</span>
-//       </div>
-//       <div className="flex">
-//         {/* 별점 렌더링 로직 (간단하게 5개 기준) */}
-//         {[1, 2, 3, 4, 5].map((star) => (
-//           <img
-//             key={star}
-//             src={star <= rating ? FilledStar : EmptyStar}
-//             alt="star"
-//             className="w-6 h-6"
-//           />
-//         ))}
-//       </div>
-
-//       {/* 리뷰 이미지가 유효한 경우에만 렌더링 */}
-//       {data.reviewImageUrl && data.reviewImageUrl !== 'string' && (
-//         <img
-//           src={data.reviewImageUrl}
-//           alt="review"
-//           className="w-full aspect-square object-cover rounded-lg mt-2 bg-gray-200"
-//         />
-//       )}
-
-//       <p className="text-sm text-gray-700 mt-2">{data.content}</p>
-//       <UserBottomBar />
-//     </div>
-//   );
-// };
-
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -316,12 +12,51 @@ import DownButton from '../../assets/downbutton.svg';
 import FilledStar from '../../assets/filledstar.svg';
 import EmptyStar from '../../assets/emptystar.svg';
 
+// 뱃지 이미지 Import
+import badge1 from '../../assets/badge1.png';
+import badge21 from '../../assets/badge21.png';
+import badge22 from '../../assets/badge22.png';
+import badge31 from '../../assets/badge31.png';
+import badge32 from '../../assets/badge32.png';
+import badge41 from '../../assets/badge41.png';
+import badge42 from '../../assets/badge42.png';
+import badge51 from '../../assets/badge51.png';
+import badge52 from '../../assets/badge52.png';
+
 const apiUri = import.meta.env.VITE_API_URI || 'http://localhost:8080';
+
+// ==========================================
+// 0. 뱃지 데이터 정의 (레벨별 획득 뱃지)
+// ==========================================
+interface BadgeDef {
+  id: number;
+  level: number;
+  name: string;
+  img: string;
+}
+
+const BADGE_LIST: BadgeDef[] = [
+  // Lv 1 (기본)
+  { id: 1, level: 1, name: '원두 탐험가', img: badge1 },
+  // Lv 2 (20개 이상)
+  { id: 2, level: 2, name: '브루 수련생', img: badge21 },
+  { id: 3, level: 2, name: '카페 수집가', img: badge22 },
+  // Lv 3 (40개 이상)
+  { id: 4, level: 3, name: '라떼 장인', img: badge31 },
+  { id: 5, level: 3, name: '오늘의 드립러', img: badge32 },
+  // Lv 4 (60개 이상)
+  { id: 6, level: 4, name: '로스트 마스터', img: badge41 },
+  { id: 7, level: 4, name: '커피 연금술사', img: badge42 },
+  // Lv 5 (80개 이상)
+  { id: 8, level: 5, name: '전설의 바리스타', img: badge51 },
+  { id: 9, level: 5, name: '카페 그랜드마스터', img: badge52 },
+];
 
 // ==========================================
 // 1. 타입 정의
 // ==========================================
 
+// ... (기존 타입 정의와 동일) ...
 interface Stamp {
   storeName: string;
   date: string;
@@ -340,11 +75,9 @@ interface Review {
 interface ProfileData {
   nickname: string;
   totalStampCount: number;
-  // 로그상 couponNum으로 들어오는 것 같아 추가 (옵셔널)
   couponNum?: number;
-  reviewCount?: number;
-  stamps: Stamp[];
-  reviews: Review[];
+  reviews?: Review[];
+  stamps?: Stamp[];
 }
 
 interface ProfileResponse {
@@ -356,7 +89,7 @@ interface ProfileResponse {
 
 interface SettingsData {
   profileImageUrl: string;
-  representativeBadgeName: string | null; // null 가능성 처리
+  representativeBadgeName: string | null;
   gender: string;
   address: string;
   latitude: number;
@@ -364,10 +97,31 @@ interface SettingsData {
 }
 
 interface SettingsResponse {
-  timestamp: string;
   code: number;
-  message: string;
   data: SettingsData;
+}
+
+interface CompletedStamp {
+  storeId: number;
+  storeName: string;
+  issuedDate: string;
+}
+
+interface Coupon {
+  userId: number;
+  storeId: number;
+  couponId: number;
+  couponName: string;
+}
+
+interface ReviewProfileData {
+  nickname: string;
+  reviews: Review[];
+}
+
+interface ReviewProfileResponse {
+  code: number;
+  data: ReviewProfileData;
 }
 
 // ==========================================
@@ -376,6 +130,11 @@ interface SettingsResponse {
 export default function MyPage() {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [settingsData, setSettingsData] = useState<SettingsData | null>(null);
+
+  const [completedStampCount, setCompletedStampCount] = useState<number>(0);
+  const [couponCount, setCouponCount] = useState<number>(0);
+  const [myWrittenReviews, setMyWrittenReviews] = useState<Review[]>([]);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -396,31 +155,70 @@ export default function MyPage() {
           axios.get<SettingsResponse>(`${apiUri}/v1/mypage/settings`, {
             headers,
           }),
+          axios.get<any>(`${apiUri}/v1/users/stamps/history`, { headers }),
+          axios.get<any>(`${apiUri}/v1/users/coupons`, { headers }),
         ]);
 
-        // [1] 프로필 데이터 처리
-        const profileResult = results[0];
-        if (profileResult.status === 'fulfilled') {
-          const res = profileResult.value.data;
-          // ✅ [수정] 성공 코드를 100으로 변경 (0, 200도 혹시 모르니 포함)
+        let foundUserId: number | null = null;
+
+        // 1. 프로필
+        if (results[0].status === 'fulfilled') {
+          const res = results[0].value.data;
           if (res.code === 100 || res.code === 0 || res.code === 200) {
-            console.log('✅ 프로필 적용 완료:', res.data);
             setProfileData(res.data);
-          } else {
-            console.warn('⚠️ 프로필 코드 불일치:', res.code);
           }
         }
 
-        // [2] 설정 데이터 처리
-        const settingsResult = results[1];
-        if (settingsResult.status === 'fulfilled') {
-          const res = settingsResult.value.data;
-          // ✅ [수정] 성공 코드를 100으로 변경
-          if (res.code === 100 || res.code === 0 || res.code === 200) {
-            console.log('✅ 설정 데이터 적용 완료:', res.data);
+        // 2. 설정
+        if (results[1].status === 'fulfilled') {
+          const res = results[1].value.data;
+          if ([0, 100, 200].includes(res.code)) {
             setSettingsData(res.data);
-          } else {
-            console.warn('⚠️ 설정 코드 불일치:', res.code);
+          }
+        }
+
+        // 3. 스탬프 히스토리 (완료된 스탬프 개수)
+        if (results[2].status === 'fulfilled') {
+          const res = results[2].value.data;
+          let count = 0;
+          if (res.completedStamps && Array.isArray(res.completedStamps)) {
+            count = res.completedStamps.length;
+          } else if (res.data?.completedStamps) {
+            count = res.data.completedStamps.length;
+          } else if (typeof res.completedStampNum === 'number') {
+            count = res.completedStampNum;
+          }
+          setCompletedStampCount(count);
+        }
+
+        // 4. 쿠폰 (userId 추출)
+        if (results[3].status === 'fulfilled') {
+          const res = results[3].value.data;
+          let coupons: Coupon[] = [];
+          if (Array.isArray(res)) coupons = res;
+          else if (res.data && Array.isArray(res.data)) coupons = res.data;
+          else if (res.coupons && Array.isArray(res.coupons))
+            coupons = res.coupons;
+          else if (res.userId) coupons = [res as Coupon];
+
+          setCouponCount(coupons.length);
+          if (coupons.length > 0) {
+            foundUserId = coupons[0].userId;
+          }
+        }
+
+        // 5. 내가 쓴 리뷰 목록
+        if (foundUserId) {
+          try {
+            const reviewRes = await axios.get<ReviewProfileResponse>(
+              `${apiUri}/v1/reviews/profile/${foundUserId}`,
+              { headers }
+            );
+            if ([0, 100, 200].includes(reviewRes.data.code)) {
+              setMyWrittenReviews(reviewRes.data.data.reviews || []);
+            }
+          } catch (err) {
+            console.error(err);
           }
         }
       } catch (error) {
@@ -433,13 +231,24 @@ export default function MyPage() {
     fetchAllData();
   }, []);
 
-  // 뱃지 데이터 처리 (null 체크)
-  const myBadges = settingsData?.representativeBadgeName
-    ? [settingsData.representativeBadgeName]
-    : [];
+  // ==========================================
+  // [로직 수정] 스탬프 개수에 따른 레벨 및 뱃지 계산
+  // ==========================================
 
-  // 리뷰 데이터 처리
-  const myReviews = profileData?.reviews || [];
+  // 1. 레벨 계산: 20개마다 1업 (0~19: Lv1, 20~39: Lv2 ...)
+  const currentLevel = Math.floor(completedStampCount / 20) + 1;
+
+  // 2. 보유 뱃지 필터링: 현재 레벨보다 작거나 같은 레벨의 뱃지들을 모두 획득
+  const unlockedBadges = BADGE_LIST.filter(
+    (badge) => badge.level <= currentLevel
+  );
+
+  // 대표 뱃지 (설정된 게 있으면 그걸 쓰고, 없으면 획득한 것 중 가장 높은 레벨의 첫번째)
+  const representativeBadge = settingsData?.representativeBadgeName
+    ? [settingsData.representativeBadgeName]
+    : unlockedBadges.length > 0
+    ? [unlockedBadges[unlockedBadges.length - 1].name] // 가장 최근 획득한 뱃지
+    : ['원두 탐험가'];
 
   return (
     <div className="w-[393px] min-h-screen bg-gray-100 mx-auto border border-gray-300 relative">
@@ -449,17 +258,16 @@ export default function MyPage() {
         <main className="flex flex-col pb-20">
           {loading ? (
             <div className="bg-white p-6 text-center py-20">
-              <span className="text-gray-500">로딩 중...</span>
+              <span className="text-gray-500">데이터 불러오는 중...</span>
             </div>
           ) : (
             <ProfileCard
               nickname={profileData?.nickname || '닉네임 없음'}
-              stampCount={profileData?.totalStampCount || 0}
-              // 설정 데이터의 이미지 사용
+              stampCount={completedStampCount}
               profileImageUrl={settingsData?.profileImageUrl || ''}
-              badges={myBadges}
-              // reviewCount가 없으면 배열 길이로 대체
-              reviewCount={profileData?.reviewCount ?? myReviews.length}
+              badges={representativeBadge} // 프로필 카드는 대표 뱃지 1개만 표시
+              badgeCount={unlockedBadges.length} // 총 보유 뱃지 수
+              couponCount={couponCount}
             />
           )}
 
@@ -471,11 +279,12 @@ export default function MyPage() {
 
           <div className="h-2 bg-gray-100"></div>
 
-          <BadgesSection badges={myBadges} />
+          {/* 획득한 전체 뱃지 리스트 전달 */}
+          <BadgesSection badges={unlockedBadges} />
 
           <div className="h-2 bg-gray-100"></div>
 
-          <ReviewsSection reviews={myReviews} />
+          <ReviewsSection reviews={myWrittenReviews} />
         </main>
       </div>
 
@@ -503,8 +312,9 @@ interface ProfileCardProps {
   nickname: string;
   stampCount: number;
   profileImageUrl: string;
-  badges: string[];
-  reviewCount: number;
+  badges: string[]; // 대표 뱃지 이름
+  badgeCount: number; // 총 뱃지 개수
+  couponCount: number;
 }
 
 const ProfileCard = ({
@@ -512,51 +322,40 @@ const ProfileCard = ({
   stampCount,
   profileImageUrl,
   badges,
-  reviewCount,
+  badgeCount,
+  couponCount,
 }: ProfileCardProps) => (
   <div className="bg-white p-6 flex flex-col items-center">
-    {/* 프로필 이미지 처리 */}
     {profileImageUrl && profileImageUrl !== 'string' ? (
       <img
         src={profileImageUrl}
         alt="Profile"
         className="w-24 h-24 rounded-full mb-4 object-cover border border-gray-200"
-        onError={(e) => {
-          (e.target as HTMLImageElement).style.display = 'none';
-          (e.target as HTMLImageElement).nextElementSibling?.classList.remove(
-            'hidden'
-          );
-        }}
       />
     ) : (
       <div className="w-24 h-24 bg-gray-200 rounded-lg mb-4 flex items-center justify-center text-gray-400 text-xs">
         No Image
       </div>
     )}
-    {/* 이미지 에러 시 대체 영역 */}
-    <div className="hidden w-24 h-24 bg-gray-200 rounded-lg mb-4"></div>
 
     <h1 className="text-2xl font-bold mb-2">{nickname}</h1>
 
     <div className="flex gap-2 my-2 flex-wrap justify-center">
-      {badges.length > 0 ? (
-        badges.map((badgeName, index) => (
-          <span
-            key={index}
-            className="text-xs text-white bg-gray-800 px-3 py-1 rounded-full"
-          >
-            {badgeName}
-          </span>
-        ))
-      ) : (
-        <span className="text-xs text-gray-400">대표 뱃지가 없습니다.</span>
-      )}
+      {badges.map((badgeName, index) => (
+        <span
+          key={index}
+          className="text-xs text-white bg-gray-800 px-3 py-1 rounded-full"
+        >
+          {badgeName}
+        </span>
+      ))}
     </div>
 
     <div className="flex justify-around w-full mt-6">
-      <StatItem count={stampCount} label="현재 스탬프" />
-      <StatItem count={badges.length} label="뱃지" />
-      <StatItem count={reviewCount} label="리뷰" />
+      <StatItem count={stampCount} label="완료 스탬프" />
+      {/* 뱃지 개수는 실제 보유 개수로 표시 */}
+      <StatItem count={badgeCount} label="뱃지" />
+      <StatItem count={couponCount} label="쿠폰" />
     </div>
   </div>
 );
@@ -568,45 +367,43 @@ const StatItem = ({ count, label }: { count: number; label: string }) => (
   </div>
 );
 
-const BadgesSection = ({ badges }: { badges: string[] }) => (
+// 뱃지 섹션 Props 수정 (BadgeDef 배열 받기)
+const BadgesSection = ({ badges }: { badges: BadgeDef[] }) => (
   <div className="bg-white rounded-lg p-4">
     <div className="flex justify-between items-center mb-4">
-      <h2 className="font-bold text-lg">뱃지</h2>
+      <h2 className="font-bold text-lg">보유 뱃지 ({badges.length})</h2>
       <img src={DownButton} alt="DownButton" className="w-6 h-6" />
     </div>
-    <div className="flex gap-4 overflow-x-auto pb-2">
+    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
       {badges.length > 0 ? (
-        badges.map((badgeName, index) => (
-          <BadgeItem key={index} label={badgeName} />
+        badges.map((badge) => (
+          <BadgeItem key={badge.id} name={badge.name} imgUrl={badge.img} />
         ))
       ) : (
         <div className="text-sm text-gray-400 py-4 w-full text-center">
-          설정된 대표 뱃지가 없습니다.
+          획득한 뱃지가 없습니다.
         </div>
       )}
     </div>
   </div>
 );
 
-const BadgeItem = ({ label }: { label: string }) => (
+// BadgeItem 수정: CSS 도형 대신 이미지 렌더링
+const BadgeItem = ({ name, imgUrl }: { name: string; imgUrl: string }) => (
   <div className="flex flex-col items-center gap-2 min-w-[80px]">
-    <div className="w-20 h-20 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center">
-      <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center relative overflow-hidden">
-        <div className="w-12 h-12 rounded-full border-[3px] border-white"></div>
-        <div className="absolute w-10 h-[3px] bg-white rotate-90"></div>
-        <div className="absolute w-10 h-[3px] bg-white"></div>
-        <div className="absolute w-10 h-[3px] bg-white rotate-45"></div>
-        <div className="absolute w-10 h-[3px] bg-white -rotate-45"></div>
-      </div>
+    <div className="w-20 h-20 rounded-full border border-gray-100 bg-white flex items-center justify-center overflow-hidden">
+      <img src={imgUrl} alt={name} className="w-full h-full object-cover" />
     </div>
-    <span className="text-sm text-gray-700 text-center">{label}</span>
+    <span className="text-sm text-gray-700 text-center break-keep w-20 leading-tight">
+      {name}
+    </span>
   </div>
 );
 
 const ReviewsSection = ({ reviews }: { reviews: Review[] }) => (
   <div className="bg-white rounded-lg p-4">
     <div className="flex justify-between items-center mb-4">
-      <h2 className="font-bold text-lg">리뷰({reviews.length})</h2>
+      <h2 className="font-bold text-lg">리뷰 ({reviews.length})</h2>
       <img src={DownButton} alt="DownButton" className="w-6 h-6" />
     </div>
     <div className="flex flex-col gap-8">
@@ -623,17 +420,11 @@ const ReviewsSection = ({ reviews }: { reviews: Review[] }) => (
 
 const ReviewItem = ({ data }: { data: Review }) => {
   const rating = parseFloat(data.rate) || 0;
-
-  let formattedDate = '';
+  // ... 날짜 포맷팅 등 기존 로직 유지 ...
+  let formattedDate = data.reviewDate;
   try {
-    formattedDate = new Date(data.reviewDate).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  } catch (e) {
-    formattedDate = data.reviewDate;
-  }
+    formattedDate = new Date(data.reviewDate).toLocaleDateString('ko-KR');
+  } catch (e) {}
 
   return (
     <div className="flex flex-col gap-2 border-b border-gray-100 pb-4 last:border-0">
@@ -641,7 +432,6 @@ const ReviewItem = ({ data }: { data: Review }) => {
         <h3 className="font-bold">{data.storeName}</h3>
         <span className="text-xs text-[#9CA3AF]">{formattedDate}</span>
       </div>
-
       <div className="flex">
         {[1, 2, 3, 4, 5].map((star) => (
           <img
@@ -652,7 +442,6 @@ const ReviewItem = ({ data }: { data: Review }) => {
           />
         ))}
       </div>
-
       {data.reviewImageUrl && data.reviewImageUrl !== 'string' && (
         <img
           src={data.reviewImageUrl}
@@ -660,7 +449,6 @@ const ReviewItem = ({ data }: { data: Review }) => {
           className="w-full aspect-square object-cover rounded-lg mt-2 bg-gray-200"
         />
       )}
-
       <p className="text-sm text-gray-700 mt-2">{data.content}</p>
     </div>
   );
