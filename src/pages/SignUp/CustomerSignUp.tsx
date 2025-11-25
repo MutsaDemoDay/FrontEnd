@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { useEffect, useState } from 'react';
 import BackButton from '../../components/BackButton';
 import SignupInput, {
@@ -10,6 +9,11 @@ import { useNavigate } from 'react-router-dom';
 export const CustomerSignup = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  }, []);
+  
   const [errors, setErrors] = useState<
     Partial<Record<keyof CustomerSignupFormData, string>>
   >({});
@@ -25,12 +29,6 @@ export const CustomerSignup = () => {
     emailVerificationToken: '',
   });
 
-  useEffect(() => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    // console.log('회원가입 진입: 기존 토큰 삭제 완료'); // 디버깅용
-  }, []);
-  
   const validateForm = () => {
     const newErrors: Partial<Record<keyof CustomerSignupFormData, string>> = {};
     let isValid = true;

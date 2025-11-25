@@ -13,9 +13,8 @@ export const FirstPage = () => {
   useEffect(() => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    // console.log('회원가입 진입: 기존 토큰 삭제 완료'); // 디버깅용
   }, []);
-  
+
   const navigate = useNavigate();
 
   const handleSignUpClick = () => {

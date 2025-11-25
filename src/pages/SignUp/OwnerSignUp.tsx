@@ -17,7 +17,6 @@ export const OwnerSignup = () => {
   useEffect(() => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    // console.log('회원가입 진입: 기존 토큰 삭제 완료'); // 디버깅용
   }, []);
   
   const [formData, setFormData] = useState<OwnerSignupFormData>({
