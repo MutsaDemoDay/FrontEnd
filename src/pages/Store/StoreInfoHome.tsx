@@ -13,6 +13,7 @@ interface StoreInfoHomeProps {
   storeDetail: StoreDetail | null;
 }
 
+
 export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
   storeDetail,
 }) => {

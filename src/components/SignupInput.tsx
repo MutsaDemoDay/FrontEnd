@@ -11,6 +11,7 @@ export interface OwnerSignupFormData {
   location: string;
   latitude: number;
   longitude: number;
+  emailVerificationToken: string;
 }
 
 export interface CustomerSignupFormData {
@@ -23,6 +24,7 @@ export interface CustomerSignupFormData {
   address?: string;
   latitude?: number;
   longitude?: number;
+  emailVerificationToken: string;
 }
 
 interface SignupInputProps {
@@ -37,6 +39,8 @@ interface SignupInputProps {
   onButtonClick?: () => void;
   readOnly?: boolean;
   emailForVerification?: string;
+  /** 이메일 인증 성공 시 emailVerificationToken을 부모에게 전달 */
+  onVerifySuccess?: (token: string) => void;
 }
 
 async function sendEmailVerificationCode(email: string) {
@@ -65,11 +69,24 @@ async function sendEmailVerificationCode(email: string) {
   }
 }
 
-async function verifyEmailCode(email: string, code: string) {
+type EmailVerifyResponse = {
+  timestamp: string;
+  code: number;
+  message: string;
+  data?: {
+    emailVerificationToken?: string;
+  };
+};
+
+async function verifyEmailCode(
+  email: string,
+  code: string
+): Promise<string | null> {
   if (!email || !code) {
     alert('이메일과 인증번호를 모두 확인해주세요.');
-    return;
+    return null;
   }
+
   try {
     const response = await fetch(
       `${import.meta.env.VITE_API_URI}/v1/auth/email/verify`,
@@ -81,13 +98,38 @@ async function verifyEmailCode(email: string, code: string) {
         body: JSON.stringify({ email, code }),
       }
     );
+
     if (!response.ok) {
-      throw new Error('인증에 실패했습니다. 인증번호를 확인해주세요.');
+      let message = '인증에 실패했습니다. 인증번호를 확인해주세요.';
+
+      try {
+        const errorData = (await response.json()) as Partial<EmailVerifyResponse>;
+        if (errorData?.message) {
+          message = errorData.message;
+        }
+      } catch {
+        // 에러 응답이 JSON이 아닐 수도 있어서 무시
+      }
+
+      throw new Error(message);
     }
+
+    const result = (await response.json()) as EmailVerifyResponse;
+    const token = result?.data?.emailVerificationToken;
+
+    if (!token) {
+      alert(
+        '이메일 인증은 되었으나 토큰을 받지 못했습니다. 관리자에게 문의해주세요.'
+      );
+      return null;
+    }
+
     alert('이메일 인증이 완료되었습니다!');
+    return token;
   } catch (error: any) {
     console.error('이메일 인증 오류:', error);
     alert(error.message);
+    return null;
   }
 }
 
@@ -103,30 +145,37 @@ const SignupInput = ({
   onButtonClick,
   readOnly,
   emailForVerification,
+  onVerifySuccess,
 }: SignupInputProps) => {
-  const handleButtonClick = () => {
+  const handleButtonClick = async () => {
     if (variant === 'email') {
-      sendEmailVerificationCode(value);
+      // 이메일로 인증번호 전송
+      await sendEmailVerificationCode(value);
     } else if (variant === 'emailConfirm') {
       if (emailForVerification) {
-        verifyEmailCode(emailForVerification, value); // emailForVerification - 부모 컴포넌트에서 전달된 이메일 주소, value - 입력된 인증번호
+        const token = await verifyEmailCode(emailForVerification, value);
+        if (token && onVerifySuccess) {
+          onVerifySuccess(token);
+        }
       } else {
         console.error('검증할 이메일 주소가 전달되지 않았습니다.');
+        alert('이메일을 먼저 입력해주세요.');
       }
     } else if (onButtonClick) {
       onButtonClick();
     }
   };
 
+  const hasButton =
+    variant === 'address' || variant === 'email' || variant === 'emailConfirm';
+
   return (
     <div className="flex flex-col w-full">
       <label htmlFor={name} className="mb-2 text-[15px] text-[#5B5B5B]">
         {label}
       </label>
-      {variant === 'address' ||
-      variant === 'email' ||
-      variant === 'emailConfirm' ? (
-        // 이메일 또는 인증번호 입력창 또는 주소 입력창 (버튼이 있는 UI)
+      {hasButton ? (
+        // 이메일/인증번호/주소 입력창 (버튼 포함)
         <div className="flex flex-col">
           <div className="flex flex-row gap-5">
             <input
@@ -144,24 +193,21 @@ const SignupInput = ({
               onClick={handleButtonClick}
               className="w-[68px] h-[48px] bg-(--fill-color1) rounded-[10px] text-[12px] text-[#5B5B5B] shrink-0 cursor-pointer hover:bg-gray-300 active:bg-(--fill-color3) transition-colors"
             >
-              {/* variant에 따라 버튼 텍스트를 다르게 렌더링 */}
-              {variant === 'email' ? (
+              {variant === 'email' && (
                 <>
                   인증번호
                   <br />
                   전송
                 </>
-              ) : (
-                ''
               )}
-              {variant === 'emailConfirm' ? '확인' : ''}
-              {variant === 'address' ? '주소 찾기' : ''}
+              {variant === 'emailConfirm' && '확인'}
+              {variant === 'address' && '주소 찾기'}
             </button>
           </div>
           {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
         </div>
       ) : (
-        // 'default' variant일 경우 (버튼이 없는 UI)
+        // 기본 입력창 (버튼 없음)
         <div>
           <input
             id={name}
