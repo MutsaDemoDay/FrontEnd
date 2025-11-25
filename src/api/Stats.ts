@@ -21,7 +21,7 @@ export interface StatsResponse {
 }
 
 // 2. API 호출 함수
-// storeName은 컴포넌트에서 넘겨받음
+// 스탬프 적립 통계
 export const fetchStats = async (
   storeName: string,
   type: 'daily' | 'weekly' | 'monthly'
@@ -41,6 +41,7 @@ export const fetchStats = async (
   return data;
 };
 
+// 스탬프 등록 고객 통계
 export const fetchTotals = async (
   storeName: string,
   type: 'weekly' | 'monthly'
@@ -56,7 +57,7 @@ export const fetchTotals = async (
       },
     }
   );
-
+  
   return data;
 };
 
