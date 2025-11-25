@@ -10,28 +10,31 @@ export interface ScanResponse {
 const BASE_URL = import.meta.env.VITE_API_URI;
 
 /**
- * [Owner] 스탬프 적립 요청
- * QR에서 읽은 loginId를 userId 필드에 담아 Body로 보냅니다.
+ * [Owner] 최종 스탬프 적립 요청
  * POST /v1/qr/scan
- * Body: { "storeId": 1, "userId": "user_login_id" }
+ * 파라미터: storeId, userId, stampCount
  */
-export const scanQrCode = async (
-  storeId: string | number,
-  scannedLoginId: string
+export const requestStampEarn = async (
+  storeId: number,
+  userId: string, // QR에서 읽은 유저 ID (Login ID)
+  stampCount: number
 ): Promise<ScanResponse> => {
   try {
     console.log(
-      `스탬프 적립 요청: storeId=${storeId}, userId(from QR)=${scannedLoginId}`
+      `[API] 적립 요청: storeId=${storeId}, userId=${userId}, count=${stampCount}`
     );
 
-    const requestBody = {
-      storeId: Number(storeId), // 숫자로 변환
-      userId: scannedLoginId, // QR에서 읽은 로그인 아이디
-    };
-
+    // 쿼리 파라미터 방식으로 전송 (명세에 따름)
     const response = await axios.post<ScanResponse>(
       `${BASE_URL}/v1/qr/scan`,
-      requestBody
+      {}, // POST body가 없다면 빈 객체
+      {
+        params: {
+          storeId,
+          userId,
+          stampCount,
+        },
+      }
     );
 
     return response.data;

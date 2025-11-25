@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { OwnerBottomBar } from '../../components/OwnerBottomBar';
 import {
+  fetchDailyStats,
   fetchStats,
   fetchStoreName,
   fetchTotals,
@@ -22,9 +23,9 @@ const getTodayDate = () => {
 export const Dashboard = () => {
   const navigate = useNavigate();
 
-  // 1. 적립 통계 탭
+  // 1. 적립 통계 탭 (State 타입 수정: daily 추가)
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly'>(
-    'daily'
+    'weekly'
   );
 
   // 2. 등록 고객 수 통계 탭
@@ -42,19 +43,25 @@ export const Dashboard = () => {
     queryFn: fetchStoreName,
   });
 
-  // 2. [오늘의 요약] 오늘 적립 통계
+  // 2. [오늘의 요약] 오늘 적립 통계 (고정된 'daily' 데이터)
   const { data: todayStats } = useQuery({
     queryKey: ['stats', storeName, 'daily-fixed'],
-    queryFn: () => fetchStats(storeName!, 'daily'),
+    queryFn: () => fetchDailyStats(storeName!),
     enabled: !!storeName,
   });
 
-  // 3. [적립 통계] 선택된 탭 데이터
+  // 3. [적립 통계] 선택된 탭 데이터 (로직 수정: 탭에 따라 API 분기)
   const { data: currentStats } = useQuery({
     queryKey: ['dashboard-stats', storeName, activeTab],
     queryFn: () => {
       if (!storeName) return Promise.reject('No store name');
-      return fetchStats(storeName, activeTab);
+
+      // activeTab이 'daily'면 fetchDailyStats, 아니면 fetchStats 호출
+      if (activeTab === 'daily') {
+        return fetchDailyStats(storeName);
+      } else {
+        return fetchStats(storeName, activeTab);
+      }
     },
     enabled: !!storeName,
   });
@@ -69,7 +76,7 @@ export const Dashboard = () => {
     enabled: !!storeName,
   });
 
-  // 5. [성별 통계] 주간 성별 데이터 (New)
+  // 5. [성별 통계] 주간 성별 데이터
   const { data: genderStats } = useQuery({
     queryKey: ['dashboard-gender', storeName],
     queryFn: () => {
@@ -93,27 +100,23 @@ export const Dashboard = () => {
   const labelText = '총';
 
   // 성별 데이터 가공
-  const womanRatio = genderStats?.data?.womanRatio ?? 0; // 예: 70.0
-  const manRatio = genderStats?.data?.manRatio ?? 0; // 예: 30.0
+  const womanRatio = genderStats?.data?.womanRatio ?? 0;
+  const manRatio = genderStats?.data?.manRatio ?? 0;
   const totalGenderCount = genderStats?.data?.total ?? 0;
 
   // ----------------------------------------------------
   // [Chart Utils] 도넛 차트 계산 로직
   // ----------------------------------------------------
-  const size = 120; // SVG 전체 크기
-  const strokeWidth = 20; // 도넛 두께
+  const size = 120;
+  const strokeWidth = 20;
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius; // 원의 둘레
+  const circumference = 2 * Math.PI * radius;
 
-  // 여자가 차지하는 길이 (비율에 따름)
   const womanStrokeDashoffset =
     circumference - (womanRatio / 100) * circumference;
-  // 남자가 차지하는 길이 (비율에 따름) -> 시작점 조정을 위해 rotation 사용 예정
   const manStrokeDashoffset = circumference - (manRatio / 100) * circumference;
 
-  // SVG 내에서 12시 방향부터 시작하도록 회전 (-90도)
-  // 여자는 0도부터 시작, 남자는 여자 끝난 지점부터 시작해야 함
   const womanRotation = -90;
   const manRotation = -90 + (womanRatio / 100) * 360;
 
@@ -158,6 +161,7 @@ export const Dashboard = () => {
               적립 통계
             </p>
             <div className="flex flex-row gap-1 bg-white p-1 rounded-full shadow-sm">
+              {/* daily, weekly, monthly 버튼 렌더링 */}
               {(['daily', 'weekly', 'monthly'] as const).map((tab) => (
                 <button
                   key={tab}
@@ -168,6 +172,7 @@ export const Dashboard = () => {
                       : 'text-(--fill-color7) hover:text-gray-600'
                   }`}
                 >
+                  {/* 탭 이름 한글 변환 */}
                   {tab === 'daily'
                     ? '일간'
                     : tab === 'weekly'
@@ -249,12 +254,11 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* --- [Section 4] 주간 고객 성별 평균 (New) --- */}
+        {/* --- [Section 4] 주간 고객 성별 평균 --- */}
         <div className="w-full h-[170px] flex flex-row items-center justify-between p-6 bg-(--fill-color1) rounded-[20px] shadow-sm">
           {/* 왼쪽: 그래프 영역 */}
           <div className="relative w-[120px] h-[120px] flex items-center justify-center">
             <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-              {/* Gradients 정의 */}
               <defs>
                 <linearGradient
                   id="womanGradient"
@@ -278,7 +282,6 @@ export const Dashboard = () => {
                 </linearGradient>
               </defs>
 
-              {/* 배경 원 (데이터 없을 때 보임) */}
               <circle
                 cx={center}
                 cy={center}
@@ -290,7 +293,6 @@ export const Dashboard = () => {
 
               {totalGenderCount > 0 && (
                 <>
-                  {/* 여자 차트 (Pink) */}
                   <circle
                     cx={center}
                     cy={center}
@@ -304,8 +306,6 @@ export const Dashboard = () => {
                     transform={`rotate(${womanRotation} ${center} ${center})`}
                     className="transition-all duration-500 ease-out"
                   />
-
-                  {/* 남자 차트 (Blue) */}
                   <circle
                     cx={center}
                     cy={center}
@@ -322,9 +322,6 @@ export const Dashboard = () => {
                 </>
               )}
             </svg>
-
-            {/* 가운데 구멍 (도넛 모양 유지용 - 배경색과 동일하게) */}
-            {/* SVG stroke만 사용하므로 별도 원 필요 없음, 필요시 텍스트 추가 가능 */}
           </div>
 
           {/* 오른쪽: 텍스트 정보 영역 */}
@@ -332,9 +329,7 @@ export const Dashboard = () => {
             <p className="text-[16px] text-(--fill-color7) font-bold mb-4">
               주간 고객 성별 평균
             </p>
-
             <div className="flex flex-col gap-2">
-              {/* 여자 Label */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#EB4F8D]" />
@@ -349,8 +344,6 @@ export const Dashboard = () => {
                   <span className="text-[12px] text-[#EB4F8D] ml-0.5">%</span>
                 </div>
               </div>
-
-              {/* 남자 Label */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#1417B9]" />

@@ -48,6 +48,7 @@ import { OwnerShopProfile } from './pages/Owner/OwnerShopProfile';
 import Statistics from './pages/Owner/Statistics';
 import { StoreReview } from './pages/Store/StoreReview';
 import { StampEarnConfirmWithId } from './pages/Owner/StampEarnConfirmWithId';
+import { CustomerList } from './pages/Owner/CustomerList';
 
 function App() {
   return (
@@ -125,6 +126,7 @@ function App() {
           <Route path="/owner/accountinfo" element={<OwnerAccountInfo />} />
           <Route path="/owner/shopprofile" element={<OwnerShopProfile />} />
           <Route path="/owner/statistics" element={<Statistics />} />
+          <Route path="/owner/customerlist" element={<CustomerList />} />
         </Route>
       </Routes>
     </BrowserRouter>

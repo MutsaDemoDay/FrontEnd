@@ -88,7 +88,7 @@ export const OwnerStampSetting = () => {
         // [Step 2] 가져온 가게 이름을 기반으로 스탬프 설정 조회하기
         if (currentStoreName) {
             const settingsResponse = await fetch(
-                `${apiUri}/v1/stamps/manager/settings?storeName=${encodeURIComponent(currentStoreName)}`, 
+                `${apiUri}/v1/manager/settings?storeName=${encodeURIComponent(currentStoreName)}`, 
                 {
                     method: 'GET',
                     headers: {
@@ -168,7 +168,7 @@ export const OwnerStampSetting = () => {
       // 만약 백엔드(Spring 등)에서 @RequestPart("data")의 Content-Type을 application/json으로 강제한다면 아래 코드를 사용하세요.
       // formData.append('data', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
 
-      const response = await fetch(`${apiUri}/v1/stamps/manager/settings`, {
+      const response = await fetch(`${apiUri}/v1/manager/settings`, {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${token}`, 

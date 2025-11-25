@@ -1,35 +1,116 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { BackButton3 } from '../../components/BackButton3';
-import { scanQrCode } from '../../api/OwnerQR';
+import { requestStampEarn } from '../../api/OwnerQR';
 
+// ---------------------------------------------------------
+// [내부 컴포넌트] 적립 확인 모달
+// ---------------------------------------------------------
+interface ConfirmModalProps {
+  userId: string;
+  onConfirm: (count: number) => void;
+  onCancel: () => void;
+}
+
+const ConfirmModal = ({ userId, onConfirm, onCancel }: ConfirmModalProps) => {
+  const [count, setCount] = useState(1);
+
+  const handleDecrease = () => {
+    if (count > 1) setCount(count - 1);
+  };
+
+  const handleIncrease = () => {
+    setCount(count + 1);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+      <div className="bg-white w-full max-w-[320px] rounded-[20px] overflow-hidden shadow-2xl animate-fade-in-up">
+        {/* 헤더 */}
+        <div className="py-5 px-6 border-b border-gray-100">
+          <h2 className="text-[16px] font-bold text-[#333] text-center">
+            다음 회원에게 적립하시겠습니까?
+          </h2>
+        </div>
+
+        {/* 내용 */}
+        <div className="py-6 px-6">
+          {/* 회원 정보 표시 */}
+          <div className="flex flex-col gap-2 mb-6 bg-gray-50 p-3 rounded-lg">
+            <div className="flex justify-between items-center text-[14px]">
+              <span className="text-gray-500">회원ID</span>
+              <span className="font-bold text-black">{userId}</span>
+            </div>
+          </div>
+
+          {/* 스탬프 개수 조절 */}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[14px] font-medium text-[#333]">
+              스탬프 개수
+            </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleDecrease}
+                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 active:scale-95 transition"
+              >
+                -
+              </button>
+              <span className="text-[20px] font-bold w-8 text-center text-[#FF6B00]">
+                {count}
+              </span>
+              <button
+                onClick={handleIncrease}
+                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 active:scale-95 transition"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 버튼 영역 */}
+        <div className="flex border-t border-gray-100">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-4 bg-white text-[#888] font-medium text-[15px] hover:bg-gray-50 active:bg-gray-100 transition border-r border-gray-100"
+          >
+            취소
+          </button>
+          <button
+            onClick={() => onConfirm(count)}
+            className="flex-1 py-4 bg-[#FF6B00] text-white font-bold text-[15px] hover:bg-[#E56000] active:bg-[#CC5600] transition"
+          >
+            확인
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------
+// [메인 컴포넌트] QR 스캔 페이지
+// ---------------------------------------------------------
 export const QRScan = () => {
-  // -------------------------------------------------------------------------
-  // 1. 상태 및 Ref 관리
-  // -------------------------------------------------------------------------
+  // 상태 관리
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>('카메라 권한을 허용해주세요.');
-  const [isError, setIsError] = useState(false);
-  
-  // [수정] 가게 ID 상태 관리 (초기값 null)
-  const [storeId, setStoreId] = useState<number | null>(null);
+  const [statusMessage, setStatusMessage] =
+    useState<string>('카메라 권한을 허용해주세요.');
 
-  // 스캐너 인스턴스 Ref
+  // 모달 제어
+  const [showModal, setShowModal] = useState(false);
+  const [scannedUserId, setScannedUserId] = useState<string>(''); // QR에서 읽은 값
+
+  const [storeId, setStoreId] = useState<number | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
-  // -------------------------------------------------------------------------
-  // 2. 가게 정보(StoreId) 가져오기
-  // -------------------------------------------------------------------------
+  // 1. 가게 정보(StoreId) 가져오기
   useEffect(() => {
     const fetchStoreId = async () => {
       const apiUri = import.meta.env.VITE_API_URI;
       const token = localStorage.getItem('accessToken');
-
-      if (!token) {
-        console.error("로그인 토큰이 없습니다.");
-        return;
-      }
+      if (!token) return;
 
       try {
         const response = await fetch(`${apiUri}/v1/managers/profile`, {
@@ -39,227 +120,240 @@ export const QRScan = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
         if (response.ok) {
           const profileData = await response.json();
-          // 응답 구조에 맞게 경로 설정 (data.data.storeId 인지 data.storeId 인지 확인 필요)
-          // 작성해주신 코드 기반: profileData.data.storeId
-          if (profileData.data && profileData.data.storeId) {
-            console.log("가게 ID 확보:", profileData.data.storeId);
+          if (profileData.data?.store?.storeId) {
+            // 데이터 구조에 따라 경로 확인 필요 (data.store.storeId 또는 data.storeId)
+            // 기존 코드 문맥상 data.store.storeId일 확률이 높음
+            setStoreId(profileData.data.store.storeId);
+          } else if (profileData.data?.storeId) {
             setStoreId(profileData.data.storeId);
-          } else {
-            console.error("가게 ID를 찾을 수 없습니다.");
           }
-        } else {
-          console.error('가게 정보 불러오기 실패 status:', response.status);
         }
       } catch (error) {
-        console.error('가게 정보 API 에러:', error);
+        console.error('Store Info Error:', error);
       }
     };
-
     fetchStoreId();
   }, []);
 
-  // -------------------------------------------------------------------------
-  // 3. 컴포넌트 종료(Unmount) 시 클린업
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    return () => {
-      if (scannerRef.current) {
-        try {
-          scannerRef.current.stop().catch((err) => console.log('Stop failed', err));
-          scannerRef.current.clear();
-        } catch (e) {
-          // 무시
-        }
-      }
-    };
-  }, []);
-
-  // -------------------------------------------------------------------------
-  // 4. 스캔 시작 함수
-  // -------------------------------------------------------------------------
+  // 2. 스캔 시작
   const startScanning = async () => {
-    // 가게 ID가 로드되지 않았으면 스캔 시작 막기
     if (storeId === null) {
-      setIsError(true);
-      setStatusMessage('가게 정보를 불러오는 중입니다.\n잠시 후 다시 시도해주세요.');
+      setStatusMessage('가게 정보를 불러오는 중입니다.');
       return;
     }
 
-    setIsError(false);
     setScanResult(null);
-    setStatusMessage('카메라를 불러오는 중...');
+    setStatusMessage('QR 코드를 사각형 안에 맞춰주세요.');
     setIsScanning(true);
 
-    // DOM 렌더링 대기 (흰 화면 방지)
+    // DOM 렌더링 대기
     setTimeout(async () => {
-      try {
-        // 기존 인스턴스 정리
-        if (scannerRef.current) {
-          try {
-            await scannerRef.current.stop();
-            scannerRef.current.clear();
-          } catch (e) { /* 무시 */ }
-        }
-
-        // 새 인스턴스 생성
-        const html5QrCode = new Html5Qrcode('reader');
-        scannerRef.current = html5QrCode;
-
-        const config = {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-        };
-
+      // 기존 인스턴스 정리
+      if (scannerRef.current) {
         try {
-          // 후면 카메라 우선 시도
-          await html5QrCode.start(
-            { facingMode: { exact: 'environment' } },
-            config,
-            onScanSuccess,
-            onScanFailure
-          );
-        } catch (err) {
-          console.warn('후면 카메라 강제 실행 실패, 호환 모드로 재시도:', err);
-          // 실패 시 일반 모드 재시도
-          await html5QrCode.start(
-            { facingMode: 'environment' },
-            config,
-            onScanSuccess,
-            onScanFailure
-          );
-        }
-        setStatusMessage('QR 코드를 비춰주세요.');
+          await scannerRef.current.stop();
+        } catch (e) {}
+      }
+
+      const html5QrCode = new Html5Qrcode('reader');
+      scannerRef.current = html5QrCode;
+
+      try {
+        await html5QrCode.start(
+          { facingMode: 'environment' }, // 후면 카메라
+          { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+          onScanSuccess,
+          () => {} // 스캔 실패시(매 프레임) 콜백은 비워둠
+        );
       } catch (err) {
-        console.error('카메라 시작 최종 실패:', err);
-        setIsError(true);
-        setStatusMessage('카메라를 실행할 수 없습니다.\n브라우저 권한을 확인해주세요.');
+        console.error('Camera Start Error:', err);
+        setStatusMessage('카메라 실행 실패. 권한을 확인해주세요.');
         setIsScanning(false);
       }
-    }, 400);
+    }, 300);
   };
 
-  // -------------------------------------------------------------------------
-  // 5. 스캔 중지 함수
-  // -------------------------------------------------------------------------
+  // 3. 스캔 중지
   const stopScanning = async () => {
     if (scannerRef.current) {
       try {
         await scannerRef.current.stop();
-        scannerRef.current.clear();
-      } catch (err) {
-        console.error('중지 실패:', err);
-      }
+      } catch (e) {}
     }
     setIsScanning(false);
     setStatusMessage('스캔이 중지되었습니다.');
   };
 
-  // -------------------------------------------------------------------------
-  // 6. 스캔 성공 핸들러
-  // -------------------------------------------------------------------------
+  // 4. [핵심] 스캔 성공 -> 모달 띄우기
   const onScanSuccess = async (decodedText: string) => {
-    // 카메라 중지
+    // 1. 카메라 중지 (사용자 경험상 멈추는 게 좋음)
     if (scannerRef.current) {
-      try { await scannerRef.current.stop(); } catch (e) {}
+      try {
+        await scannerRef.current.stop();
+      } catch (e) {}
     }
     setIsScanning(false);
-    setStatusMessage('확인 중...');
 
-    // storeId 체크 (방어 코드)
-    if (storeId === null) {
-      setIsError(true);
-      setScanResult('오류 발생');
-      setStatusMessage('가게 정보를 찾을 수 없습니다.');
-      return;
-    }
+    // 2. 스캔된 ID 저장 및 모달 오픈
+    console.log('Scanned User ID:', decodedText);
+    setScannedUserId(decodedText);
+    setShowModal(true);
+  };
+
+  // 5. 모달 확인 버튼 -> 실제 API 호출
+  const handleConfirmEarn = async (stampCount: number) => {
+    setShowModal(false); // 모달 닫기
+    setStatusMessage('적립 요청 중...');
+
+    if (storeId === null) return;
 
     try {
-      // [API 호출] 가져온 storeId와 스캔된 loginId(decodedText) 사용
-      const response = await scanQrCode(storeId, decodedText);
+      const response = await requestStampEarn(
+        storeId,
+        scannedUserId,
+        stampCount
+      );
 
-      if (response.code === 100 || response.code === 200) {
-        setScanResult('적립 완료!');
-        setStatusMessage(response.data || '스탬프가 정상적으로 적립되었습니다.');
+      if (
+        response.code === 0 ||
+        response.code === 100 ||
+        response.code === 200
+      ) {
+        setScanResult('적립 성공!');
+        setStatusMessage(
+          `${scannedUserId}님에게\n스탬프 ${stampCount}개가 적립되었습니다.`
+        );
       } else {
-        setIsError(true);
         setScanResult('적립 실패');
-        setStatusMessage(response.message || '알 수 없는 오류');
+        setStatusMessage(response.message || '오류가 발생했습니다.');
       }
     } catch (error) {
-      setIsError(true);
-      setScanResult('통신 오류');
-      setStatusMessage('서버와 연결할 수 없습니다.');
+      setScanResult('에러 발생');
+      setStatusMessage('서버 통신 중 오류가 발생했습니다.');
     }
   };
 
-  const onScanFailure = () => {};
+  // 6. 모달 취소 버튼
+  const handleCancelEarn = () => {
+    setShowModal(false);
+    setScannedUserId('');
+    setStatusMessage('취소되었습니다. 다시 스캔하려면 버튼을 눌러주세요.');
+    // 필요하다면 여기서 바로 startScanning()을 호출해도 됩니다.
+  };
 
   return (
-    <div className="w-full h-full p-4 flex flex-col bg-white min-h-screen">
-      <BackButton3 />
-
-      <h1 className="text-[20px] text-black font-medium ml-3 mt-7 mb-6">
-        QR코드를 스캔해주세요.
-      </h1>
-
-      <div className="w-full flex flex-col items-center justify-center">
-        {/* 카메라 영역 */}
-        <div
-          id="reader"
-          className="rounded-lg overflow-hidden bg-black border-2 border-gray-200"
-          style={{
-            width: '100%',
-            maxWidth: '350px',
-            minHeight: '350px',
-          }}
-        >
-          {!isScanning && !scanResult && (
-            <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
-              <p>카메라가 꺼져있습니다.</p>
-            </div>
-          )}
-        </div>
-
-        {/* 상태 메시지 박스 */}
-        <div
-          className={`mt-6 p-4 rounded-lg w-full max-w-[350px] text-center shadow-sm transition-colors duration-300 ${
-            isError
-              ? 'bg-red-50 text-red-600'
-              : scanResult
-              ? 'bg-blue-50 text-blue-600'
-              : 'bg-gray-100 text-gray-600'
-          }`}
-        >
-          {scanResult && (
-            <p className="text-xl font-bold mb-2">{scanResult}</p>
-          )}
-          <p className="text-sm whitespace-pre-wrap">{statusMessage}</p>
-        </div>
-
-        {/* 제어 버튼 */}
-        <div className="mt-8 w-full max-w-[350px]">
-          {!isScanning ? (
-            <button
-              onClick={startScanning}
-              className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
-            >
-              {scanResult ? '다시 스캔하기' : '카메라 켜기'}
-            </button>
-          ) : (
-            <button
-              onClick={stopScanning}
-              className="w-full py-4 bg-gray-200 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-300 transition-colors"
-            >
-              스캔 취소
-            </button>
-          )}
-        </div>
+    <div className="w-full h-screen bg-[#222] flex flex-col items-center justify-center relative overflow-hidden">
+      {/* 상단 헤더 영역 */}
+      <div className="absolute top-0 left-0 w-full p-4 z-10 flex items-center">
+        <BackButton3 /> {/* 아이콘 색상이 어두우면 필터나 색상 변경 필요 */}
+        <h1 className="text-white text-[18px] font-medium ml-4">스탬프 적립</h1>
       </div>
+
+      {/* 카메라 뷰파인더 */}
+      <div className="relative w-full max-w-[320px] aspect-square bg-black rounded-[20px] overflow-hidden shadow-2xl border border-gray-700">
+        <div id="reader" className="w-full h-full" />
+
+        {/* 카메라 꺼져있을 때 표시 */}
+        {!isScanning && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 mb-2 opacity-50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <p className="text-sm">카메라가 꺼져있습니다.</p>
+          </div>
+        )}
+
+        {/* 스캔 가이드 라인 (카메라 켜져있을 때만) */}
+        {isScanning && (
+          <div className="absolute inset-0 border-[40px] border-black/50 pointer-events-none z-10">
+            <div className="w-full h-full border-2 border-[#FF6B00] relative">
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-[#FF6B00] -mt-1 -ml-1" />
+              <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-[#FF6B00] -mt-1 -mr-1" />
+              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-[#FF6B00] -mb-1 -ml-1" />
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-[#FF6B00] -mb-1 -mr-1" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 상태 메시지 */}
+      <div className="mt-8 text-center px-6 min-h-[60px]">
+        {scanResult ? (
+          <p className="text-[#FF6B00] text-[20px] font-bold animate-bounce">
+            {scanResult}
+          </p>
+        ) : (
+          <p className="text-white/80 text-[15px] whitespace-pre-line leading-relaxed">
+            {statusMessage}
+          </p>
+        )}
+      </div>
+
+      {/* 하단 버튼 */}
+      <div className="mt-10">
+        {!isScanning ? (
+          <button
+            onClick={startScanning}
+            className="w-[70px] h-[70px] rounded-full bg-[#FF6B00] flex items-center justify-center shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95 transition"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-8 w-8 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          </button>
+        ) : (
+          <button
+            onClick={stopScanning}
+            className="w-[70px] h-[70px] rounded-full bg-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition"
+          >
+            <div className="w-6 h-6 bg-black rounded-sm" />
+          </button>
+        )}
+      </div>
+
+      {/* 모달 렌더링 */}
+      {showModal && (
+        <ConfirmModal
+          userId={scannedUserId}
+          onConfirm={handleConfirmEarn}
+          onCancel={handleCancelEarn}
+        />
+      )}
     </div>
   );
 };
