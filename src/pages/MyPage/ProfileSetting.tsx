@@ -310,7 +310,7 @@ const ProfileSetting = () => {
     };
 
     // 데이터를 State에 적용하는 함수
-    const applyProfileData = (data) => {
+    const applyProfileData = (data: any) => {
       if (!data) return;
 
       // (1) 프로필 이미지

@@ -128,10 +128,7 @@ function App() {
           <Route path="/owner/pastevent" element={<PastEvent />} />
           <Route path="/owner/accountinfo" element={<OwnerAccountInfo />} />
           <Route path="/owner/shopprofile" element={<OwnerShopProfile />} />
-<<<<<<< HEAD
-=======
           <Route path="/owner/statistics" element={<Statistics />} />
->>>>>>> main
         </Route>
       </Routes>
     </BrowserRouter>
