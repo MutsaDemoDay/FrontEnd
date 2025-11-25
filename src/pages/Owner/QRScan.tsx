@@ -1,153 +1,202 @@
-import React, { useEffect, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import React, { useEffect, useRef, useState } from "react";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import { BackButton3 } from "../../components/BackButton3";
-import { scanQrCode } from "../../api/OwnerQR"; // 위에서 만든 API 임포트
+import { scanQrCode } from "../../api/OwnerQR";
 
 export const QRScan = () => {
-    // 상태 관리
+    // -------------------------------------------------------------------------
+    // 1. 상태 및 Ref 관리
+    // -------------------------------------------------------------------------
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState<string | null>(null);
-    const [statusMessage, setStatusMessage] = useState<string>("카메라 권한을 허용하고 스캔을 시작하세요.");
+    const [statusMessage, setStatusMessage] = useState<string>("카메라 권한을 허용해주세요.");
     const [isError, setIsError] = useState(false);
+    
+    // 스캐너 인스턴스를 컴포넌트 생명주기 내내 유지하기 위해 ref 사용
+    const scannerRef = useRef<Html5Qrcode | null>(null);
 
-    // TODO: 실제 앱에서는 로그인한 사장님의 storeId를 전역 상태(Context/Redux)나 로컬 스토리지에서 가져와야 합니다.
-    // 테스트를 위해 임시 값 '1'을 설정했습니다.
+    // TODO: 사장님 로그인 정보에서 실제 storeId 가져오기
     const currentStoreId = 1; 
 
-    // HTML5Qrcode 인스턴스를 저장할 변수
-    let html5QrCode: Html5Qrcode | null = null;
-
+    // -------------------------------------------------------------------------
+    // 2. 컴포넌트 종료(Unmount) 시 클린업
+    // -------------------------------------------------------------------------
     useEffect(() => {
-        // 컴포넌트 언마운트 시 정리(Cleanup)
         return () => {
-            if (isScanning) {
-                stopScanning();
+            if (scannerRef.current) {
+                try {
+                    // 페이지 나갈 때 스캐너가 켜져있다면 끄기
+                    scannerRef.current.stop().catch((err) => console.log("Stop failed", err));
+                    scannerRef.current.clear();
+                } catch (e) {
+                    // 무시
+                }
             }
         };
-    }, [isScanning]);
+    }, []);
 
-    // 스캔 시작 함수
+    // -------------------------------------------------------------------------
+    // 3. 스캔 시작 함수 (핵심 수정 부분)
+    // -------------------------------------------------------------------------
     const startScanning = async () => {
         setIsError(false);
         setScanResult(null);
         setStatusMessage("카메라를 불러오는 중...");
+        
+        // UI를 먼저 '스캔 중' 상태로 변경하여 <div id="reader">가 화면에 확실히 렌더링되게 함
+        setIsScanning(true);
 
-        try {
-            html5QrCode = new Html5Qrcode("reader");
+        // [중요] 리액트가 DOM을 그릴 시간을 400ms 줌 (흰 화면 방지 핵심)
+        setTimeout(async () => {
+            try {
+                // 기존 인스턴스가 있다면 정리
+                if (scannerRef.current) {
+                    try {
+                        await scannerRef.current.stop();
+                        scannerRef.current.clear();
+                    } catch (e) { /* 무시 */ }
+                }
 
-            await html5QrCode.start(
-                { facingMode: "environment" }, // 후면 카메라 우선 사용
-                {
-                    fps: 10, // 초당 프레임
-                    qrbox: { width: 250, height: 250 }, // 스캔 영역 크기
-                },
-                onScanSuccess,
-                onScanFailure
-            );
+                // 새 인스턴스 생성
+                const html5QrCode = new Html5Qrcode("reader");
+                scannerRef.current = html5QrCode;
 
-            setIsScanning(true);
-            setStatusMessage("QR 코드를 네모 칸 안에 맞춰주세요.");
-        } catch (err) {
-            console.error("카메라 시작 실패:", err);
-            setIsError(true);
-            setStatusMessage("카메라를 시작할 수 없습니다. 권한을 확인해주세요.");
-            setIsScanning(false);
-        }
-    };
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0, // 모바일에서 비율 깨짐 방지
+                    // 지원 포맷 제한 (성능 최적화)
+                    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+                };
 
-    // 스캔 중지 함수
-    const stopScanning = async () => {
-        try {
-            if (html5QrCode) {
-                await html5QrCode.stop();
-                html5QrCode.clear();
+                // [전략 1] 후면 카메라 강제 실행 시도
+                try {
+                    await html5QrCode.start(
+                        { facingMode: { exact: "environment" } }, 
+                        config,
+                        onScanSuccess,
+                        onScanFailure
+                    );
+                } catch (err) {
+                    console.warn("후면 카메라 강제 실행 실패, 호환 모드로 재시도:", err);
+                    
+                    // [전략 2] 실패 시 일반 모드(후면 선호)로 재시도
+                    await html5QrCode.start(
+                        { facingMode: "environment" }, 
+                        config,
+                        onScanSuccess,
+                        onScanFailure
+                    );
+                }
+
+                setStatusMessage("QR 코드를 비춰주세요.");
+
+            } catch (err) {
+                console.error("카메라 시작 최종 실패:", err);
+                setIsError(true);
+                setStatusMessage("카메라를 실행할 수 없습니다.\n브라우저 권한을 확인해주세요.");
+                setIsScanning(false);
             }
-        } catch (err) {
-            console.error("카메라 중지 실패:", err);
-        }
-        setIsScanning(false);
+        }, 400); 
     };
 
-    // 스캔 성공 핸들러
-    const onScanSuccess = async (decodedText: string, decodedResult: any) => {
-        console.log(`스캔 성공: ${decodedText}`, decodedResult);
-        
-        // 1. 스캔 중지 (중복 요청 방지)
-        // 주의: React 상태 업데이트 문제로 인해 인스턴스를 직접 정리하거나 플래그를 사용해야 함
-        // 여기서는 html5-qrcode의 stop()을 호출하지 않고 화면을 전환하거나 상태만 변경합니다.
-        // 하지만 UX상 바로 멈추는 것이 깔끔하므로 stopScanning() 로직을 수행합니다.
-        
-        // html5QrCode 객체는 지역변수라 여기서 접근이 어려울 수 있으니
-        // 실제로는 new Html5Qrcode("reader")를 다시 잡아 stop 하거나
-        // isScanning 상태를 이용해 useEffect에서 정리되도록 유도합니다.
-        const scanner = new Html5Qrcode("reader");
-        try {
-           await scanner.stop();
-           scanner.clear();
-        } catch(e) { /* 이미 멈췄거나 에러 무시 */ }
-        
+    // -------------------------------------------------------------------------
+    // 4. 스캔 중지 함수
+    // -------------------------------------------------------------------------
+    const stopScanning = async () => {
+        if (scannerRef.current) {
+            try {
+                await scannerRef.current.stop();
+                scannerRef.current.clear();
+            } catch (err) {
+                console.error("중지 실패:", err);
+            }
+        }
         setIsScanning(false);
-        setStatusMessage("QR 확인 중...");
+        setStatusMessage("스캔이 중지되었습니다.");
+    };
 
-        // 2. API 호출
+    // -------------------------------------------------------------------------
+    // 5. 스캔 성공 핸들러
+    // -------------------------------------------------------------------------
+    const onScanSuccess = async (decodedText: string) => {
+        // 중복 요청 방지를 위해 즉시 스캔 중지
+        if (scannerRef.current) {
+            try {
+                await scannerRef.current.stop();
+                // clear()는 하지 않고 화면을 유지하거나, 원하면 clear() 호출
+            } catch (e) {}
+        }
+        
+        // 상태 업데이트
+        setIsScanning(false);
+        setStatusMessage("확인 중...");
+        
         try {
-            // decodedText가 userId라고 가정 (UserQR 로직에 따라)
-            const userId = decodedText; 
-            
-            const response = await scanQrCode(currentStoreId, userId);
+            // API 호출
+            const response = await scanQrCode(currentStoreId, decodedText);
 
             if (response.code === 100) {
-                setScanResult("적립이 완료되었습니다!");
-                setStatusMessage(response.data); // "스탬프가 정상적으로 적립되었습니다."
+                setScanResult("✅ 적립 완료!");
+                setStatusMessage(response.data); 
             } else {
                 setIsError(true);
-                setScanResult("적립에 실패했습니다.");
-                setStatusMessage(response.message || "알 수 없는 오류가 발생했습니다.");
+                setScanResult("⚠️ 적립 실패");
+                setStatusMessage(response.message || "알 수 없는 오류");
             }
         } catch (error: any) {
             setIsError(true);
-            setScanResult("에러가 발생했습니다.");
-            setStatusMessage(error.response?.data?.message || "서버 통신 중 오류가 발생했습니다.");
+            setScanResult("❌ 에러 발생");
+            setStatusMessage("서버와 통신할 수 없습니다.");
         }
     };
 
-    // 스캔 실패 핸들러 (계속 호출됨 - 로그 너무 많이 찍히니 비워두거나 필요한 경우만 사용)
-    const onScanFailure = (error: any) => {
-        // console.warn(`Code scan error = ${error}`);
-    };
+    // 스캔 실패 핸들러 (너무 잦은 로그 방지를 위해 비워둠)
+    const onScanFailure = () => {};
 
     return (
-        <div className="w-full h-full p-4 flex flex-col bg-white">
+        <div className="w-full h-full p-4 flex flex-col bg-white min-h-screen">
             <BackButton3 />
             
             <h1 className="text-[20px] text-black font-medium ml-3 mt-7 mb-6">
                 QR코드를 스캔해주세요.
             </h1>
 
-            {/* 카메라 영역 */}
             <div className="w-full flex flex-col items-center justify-center">
+                
+                {/* [중요] 카메라 영역 
+                   id="reader"는 라이브러리가 비디오를 삽입하는 타겟입니다.
+                   width와 height를 명시적으로 주지 않으면 높이가 0이 되어 흰 화면만 보입니다.
+                */}
                 <div 
                     id="reader" 
-                    className="w-full max-w-[300px] h-[300px] bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200"
+                    className="rounded-lg overflow-hidden bg-black border-2 border-gray-200"
+                    style={{ 
+                        width: "100%", 
+                        maxWidth: "350px", 
+                        // 카메라가 꺼져있을 때도 공간을 차지하게 minHeight 설정 (매우 중요)
+                        minHeight: "350px" 
+                    }}
                 >
+                    {/* 카메라가 꺼져있고 결과도 없을 때만 안내 문구 표시 */}
                     {!isScanning && !scanResult && (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            카메라가 꺼져있습니다.
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                            <p>카메라가 꺼져있습니다.</p>
                         </div>
                     )}
                 </div>
 
-                {/* 상태 메시지 및 결과 표시 */}
-                <div className={`mt-6 p-4 rounded-lg w-full max-w-[300px] text-center ${
+                {/* 상태 메시지 박스 */}
+                <div className={`mt-6 p-4 rounded-lg w-full max-w-[350px] text-center shadow-sm transition-colors duration-300 ${
                     isError ? 'bg-red-50 text-red-600' : 
-                    scanResult ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'
+                    scanResult ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'
                 }`}>
                     {scanResult && <p className="text-xl font-bold mb-2">{scanResult}</p>}
-                    <p className="text-sm">{statusMessage}</p>
+                    <p className="text-sm whitespace-pre-wrap">{statusMessage}</p>
                 </div>
 
                 {/* 제어 버튼 */}
-                <div className="mt-8 w-full max-w-[300px]">
+                <div className="mt-8 w-full max-w-[350px]">
                     {!isScanning ? (
                         <button 
                             onClick={startScanning}
@@ -157,20 +206,14 @@ export const QRScan = () => {
                         </button>
                     ) : (
                         <button 
-                            onClick={() => {
-                                // 강제 중지 시 로직
-                                const scanner = new Html5Qrcode("reader");
-                                scanner.stop().then(() => scanner.clear());
-                                setIsScanning(false);
-                                setStatusMessage("스캔이 중지되었습니다.");
-                            }}
+                            onClick={stopScanning}
                             className="w-full py-4 bg-gray-200 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-300 transition-colors"
                         >
-                            스캔 중지
+                            스캔 취소
                         </button>
                     )}
                 </div>
             </div>
         </div>
     );
-}
+};
