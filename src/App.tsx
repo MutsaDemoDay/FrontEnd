@@ -46,6 +46,7 @@ import { OwnerAccountInfo } from './pages/Owner/OwnerAccountInfo';
 import { OwnerShopProfile } from './pages/Owner/OwnerShopProfile';
 import Statistics from './pages/Owner/Statistics';
 import { StoreReview } from './pages/Store/StoreReview';
+import { StampEarnConfirmWithId } from './pages/Owner/StampEarnConfirmWithId';
 
 function App() {
   return (
@@ -118,10 +119,8 @@ function App() {
             path="/owner/stamp-earn/id-input"
             element={<StampEarnWithId />}
           />
-          <Route
-            path="/owner/stamp-earn/confirm/:userId"
-            element={<StampEarnWithId />}
-          />
+          <Route path="/stamp-earn/confirm/:userId" element={<StampEarnConfirmWithId />} />
+
           <Route path="/owner/stampsetting" element={<OwnerStampSetting />} />
           <Route path="/owner/stamphistory" element={<StampHistory />} />
           <Route path="/owner/eventcreate" element={<EventCreate />} />

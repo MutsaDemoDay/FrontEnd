@@ -22,15 +22,22 @@ interface StampItem {
   theme: 'standard' | 'text' | 'green' | 'yellow';
 }
 
-// GET 요청 시 서버 응답 데이터 타입
-// (목록 조회 시 찜 여부인 isFavorite가 넘어온다고 가정하고 추가했습니다)
-interface StampResponseDto {
+// GET 요청: 리스트 내부의 개별 아이템 타입
+interface StampDataDto {
+  storeId: number;
   storeName: string;
+  stampImageUrl: string;
   currentCount: number;
   maxCount: number;
-  stampImageUrl: string;
-  stampId?: number;
-  isFavorite?: boolean; // 서버 응답에 찜 상태 필드 추가 필요
+  favorite: boolean;
+}
+
+// GET 요청: 전체 응답 래퍼 타입
+interface StampListResponse {
+  timestamp: string;
+  code: number;
+  message: string;
+  data: StampDataDto[];
 }
 
 // DELETE, POST 등 일반적인 응답 타입
@@ -61,8 +68,10 @@ const StampSetting = () => {
       }
 
       try {
-        const response = await axios.get<StampResponseDto[]>(
-          `${apiUri}/v1/users/stamps`,
+        // [중요] 이 API가 "전체 스탬프"를 주는지, "즐겨찾기된 스탬프"만 주는지 서버 확인 필요
+        // 프론트엔드는 여기서 주는 대로 다 보여줍니다.
+        const response = await axios.get<StampListResponse>(
+          `${apiUri}/v1/stamps`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -71,17 +80,18 @@ const StampSetting = () => {
           }
         );
 
-        const data = response.data;
+        const listData = response.data.data || [];
+        console.log('서버로부터 받은 전체 스탬프 목록:', listData);
 
         // DTO -> UI State 변환
-        const formattedStamps: StampItem[] = data.map((item, index) => ({
-          id: item.stampId || index,
+        const formattedStamps: StampItem[] = listData.map((item, index) => ({
+          id: item.storeId,
           name: item.storeName,
           countDisplay: `${item.currentCount}/${item.maxCount}`,
           currentCount: item.currentCount,
           maxCount: item.maxCount,
-          // 서버에서 값을 주지 않으면 기본값 false
-          isFavorite: item.isFavorite || false,
+          // [수정] 혹시 모를 null 값 방지를 위해 !! 연산자로 boolean 강제 변환
+          isFavorite: !!item.favorite,
           theme: ['standard', 'text', 'green', 'yellow'][
             index % 4
           ] as StampItem['theme'],
@@ -106,17 +116,16 @@ const StampSetting = () => {
       return;
     }
 
-    // 1. 현재 클릭한 스탬프 찾기
+    // 현재 상태 찾기
     const targetStamp = stamps.find((s) => s.id === id);
     if (!targetStamp) return;
 
-    // 2. 현재 상태 확인 (찜 되어있으면 true)
     const currentStatus = targetStamp.isFavorite;
 
     try {
       if (currentStatus) {
-        // --- [DELETE] 찜 해제 요청 ---
-        // 조건: 찜이 되어있으면(Filled) -> 해제(Empty)
+        // [DELETE] 찜 해제 요청
+        // API 요청은 보내지만, 성공 후 UI에서 제거(filter)하지 않습니다.
         await axios.delete<CommonApiResponse>(
           `${apiUri}/v1/stamps/${id}/favorite`,
           {
@@ -124,21 +133,25 @@ const StampSetting = () => {
           }
         );
       } else {
-        // --- [POST] 찜 등록 요청 ---
-        // 조건: 찜이 안되어있으면(Empty) -> 등록(Filled)
+        // [POST] 찜 등록 요청
         await axios.post<CommonApiResponse>(
           `${apiUri}/v1/stamps/${id}/favorite`,
-          {}, // POST body는 비워둠 (요청 명세에 body data 명시 없음)
+          {},
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
       }
 
-      // 3. API 성공 시 UI 상태 업데이트 (토글)
+      // [핵심 로직]
+      // 성공 시 리스트에서 빼버리는 것이 아니라(filter X),
+      // 해당 아이템의 isFavorite 값만 반전시켜서 교체(map O)합니다.
       setStamps((prevStamps) =>
-        prevStamps.map((stamp) =>
-          stamp.id === id ? { ...stamp, isFavorite: !stamp.isFavorite } : stamp
+        prevStamps.map(
+          (stamp) =>
+            stamp.id === id
+              ? { ...stamp, isFavorite: !stamp.isFavorite } // 타겟 아이템: 별 상태 반전
+              : stamp // 나머지 아이템: 그대로 유지
         )
       );
     } catch (error) {
@@ -146,7 +159,7 @@ const StampSetting = () => {
       alert('즐겨찾기 상태 변경 중 오류가 발생했습니다.');
     }
   };
-
+  
   // --- 삭제 모드 관련 핸들러 ---
   const toggleSelection = (id: number) => {
     const newSelectedIds = new Set(selectedIds);
@@ -181,7 +194,6 @@ const StampSetting = () => {
     }
 
     try {
-      // 선택된 ID들에 대해 개별 DELETE 요청
       const deletePromises = Array.from(selectedIds).map(async (id) => {
         const response = await axios.delete<CommonApiResponse>(
           `${apiUri}/v1/stamps/${id}`,
@@ -194,7 +206,7 @@ const StampSetting = () => {
 
       await Promise.all(deletePromises);
 
-      // UI 상태 업데이트: 삭제된 항목 제거
+      // 삭제 성공 시에만 리스트에서 제거
       setStamps((prevStamps) =>
         prevStamps.filter((stamp) => !selectedIds.has(stamp.id))
       );
@@ -303,9 +315,14 @@ const StampSetting = () => {
 
       {/* 3. Stamp List Container */}
       <div className="border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-        {stamps.map((stamp) => (
+        {/*
+           [렌더링 로직]
+           stamps 배열을 그대로 map으로 돌리므로, 
+           isFavorite 값에 상관없이 서버에서 온 모든 데이터를 표시합니다.
+        */}
+        {stamps.map((stamp, index) => (
           <div
-            key={stamp.id}
+            key={`${stamp.id}-${index}`}
             className={`flex items-center justify-between p-4 border-b border-gray-50 last:border-b-0 bg-white ${
               isDeleteMode ? 'cursor-pointer' : 'hover:bg-gray-50'
             }`}
@@ -338,11 +355,12 @@ const StampSetting = () => {
             </div>
 
             {/* Right: Star Toggle */}
+            {/* 삭제 모드가 아닐 때, 즐겨찾기 버튼을 노출합니다.
+              - isFavorite === true: 노란 별 (YellowStar)
+              - isFavorite === false: 빈 별 (EmptyStar)
+            */}
             {!isDeleteMode && (
               <button onClick={() => toggleFavorite(stamp.id)} className="p-2">
-                {/* isFavorite가 true이면 YellowStar(채워진 별/하트 역할)
-                  isFavorite가 false이면 EmptyStar(빈 별/하트 역할)
-                */}
                 <img
                   src={stamp.isFavorite ? YellowStar : EmptyStar}
                   alt="favorite"
@@ -352,6 +370,13 @@ const StampSetting = () => {
             )}
           </div>
         ))}
+
+        {/* 데이터가 없을 경우 안내 문구 (선택 사항) */}
+        {stamps.length === 0 && (
+          <div className="p-10 text-center text-gray-400 text-sm">
+            등록된 스탬프가 없습니다.
+          </div>
+        )}
       </div>
 
       {/* 4. Delete Mode Buttons */}
