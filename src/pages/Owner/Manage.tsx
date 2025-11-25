@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OwnerBottomBar } from '../../components/OwnerBottomBar';
-import goto_icon from '../../assets/goto_icon.png';
+import goto_icon2 from '../../assets/goto_icon2.png';
 import logo_gt from '../../assets/logo_gt.png';
 import qr_scan from '../../assets/qr_scan.png';
 import check_id from '../../assets/check_id.png';
@@ -15,34 +15,30 @@ export interface StampSettingsResponse {
   imgurl: string | null;
 }
 
+// 고객 데이터 타입 (카운트용)
+interface CustomerData {
+  userId: number;
+  nickname: string;
+  createdAt: string;
+  level: string | null;
+}
+
 export const Manage = () => {
   const navigate = useNavigate();
 
   // --- 상태 관리 ---
   const [stampSettings, setStampSettings] =
     useState<StampSettingsResponse | null>(null);
+  const [customerCount, setCustomerCount] = useState<number>(0); // 고객 수 상태 추가
   const [isLoading, setIsLoading] = useState(true);
 
   // --- 네비게이션 핸들러 ---
-  const handleGotoStampEarn = () => {
-    navigate('/owner/stamp-earn');
-  };
-
-  const handleGotoStampSetting = () => {
-    navigate('/owner/stampsetting');
-  };
-
-  const handleGotoQRGenerate = () => {
-    navigate('/owner/qr-generate');
-  };
-
-  const handleGoToQRScan = () => {
-    navigate('/owner/stamp-earn/qr-scan');
-  };
-
-  const handleGoToIdInput = () => {
-    navigate('/owner/stamp-earn/id-input');
-  };
+  const handleGotoStampEarn = () => navigate('/owner/stamp-earn');
+  const handleGotoStampSetting = () => navigate('/owner/stampsetting');
+  const handleGotoQRGenerate = () => navigate('/owner/qr-generate');
+  const handleGoToQRScan = () => navigate('/owner/stamp-earn/qr-scan');
+  const handleGoToIdInput = () => navigate('/owner/stamp-earn/id-input');
+  const handleGoToCustomerList = () => navigate('/owner/customerlist');
 
   // --- 데이터 불러오기 ---
   useEffect(() => {
@@ -71,10 +67,10 @@ export const Manage = () => {
           return;
         }
 
-        // [Step 2] 스탬프 설정 조회하기
         if (currentStoreName) {
-          const settingsResponse = await fetch(
-            `${apiUri}/v1/stamps/manager/settings?storeName=${encodeURIComponent(
+          // [Step 2] 스탬프 설정 조회하기
+          const settingsPromise = fetch(
+            `${apiUri}/v1/manager/settings?storeName=${encodeURIComponent(
               currentStoreName
             )}`,
             {
@@ -84,12 +80,39 @@ export const Manage = () => {
                 Authorization: `Bearer ${token}`,
               },
             }
-          );
+          ).then((res) => res.json());
 
-          if (settingsResponse.ok) {
-            const settingsData: StampSettingsResponse =
-              await settingsResponse.json();
-            setStampSettings(settingsData);
+          // [Step 3] 고객 리스트 조회하기 (총 인원수 파악용)
+          const customersPromise = fetch(
+            `${apiUri}/v1/manager/customers?storeName=${encodeURIComponent(
+              currentStoreName
+            )}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          ).then((res) => res.json());
+
+          // 병렬 처리
+          const [settingsJson, customersJson] = await Promise.all([
+            settingsPromise,
+            customersPromise,
+          ]);
+
+          if (settingsJson.code === 100 || settingsJson.data) {
+            // API 응답 코드 확인 필요 (보통 100 or 200)
+            // settingsResponse.ok 체크 대신 json 결과로 확인
+            setStampSettings(settingsJson); // settingsJson 구조에 맞게 수정 필요할 수 있음 (data 필드 등)
+          } else if (settingsJson.storeName) {
+            // 만약 바로 객체가 온다면
+            setStampSettings(settingsJson);
+          }
+
+          if (customersJson.code === 100 && customersJson.data) {
+            setCustomerCount(customersJson.data.length);
           }
         }
       } catch (error) {
@@ -103,7 +126,7 @@ export const Manage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col w-full px-6 py-4 mb-10">
+    <div className="flex flex-col w-full px-6 py-4 mb-30">
       <h1 className="text-[25px] text-(--fill-color6) font-normal">
         Management
       </h1>
@@ -113,6 +136,7 @@ export const Manage = () => {
       </p>
 
       <div className="flex flex-col w-full gap-3">
+        {/* ... (QR 코드, ID 입력 버튼 등 기존 코드 유지) ... */}
         <div className="w-full flex flex-row mt-5 gap-5 justify-center">
           <div
             onClick={handleGoToQRScan}
@@ -148,7 +172,6 @@ export const Manage = () => {
             />
           </div>
 
-          {/* --- 수정된 부분: 이미지 표시 영역 --- */}
           <div className="w-[140px] h-[90px] self-center flex items-center justify-center rounded-[10px] overflow-hidden bg-gray-100 mt-2 border border-gray-200">
             {isLoading ? (
               <p className="text-[12px] text-(--fill-color6)">로딩중...</p>
@@ -162,10 +185,9 @@ export const Manage = () => {
               <p className="text-[12px] text-(--fill-color6)">기본 디자인</p>
             )}
           </div>
-          {/* ---------------------------------- */}
 
           <div className="flex flex-row items-center justify-center gap-6">
-            {/* 적립 금액 기준 */}
+            {/* ... (기존 설정 정보 표시) ... */}
             <div className="flex flex-col mt-5">
               <p className="text-[12px] text-(--fill-color7) font-semibold">
                 적립금액 기준
@@ -178,10 +200,7 @@ export const Manage = () => {
                   : '설정 필요'}
               </p>
             </div>
-
             <div className="w-px h-20 bg-(--fill-color2) mt-4" />
-
-            {/* 리워드 보상 */}
             <div className="flex flex-col mt-5">
               <p className="text-[12px] text-(--fill-color7) font-semibold">
                 리워드 보상
@@ -194,10 +213,7 @@ export const Manage = () => {
                   : '설정 필요'}
               </p>
             </div>
-
             <div className="w-px h-20 bg-(--fill-color2) mt-4" />
-
-            {/* 디자인 텍스트 */}
             <div className="flex flex-col mt-5">
               <p className="text-[12px] text-(--fill-color7) font-semibold">
                 스탬프 개수
@@ -217,8 +233,20 @@ export const Manage = () => {
           고객 관리
         </p>
 
-        <div className="flex w-full h-15 bg-(--fill-color1) rounded-[20px] px-7 items-center">
-          <p className="">스탬프 등록 고객</p>
+        {/* --- 수정된 부분: 고객 수 표시 및 이동 --- */}
+        <div className="flex w-full h-[60px] bg-(--fill-color1) rounded-[20px] px-7 items-center flex-row justify-between mb-10">
+          <p className="text-[14px] text-black font-medium">스탬프 등록 고객</p>
+          <div className="flex flex-row items-center gap-3">
+            <span className="text-[20px] font-bold text-black">
+              {customerCount} 명
+            </span>
+            <img
+              src={goto_icon2}
+              alt="이동"
+              className="w-[24px] h-[24px] cursor-pointer"
+              onClick={handleGoToCustomerList}
+            />
+          </div>
         </div>
       </div>
       <OwnerBottomBar />
