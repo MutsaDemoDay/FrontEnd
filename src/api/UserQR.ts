@@ -5,7 +5,7 @@ export interface QrResponse {
   timestamp: string;
   code: number;
   message: string;
-  data: string; // "data:image/png;base64,..."
+  data: string;
 }
 
 // .env 파일에서 API 주소 가져오기
