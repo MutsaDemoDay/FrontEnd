@@ -384,7 +384,7 @@ export const StampRegistration4 = () => {
         if (error.response.status === 409) {
           alert('이미 등록된 스탬프 카드입니다.');
         } else {
-          alert('스탬프 등록 중 오류가 발생했습니다.');
+          alert('이미 등록된 스탬프 카드입니다.');
         }
       }
     }

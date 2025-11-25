@@ -202,12 +202,15 @@ const StampPage = () => {
         <h1 className="text-xl font-bold text-gray-800">My Stamp</h1>
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => navigate('/stampsetting')}
+            onClick={() => navigate('/stampregistration1')}
             className="p-1 text-gray-500 hover:text-gray-800"
           >
             <img src={Plus} alt="Plus" className="w-6 h-6" />
           </button>
-          <button className="p-1 text-gray-500 hover:text-gray-800">
+          <button
+            onClick={() => navigate('/stampsetting')}
+            className="p-1 text-gray-500 hover:text-gray-800"
+          >
             <img src={ThreeDots} alt="ThreeDots" className="w-6 h-6" />
           </button>
         </div>

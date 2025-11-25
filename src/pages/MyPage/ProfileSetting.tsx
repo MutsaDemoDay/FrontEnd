@@ -1,254 +1,35 @@
-// // import React, { useState } from 'react';
-// // import { ChevronLeft, Pencil, MoreVertical, Plus, Star } from 'lucide-react';
-// // import BackButton from '../../components/BackButton';
-
-// // const ProfileSetting = () => {
-// //   // 상태 관리 (UI 상호작용을 위해 추가)
-// //   const [nickname, setNickname] = useState('김멋사');
-// //   const [gender, setGender] = useState('male'); // 'male' | 'female'
-// //   const [selectedTitle, setSelectedTitle] = useState(0); // 0: 첫번째, 1: 두번째 ...
-
-// //   // 칭호 더미 데이터
-// //   const titles = [
-// //     { id: 0, name: '전설의 바리스타', icon: '☕' },
-// //     { id: 1, name: '테이크아웃 장인', icon: '🏃' },
-// //     { id: 2, name: '고독한 미식가', icon: '🥘' },
-// //   ];
-
-// //   return (
-// //     <div className="flex justify-center bg-gray-50 min-h-screen py-10">
-// //       {/* 모바일 컨테이너: 가로 390px 고정 */}
-// //       <div className="w-[390px] bg-white shadow-xl rounded-xl overflow-hidden flex flex-col relative pb-6">
-// //         {/* 1. 헤더 */}
-// //         <header className="relative flex items-center h-14 px-4 mt-2">
-// //           <div className="absolute left-4">
-// //             <BackButton />
-// //           </div>
-// //           <h1 className="absolute left-0 right-0 text-center text-lg font-bold text-gray-800 pointer-events-none">
-// //             {/* 중앙 정렬을 위한 공간 확보, 텍스트는 좌측 정렬된 것처럼 보일 수 있으나 이미지상 타이틀 위치 확인하여 조정 */}
-// //           </h1>
-// //           {/* 이미지상의 "프로필 설정" 텍스트 위치가 헤더 하단 혹은 좌측 상단일 수 있어 레이아웃 조정 */}
-// //         </header>
-
-// //         {/* 헤더 타이틀 (이미지 스타일: 좌측 정렬, 굵게) */}
-// //         <div className="px-5 mb-6">
-// //           <h1 className="text-xl font-bold text-gray-800">프로필 설정</h1>
-// //         </div>
-
-// //         {/* 메인 스크롤 영역 */}
-// //         <main className="flex-1 px-5 overflow-y-auto scrollbar-hide pb-24">
-// //           {/* 2. 프로필 이미지 */}
-// //           <div className="flex justify-center mb-8">
-// //             <div className="relative">
-// //               <div className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
-// //                 {/* 임시 프로필 이미지 (사람 얼굴) */}
-// //                 <img
-// //                   src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80"
-// //                   alt="Profile"
-// //                   className="w-full h-full object-cover"
-// //                 />
-// //               </div>
-// //               {/* 편집 버튼 (연필) */}
-// //               <button className="absolute top-0 right-0 bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-// //                 <Pencil size={14} fill="white" />
-// //               </button>
-// //             </div>
-// //           </div>
-
-// //           {/* 3. 닉네임 */}
-// //           <div className="mb-8">
-// //             <label className="block text-xs font-medium text-gray-500 mb-1">
-// //               닉네임
-// //             </label>
-// //             <div className="flex items-center border-b border-gray-200 focus-within:border-black pb-2">
-// //               <input
-// //                 type="text"
-// //                 value={nickname}
-// //                 onChange={(e) => setNickname(e.target.value)}
-// //                 maxLength={10}
-// //                 className="flex-1 text-base font-medium text-gray-900 bg-transparent focus:outline-none placeholder-gray-300"
-// //               />
-// //               <span className="text-xs text-gray-400">
-// //                 {nickname.length}/10
-// //               </span>
-// //             </div>
-// //           </div>
-
-// //           {/* 4. 대표 칭호 */}
-// //           <div className="mb-8">
-// //             <label className="block text-xs font-medium text-gray-500 mb-3">
-// //               대표 칭호
-// //             </label>
-// //             {/* 칭호 컨테이너 (박스 형태) */}
-// //             <div className="border border-gray-200 rounded-2xl p-4 flex justify-between items-center bg-white">
-// //               {titles.map((title, index) => {
-// //                 const isSelected = selectedTitle === index;
-// //                 return (
-// //                   <div
-// //                     key={title.id}
-// //                     onClick={() => setSelectedTitle(index)}
-// //                     className="flex flex-col items-center cursor-pointer w-1/3"
-// //                   >
-// //                     {/* 칭호 아이콘 (원형) */}
-// //                     <div
-// //                       className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 transition-all border-2 relative
-// //                       ${
-// //                         isSelected
-// //                           ? 'border-orange-500 bg-white'
-// //                           : 'border-gray-800 bg-white'
-// //                       }`}
-// //                     >
-// //                       {/* 뱃지 내부 디자인 (별 모양 흉내) */}
-// //                       <div className="text-center">
-// //                         <div className="flex justify-center space-x-[2px] mb-1">
-// //                           {[1, 2, 3, 4, 5].map((star) => (
-// //                             <Star
-// //                               key={star}
-// //                               size={6}
-// //                               fill="black"
-// //                               stroke="none"
-// //                             />
-// //                           ))}
-// //                         </div>
-// //                         <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-// //                           VENVATO
-// //                         </span>
-// //                         <div className="w-full h-[1px] bg-gray-200 my-[2px]"></div>
-// //                         {/* 실제 아이콘이나 텍스트 대신 간단한 이모지 사용 */}
-// //                         <div className="text-lg">{title.icon}</div>
-// //                       </div>
-// //                     </div>
-
-// //                     {/* 칭호 이름 */}
-// //                     <span
-// //                       className={`text-[10px] font-bold tracking-tight whitespace-nowrap
-// //                       ${isSelected ? 'text-orange-500' : 'text-gray-800'}`}
-// //                     >
-// //                       {title.name}
-// //                     </span>
-// //                   </div>
-// //                 );
-// //               })}
-// //             </div>
-// //           </div>
-
-// //           {/* 5. 성별 */}
-// //           <div className="mb-8">
-// //             <label className="block text-xs font-medium text-gray-500 mb-2">
-// //               성별
-// //             </label>
-// //             <div className="flex space-x-3">
-// //               <button
-// //                 onClick={() => setGender('male')}
-// //                 className={`flex-1 py-3 rounded-lg border text-sm font-medium transition-colors
-// //                   ${
-// //                     gender === 'male'
-// //                       ? 'border-orange-500 text-gray-900 bg-white ring-1 ring-orange-500'
-// //                       : 'border-gray-200 text-gray-400 bg-white hover:bg-gray-50'
-// //                   }`}
-// //               >
-// //                 남
-// //               </button>
-// //               <button
-// //                 onClick={() => setGender('female')}
-// //                 className={`flex-1 py-3 rounded-lg border text-sm font-medium transition-colors
-// //                   ${
-// //                     gender === 'female'
-// //                       ? 'border-orange-500 text-gray-900 bg-white ring-1 ring-orange-500'
-// //                       : 'border-gray-200 text-gray-400 bg-white hover:bg-gray-50'
-// //                   }`}
-// //               >
-// //                 여
-// //               </button>
-// //             </div>
-// //           </div>
-
-// //           {/* 6. 주소지 (기존 코드에 없었으나 이미지에 있어 추가) */}
-// //           <div className="mb-8">
-// //             <label className="block text-xs font-medium text-gray-500 mb-2">
-// //               주소지
-// //             </label>
-// //             <div className="flex space-x-2">
-// //               <input
-// //                 type="text"
-// //                 placeholder="지번, 도로명, 건물명으로 검색"
-// //                 className="flex-1 border border-gray-200 rounded-lg px-4 py-3 text-xs placeholder-gray-300 focus:outline-none focus:border-orange-500"
-// //               />
-// //               <button className="bg-gray-100 text-gray-600 px-5 rounded-lg text-xs font-medium whitespace-nowrap">
-// //                 검색
-// //               </button>
-// //             </div>
-// //           </div>
-
-// //           {/* 7. 단골 가게 등록 */}
-// //           <div className="mb-8">
-// //             <label className="block text-xs font-medium text-gray-500 mb-2">
-// //               단골 가게 등록
-// //             </label>
-// //             <div className="space-y-2">
-// //               {/* 등록된 가게 아이템 */}
-// //               <div className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white">
-// //                 <div className="flex flex-col">
-// //                   <span className="text-xs font-bold text-gray-900">
-// //                     카페나무
-// //                   </span>
-// //                   <span className="text-[10px] text-gray-400 mt-0.5">
-// //                     서울 마포구 와우산로 94 롯폰기 1층 (상수동)
-// //                   </span>
-// //                 </div>
-// //                 <button className="text-gray-300">
-// //                   <MoreVertical size={16} />
-// //                 </button>
-// //               </div>
-
-// //               {/* 빈 슬롯 1 */}
-// //               <button className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-gray-400 transition-colors">
-// //                 <Plus size={20} strokeWidth={1.5} />
-// //               </button>
-
-// //               {/* 빈 슬롯 2 */}
-// //               <button className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-gray-400 transition-colors">
-// //                 <Plus size={20} strokeWidth={1.5} />
-// //               </button>
-// //             </div>
-// //           </div>
-// //         </main>
-
-// //         {/* 8. 하단 저장 버튼 */}
-// //         <div className="absolute bottom-0 left-0 right-0 p-5 bg-white bg-opacity-90 backdrop-blur-sm">
-// //           <button className="w-full bg-[#FF5F00] hover:bg-[#e55600] text-white font-bold py-4 rounded-full text-sm shadow-md transition-colors">
-// //             저장
-// //           </button>
-// //         </div>
-// //       </div>
-// //     </div>
-// //   );
-// // };
-
-// // export default ProfileSetting;
-
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React, { useState, useEffect } from 'react';
-// import { ChevronLeft, Pencil, MoreVertical, Plus, Star } from 'lucide-react';
+// import { useNavigate } from 'react-router-dom';
+// import { Pencil, MoreVertical, Plus, Star } from 'lucide-react';
+// import BackButton from '../../components/BackButton';
+// import AddressModal from '../../components/AddressModal';
 
 // // [설정] .env 설정이 없으면 기본값 사용
 // const apiUri = import.meta.env.VITE_API_URI || 'http://localhost:8080';
 
-// // 뒤로가기 컴포넌트
-// const BackButton = () => (
-//   <button className="p-2 -ml-2 text-gray-600 hover:text-gray-900 transition-colors">
-//     <ChevronLeft size={24} />
-//   </button>
-// );
-
 // const ProfileSetting = () => {
+//   const navigate = useNavigate();
+
 //   // --- 상태 관리 ---
 //   const [loading, setLoading] = useState(true);
-//   const [nickname, setNickname] = useState('김멋사');
-//   const [gender, setGender] = useState('male'); // 'male' | 'female'
+//   const [isSaving, setIsSaving] = useState(false);
+
+//   // 프로필 데이터
+//   const [nickname, setNickname] = useState('');
+//   const [gender, setGender] = useState('male');
 //   const [selectedTitle, setSelectedTitle] = useState(0);
 //   const [address, setAddress] = useState('');
 //   const [profileImage, setProfileImage] = useState('');
+
+//   // 좌표 상태 관리
+//   const [coordinates, setCoordinates] = useState({ latitude: 0, longitude: 0 });
+
+//   // [추가] 단골 매장 목록 상태
+//   const [favoriteStores, setFavoriteStores] = useState<any[]>([]);
+
+//   // 모달 상태 관리
+//   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
 //   // 칭호 리스트
 //   const titles = [
@@ -257,85 +38,156 @@
 //     { id: 2, name: '고독한 미식가', icon: '🥘' },
 //   ];
 
-//   // --- API 호출 및 데이터 처리 ---
+//   // --- [1] 초기 데이터 조회 (GET) ---
 //   useEffect(() => {
-//     const fetchProfileSettings = async () => {
+//     const fetchData = async () => {
 //       try {
 //         setLoading(true);
+//         const token = localStorage.getItem('accessToken');
+//         const headers = {
+//           'Content-Type': 'application/json',
+//           Authorization: `Bearer ${token}`,
+//         };
 
-//         // 1. 실제 API 요청 시도
-//         console.log(`Fetching from: ${apiUri}/v1/mypage/settings`);
+//         // 세 개의 API를 병렬로 호출 (설정 + 닉네임 + 단골매장)
+//         const [settingsRes, profileRes, favStoresRes] = await Promise.all([
+//           fetch(`${apiUri}/v1/mypage/settings`, { method: 'GET', headers }),
+//           fetch(`${apiUri}/v1/mypage/profile`, { method: 'GET', headers }),
+//           fetch(`${apiUri}/v1/favstores`, { method: 'GET', headers }), // [추가] 단골매장 조회
+//         ]);
 
-//         const response = await fetch(`${apiUri}/v1/mypage/settings`, {
-//           method: 'GET',
-//           headers: {
-//             'Content-Type': 'application/json',
-//             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-//           },
-//         });
-
-//         if (!response.ok) {
-//           throw new Error(`HTTP Status: ${response.status}`);
+//         // 응답 상태 확인 (하나라도 실패하면 에러 처리할지, 개별 처리할지 결정. 여기선 통칭 에러)
+//         if (!settingsRes.ok || !profileRes.ok || !favStoresRes.ok) {
+//           console.warn('일부 API 호출에 실패했을 수 있습니다.');
 //         }
 
-//         const result = await response.json();
-//         console.log('API Response:', result);
+//         const settingsResult = await settingsRes.json();
+//         const profileResult = await profileRes.json();
+//         const favStoresResult = await favStoresRes.json();
 
-//         // 2. 성공 조건 완화 (code가 0이거나 200이거나, data가 존재하면 성공으로 간주)
-//         if (result.code === 0 || result.code === 200 || result.data) {
-//           const { data } = result;
-//           applyProfileData(data);
-//         } else {
-//           // 서버에서 명시적인 에러 코드를 보낸 경우
-//           throw new Error(result.message || 'Unknown Server Error');
+//         console.log('Settings API:', settingsResult);
+//         console.log('Profile API:', profileResult);
+//         console.log('FavStores API:', favStoresResult);
+
+//         // 1. 설정 데이터 적용
+//         if (checkSuccess(settingsResult) && settingsResult.data) {
+//           applySettingsData(settingsResult.data);
+//         }
+
+//         // 2. 닉네임 데이터 적용
+//         if (checkSuccess(profileResult) && profileResult.data?.nickname) {
+//           setNickname(profileResult.data.nickname);
+//         }
+
+//         // 3. [추가] 단골 매장 데이터 적용
+//         if (
+//           checkSuccess(favStoresResult) &&
+//           Array.isArray(favStoresResult.data)
+//         ) {
+//           setFavoriteStores(favStoresResult.data);
 //         }
 //       } catch (error) {
-//         // 3. [Fallback] API 호출 실패 또는 에러 발생 시 더미 데이터 사용
-//         console.warn(
-//           '⚠️ API 호출 실패 또는 에러 발생. 더미 데이터를 사용합니다.',
-//           error
-//         );
-
-//         const mockData = {
-//           profileImageUrl:
-//             'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-//           representativeBadgeName: '테이크아웃 장인',
-//           gender: 'MALE',
-//           address: '서울 마포구 와우산로 94 (테스트 데이터)',
-//         };
-//         applyProfileData(mockData);
+//         console.error('API Error:', error);
 //       } finally {
 //         setLoading(false);
 //       }
 //     };
 
-//     // 데이터를 State에 적용하는 함수
-//     const applyProfileData = (data: any) => {
-//       if (!data) return;
+//     const checkSuccess = (result: any) => {
+//       return (
+//         result.code === 0 ||
+//         result.code === 200 ||
+//         String(result.code) === '0' ||
+//         String(result.code) === '200' ||
+//         result.message?.includes('성공') ||
+//         result.message?.includes('완료')
+//       );
+//     };
 
-//       // (1) 프로필 이미지
+//     const applySettingsData = (data: any) => {
 //       setProfileImage(data.profileImageUrl || '');
 
-//       // (2) 성별 (대소문자 무관하게 처리)
 //       const genderValue = data.gender ? data.gender.toUpperCase() : 'MALE';
 //       setGender(genderValue === 'FEMALE' ? 'female' : 'male');
 
-//       // (3) 주소
 //       setAddress(data.address || '');
+//       setCoordinates({
+//         latitude: data.latitude || 0,
+//         longitude: data.longitude || 0,
+//       });
 
-//       // (4) 대표 칭호
 //       if (data.representativeBadgeName) {
 //         const badgeIndex = titles.findIndex(
 //           (t) => t.name === data.representativeBadgeName
 //         );
-//         if (badgeIndex !== -1) {
-//           setSelectedTitle(badgeIndex);
-//         }
+//         if (badgeIndex !== -1) setSelectedTitle(badgeIndex);
 //       }
 //     };
 
-//     fetchProfileSettings();
+//     fetchData();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
 //   }, []);
+
+//   // --- [2] 프로필 저장 함수 (POST) ---
+//   const handleSave = async () => {
+//     if (isSaving) return;
+
+//     try {
+//       setIsSaving(true);
+
+//       const payload = {
+//         profileImageUrl: profileImage,
+//         representativeBadgeName: titles[selectedTitle].name,
+//         gender: gender.toUpperCase(),
+//         address: address,
+//         latitude: coordinates.latitude,
+//         longitude: coordinates.longitude,
+//       };
+
+//       console.log('Sending Payload:', payload);
+
+//       const response = await fetch(`${apiUri}/v1/mypage`, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+//         },
+//         body: JSON.stringify(payload),
+//       });
+
+//       const result = await response.json();
+
+//       const isSuccess =
+//         result.code === 0 ||
+//         result.code === 200 ||
+//         String(result.code) === '0' ||
+//         String(result.code) === '200';
+
+//       if (isSuccess) {
+//         alert('프로필이 성공적으로 저장되었습니다.');
+//       } else {
+//         alert(`저장 실패: ${result.message}`);
+//       }
+//     } catch (error) {
+//       console.error('Save Error:', error);
+//       alert('서버 통신 중 오류가 발생했습니다.');
+//     } finally {
+//       setIsSaving(false);
+//     }
+//   };
+
+//   const handleAddressSelect = (data: {
+//     address: string;
+//     x: string;
+//     y: string;
+//   }) => {
+//     setAddress(data.address);
+//     setCoordinates({
+//       latitude: parseFloat(data.y) || 0,
+//       longitude: parseFloat(data.x) || 0,
+//     });
+//     setIsAddressModalOpen(false);
+//   };
 
 //   if (loading) {
 //     return (
@@ -368,18 +220,16 @@
 //           <div className="flex justify-center mb-8">
 //             <div className="relative">
 //               <div className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
-//                 {/* <img
-//                   src={
-//                     profileImage ||
-//                     'https://via.placeholder.com/150?text=No+Image'
-//                   }
-//                   alt="Profile"
-//                   className="w-full h-full object-cover"
-//                   onError={(e) => {
-//                     e.target.onerror = null;
-//                     e.target.src = 'https://via.placeholder.com/150?text=Error';
-//                   }}
-//                 /> */}
+//                 {profileImage && (
+//                   <img
+//                     src={profileImage}
+//                     alt="Profile"
+//                     className="w-full h-full object-cover"
+//                     onError={(e) => {
+//                       (e.target as HTMLImageElement).style.display = 'none';
+//                     }}
+//                   />
+//                 )}
 //               </div>
 //               <button className="absolute top-0 right-0 bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm hover:bg-gray-500 transition-colors">
 //                 <Pencil size={14} fill="white" />
@@ -396,13 +246,9 @@
 //               <input
 //                 type="text"
 //                 value={nickname}
-//                 onChange={(e) => setNickname(e.target.value)}
-//                 maxLength={10}
+//                 readOnly
 //                 className="flex-1 text-base font-medium text-gray-900 bg-transparent focus:outline-none placeholder-gray-300"
 //               />
-//               <span className="text-xs text-gray-400">
-//                 {nickname.length}/10
-//               </span>
 //             </div>
 //           </div>
 
@@ -494,59 +340,94 @@
 //             </div>
 //           </div>
 
-//           {/* 주소지 */}
+//           {/* 주소지 영역 */}
 //           <div className="mb-8">
-//             <label className="block text-xs font-medium text-gray-500 mb-2">
+//             <label className="block text-xs font-medium text-gray-500 mb-1">
 //               주소지
 //             </label>
-//             <div className="flex space-x-2">
+//             <div className="flex items-center border-b border-gray-200 pb-2">
 //               <input
 //                 type="text"
 //                 value={address}
-//                 onChange={(e) => setAddress(e.target.value)}
+//                 readOnly
 //                 placeholder="지번, 도로명, 건물명으로 검색"
-//                 className="flex-1 border border-gray-200 rounded-lg px-4 py-3 text-xs placeholder-gray-300 focus:outline-none focus:border-orange-500 transition-colors"
+//                 className="flex-1 text-base font-medium text-gray-900 bg-transparent focus:outline-none placeholder-gray-300 truncate cursor-pointer"
+//                 onClick={() => setIsAddressModalOpen(true)}
 //               />
-//               <button className="bg-gray-100 text-gray-600 px-5 rounded-lg text-xs font-medium whitespace-nowrap hover:bg-gray-200 transition-colors">
+//               <button
+//                 onClick={() => setIsAddressModalOpen(true)}
+//                 className="ml-2 px-3 py-1.5 bg-gray-100 text-xs font-bold text-gray-600 rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
+//               >
 //                 검색
 //               </button>
 //             </div>
 //           </div>
 
-//           {/* 단골 가게 등록 */}
+//           {/* 단골 가게 등록 (API 데이터 연동) */}
 //           <div className="mb-8">
 //             <label className="block text-xs font-medium text-gray-500 mb-2">
 //               단골 가게 등록
 //             </label>
 //             <div className="space-y-2">
-//               <div className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white hover:border-orange-300 transition-colors cursor-pointer">
-//                 <div className="flex flex-col">
-//                   <span className="text-xs font-bold text-gray-900">
-//                     카페나무
-//                   </span>
-//                   <span className="text-[10px] text-gray-400 mt-0.5">
-//                     서울 마포구 와우산로 94 롯폰기 1층 (상수동)
-//                   </span>
+//               {/* 1. 조회된 단골 매장 목록 렌더링 */}
+//               {favoriteStores.map((store) => (
+//                 <div
+//                   key={store.storeId}
+//                   className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white hover:border-orange-300 transition-colors cursor-pointer"
+//                 >
+//                   <div className="flex flex-col">
+//                     <span className="text-xs font-bold text-gray-900">
+//                       {store.storeName}
+//                     </span>
+//                     <span className="text-[10px] text-gray-400 mt-0.5 truncate max-w-[200px]">
+//                       {store.storeAddress}
+//                     </span>
+//                   </div>
+//                   <button className="text-gray-300 hover:text-gray-500">
+//                     <MoreVertical size={16} />
+//                   </button>
 //                 </div>
-//                 <button className="text-gray-300 hover:text-gray-500">
-//                   <MoreVertical size={16} />
-//                 </button>
-//               </div>
-//               <button className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all">
-//                 <Plus size={20} strokeWidth={1.5} />
-//               </button>
-//               <button className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all">
-//                 <Plus size={20} strokeWidth={1.5} />
-//               </button>
+//               ))}
+
+//               {/* 2. 빈 슬롯 채우기 (최대 3개 슬롯 기준, 부족한 만큼 + 버튼 표시) */}
+//               {[...Array(Math.max(0, 3 - favoriteStores.length))].map(
+//                 (_, index) => (
+//                   <button
+//                     key={`add-btn-${index}`}
+//                     onClick={() => navigate('/stampregistration2')}
+//                     className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all"
+//                   >
+//                     <Plus size={20} strokeWidth={1.5} />
+//                   </button>
+//                 )
+//               )}
 //             </div>
 //           </div>
 //         </main>
 
+//         {/* 저장 버튼 */}
 //         <div className="absolute bottom-0 left-0 right-0 p-5 bg-white bg-opacity-90 backdrop-blur-sm">
-//           <button className="w-full bg-[#FF5F00] hover:bg-[#e55600] text-white font-bold py-4 rounded-full text-sm shadow-md transition-all transform active:scale-95">
-//             저장
+//           <button
+//             onClick={handleSave}
+//             disabled={isSaving}
+//             className={`w-full font-bold py-4 rounded-full text-sm shadow-md transition-all transform active:scale-95
+//               ${
+//                 isSaving
+//                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+//                   : 'bg-[#FF5F00] hover:bg-[#e55600] text-white'
+//               }`}
+//           >
+//             {isSaving ? '저장 중...' : '저장'}
 //           </button>
 //         </div>
+
+//         {/* 주소 모달 연결 */}
+//         {isAddressModalOpen && (
+//           <AddressModal
+//             onClose={() => setIsAddressModalOpen(false)}
+//             onSelect={handleAddressSelect}
+//           />
+//         )}
 //       </div>
 //     </div>
 //   );
@@ -555,30 +436,38 @@
 // export default ProfileSetting;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Pencil, MoreVertical, Plus, Star } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Pencil, MoreVertical, Plus, Star } from 'lucide-react';
 import BackButton from '../../components/BackButton';
+import AddressModal from '../../components/AddressModal';
 
 // [설정] .env 설정이 없으면 기본값 사용
 const apiUri = import.meta.env.VITE_API_URI || 'http://localhost:8080';
 
-// 뒤로가기 컴포넌트
-
-<div className="flex items-center justify-between px-4 py-4 sticky top-0 bg-white z-10">
-  <BackButton />
-</div>;
-
 const ProfileSetting = () => {
+  const navigate = useNavigate();
+
   // --- 상태 관리 ---
   const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false); // 저장 중 상태 추가
-  const [nickname, setNickname] = useState('김멋사');
-  const [gender, setGender] = useState('male'); // 'male' | 'female'
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 프로필 데이터
+  const [nickname, setNickname] = useState('');
+  const [gender, setGender] = useState('male');
   const [selectedTitle, setSelectedTitle] = useState(0);
   const [address, setAddress] = useState('');
-  const [profileImage, setProfileImage] = useState('');
 
-  // 칭호 리스트
+  // 이미지 관리
+  const [profileImage, setProfileImage] = useState(''); // 화면 표시용 URL
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null); // 전송용 파일 객체
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 좌표 및 기타 데이터
+  const [coordinates, setCoordinates] = useState({ latitude: 0, longitude: 0 });
+  const [favoriteStores, setFavoriteStores] = useState<any[]>([]);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
   const titles = [
     { id: 0, name: '전설의 바리스타', icon: '☕' },
     { id: 1, name: '테이크아웃 장인', icon: '🏃' },
@@ -587,52 +476,77 @@ const ProfileSetting = () => {
 
   // --- [1] 초기 데이터 조회 (GET) ---
   useEffect(() => {
-    const fetchProfileSettings = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        console.log(`Fetching from: ${apiUri}/v1/mypage/settings`);
+        const token = localStorage.getItem('accessToken');
+        const headers = {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        };
 
-        const response = await fetch(`${apiUri}/v1/mypage/settings`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          },
-        });
+        const [settingsRes, profileRes, favStoresRes] = await Promise.all([
+          fetch(`${apiUri}/v1/mypage/settings`, { method: 'GET', headers }),
+          fetch(`${apiUri}/v1/mypage/profile`, { method: 'GET', headers }),
+          fetch(`${apiUri}/v1/favstores`, { method: 'GET', headers }),
+        ]);
 
-        if (!response.ok) {
-          throw new Error(`HTTP Status: ${response.status}`);
+        const settingsResult = await settingsRes.json();
+        const profileResult = await profileRes.json();
+        const favStoresResult = await favStoresRes.json();
+
+        // 1. 설정 데이터 적용
+        if (checkSuccess(settingsResult) && settingsResult.data) {
+          applySettingsData(settingsResult.data);
         }
 
-        const result = await response.json();
+        // 2. 닉네임 데이터 적용 (프로필 API 혹은 설정 API 데이터 활용)
+        if (settingsResult.data?.nickname) {
+          setNickname(settingsResult.data.nickname);
+        } else if (
+          checkSuccess(profileResult) &&
+          profileResult.data?.nickname
+        ) {
+          setNickname(profileResult.data.nickname);
+        }
 
-        // 성공 조건 (code가 0 또는 200)
-        if (result.code === 0 || result.code === 200 || result.data) {
-          applyProfileData(result.data);
-        } else {
-          throw new Error(result.message || 'Unknown Server Error');
+        // 3. 단골 매장 데이터 적용
+        if (
+          checkSuccess(favStoresResult) &&
+          Array.isArray(favStoresResult.data)
+        ) {
+          setFavoriteStores(favStoresResult.data);
         }
       } catch (error) {
-        console.warn('⚠️ API 호출 실패. 더미 데이터를 사용합니다.', error);
-        // Fallback 더미 데이터
-        const mockData = {
-          profileImageUrl: '',
-          representativeBadgeName: '테이크아웃 장인',
-          gender: 'MALE',
-          address: '서울 마포구 와우산로 94 (테스트 데이터)',
-        };
-        applyProfileData(mockData);
+        console.error('API Error:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    const applyProfileData = (data: any) => {
-      if (!data) return;
+    const checkSuccess = (result: any) => {
+      return (
+        result.code === 0 ||
+        result.code === 200 ||
+        String(result.code) === '0' ||
+        String(result.code) === '200' ||
+        result.message?.includes('성공') ||
+        result.message?.includes('완료')
+      );
+    };
+
+    const applySettingsData = (data: any) => {
       setProfileImage(data.profileImageUrl || '');
+
       const genderValue = data.gender ? data.gender.toUpperCase() : 'MALE';
       setGender(genderValue === 'FEMALE' ? 'female' : 'male');
+
       setAddress(data.address || '');
+      setCoordinates({
+        latitude: data.latitude || 0,
+        longitude: data.longitude || 0,
+      });
+
       if (data.representativeBadgeName) {
         const badgeIndex = titles.findIndex(
           (t) => t.name === data.representativeBadgeName
@@ -641,46 +555,67 @@ const ProfileSetting = () => {
       }
     };
 
-    fetchProfileSettings();
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // --- [2] 프로필 저장 함수 (POST) ---
+  // 이미지 변경 핸들러
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setProfileImage(previewUrl);
+    }
+  };
+
+  // --- [2] 저장 함수 (PATCH + FormData) ---
   const handleSave = async () => {
-    if (isSaving) return; // 중복 클릭 방지
+    if (isSaving) return;
 
     try {
       setIsSaving(true);
+      const formData = new FormData();
 
-      // 전송할 데이터 구성
-      const payload = {
-        // 닉네임 필드가 API에 있다면 포함, 응답 명세에는 없었으나 UI에 있으므로 전송 시도
-        // nickname: nickname,
-        profileImageUrl: profileImage,
-        representativeBadgeName: titles[selectedTitle].name, // 인덱스를 칭호 이름으로 변환
-        gender: gender.toUpperCase(), // 'male' -> 'MALE'
-        address: address,
-        // 위도/경도는 주소 검색 로직이 없으므로 현재는 0 또는 기존 값 유지 필요 (API 스펙에 따름)
-        latitude: 0,
-        longitude: 0,
-      };
+      // 닉네임 (API 명세에 따라 필수)
+      formData.append('nickname', nickname);
 
-      console.log('Sending Payload:', payload);
+      // 이미지 파일 (변경된 경우에만 추가)
+      if (profileImageFile) {
+        formData.append('profileImageUrl', profileImageFile);
+      }
 
-      const response = await fetch(`${apiUri}/v1/mypage`, {
-        method: 'POST',
+      // 기타 데이터
+      formData.append('representativeBadgeName', titles[selectedTitle].name);
+      formData.append('gender', gender.toUpperCase());
+      formData.append('address', address);
+      formData.append('latitude', String(coordinates.latitude || 0));
+      formData.append('longitude', String(coordinates.longitude || 0));
+
+      const endpoint = `${apiUri}/v1/mypage/settings`;
+
+      console.log(`Sending PATCH request to: ${endpoint}`);
+
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
+          // Content-Type 제거 (브라우저가 boundary 자동 설정)
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       const result = await response.json();
       console.log('Save Response:', result);
 
-      if (result.code === 0 || result.code === 200) {
-        alert('프로필이 성공적으로 저장되었습니다.');
-        // 성공 시 추가 동작 (예: 페이지 이동 등)
+      const isSuccess =
+        result.code === 0 ||
+        result.code === 200 ||
+        String(result.code) === '0' ||
+        String(result.code) === '200';
+
+      if (isSuccess) {
+        alert('프로필이 성공적으로 수정되었습니다.');
       } else {
         alert(`저장 실패: ${result.message}`);
       }
@@ -690,6 +625,19 @@ const ProfileSetting = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleAddressSelect = (data: {
+    address: string;
+    x: string;
+    y: string;
+  }) => {
+    setAddress(data.address);
+    setCoordinates({
+      latitude: parseFloat(data.y) || 0,
+      longitude: parseFloat(data.x) || 0,
+    });
+    setIsAddressModalOpen(false);
   };
 
   if (loading) {
@@ -719,30 +667,41 @@ const ProfileSetting = () => {
 
         {/* 메인 영역 */}
         <main className="flex-1 px-5 overflow-y-auto scrollbar-hide pb-24">
-          {/* 프로필 이미지 */}
+          {/* 이미지 변경 */}
           <div className="flex justify-center mb-8">
-            <div className="relative">
+            <div
+              className="relative group cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <div className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
-                {/* 실제 이미지가 있다면 표시, 없으면 배경만 */}
                 {profileImage && (
                   <img
                     src={profileImage}
                     alt="Profile"
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // 이미지 로드 실패 시 처리
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
                 )}
               </div>
-              <button className="absolute top-0 right-0 bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm hover:bg-gray-500 transition-colors">
+              <button
+                type="button"
+                className="absolute top-0 right-0 bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-gray-500 transition-colors"
+              >
                 <Pencil size={14} fill="white" />
               </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="hidden"
+                accept="image/*"
+              />
             </div>
           </div>
 
-          {/* 닉네임 */}
+          {/* 닉네임 수정 */}
           <div className="mb-8">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               닉네임
@@ -761,7 +720,7 @@ const ProfileSetting = () => {
             </div>
           </div>
 
-          {/* 대표 칭호 */}
+          {/* 칭호 */}
           <div className="mb-8">
             <label className="block text-xs font-medium text-gray-500 mb-3">
               대표 칭호
@@ -851,53 +810,69 @@ const ProfileSetting = () => {
 
           {/* 주소지 */}
           <div className="mb-8">
-            <label className="block text-xs font-medium text-gray-500 mb-2">
+            <label className="block text-xs font-medium text-gray-500 mb-1">
               주소지
             </label>
-            <div className="flex space-x-2">
+            <div className="flex items-center border-b border-gray-200 pb-2">
               <input
                 type="text"
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                readOnly
                 placeholder="지번, 도로명, 건물명으로 검색"
-                className="flex-1 border border-gray-200 rounded-lg px-4 py-3 text-xs placeholder-gray-300 focus:outline-none focus:border-orange-500 transition-colors"
+                className="flex-1 text-base font-medium text-gray-900 bg-transparent focus:outline-none placeholder-gray-300 truncate cursor-pointer"
+                onClick={() => setIsAddressModalOpen(true)}
               />
-              <button className="bg-gray-100 text-gray-600 px-5 rounded-lg text-xs font-medium whitespace-nowrap hover:bg-gray-200 transition-colors">
+              <button
+                onClick={() => setIsAddressModalOpen(true)}
+                className="ml-2 px-3 py-1.5 bg-gray-100 text-xs font-bold text-gray-600 rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
+              >
                 검색
               </button>
             </div>
           </div>
 
-          {/* 단골 가게 등록 (UI만 유지) */}
+          {/* 단골 가게 */}
           <div className="mb-8">
             <label className="block text-xs font-medium text-gray-500 mb-2">
               단골 가게 등록
             </label>
             <div className="space-y-2">
-              <div className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white hover:border-orange-300 transition-colors cursor-pointer">
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-gray-900">
-                    카페나무
-                  </span>
-                  <span className="text-[10px] text-gray-400 mt-0.5">
-                    서울 마포구 와우산로 94 롯폰기 1층 (상수동)
-                  </span>
+              {favoriteStores.map((store) => (
+                <div
+                  key={store.storeId}
+                  className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white hover:border-orange-300 transition-colors cursor-pointer"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-900">
+                      {store.storeName}
+                    </span>
+                    <span className="text-[10px] text-gray-400 mt-0.5 truncate max-w-[200px]">
+                      {store.storeAddress}
+                    </span>
+                  </div>
+                  <button className="text-gray-300 hover:text-gray-500">
+                    <MoreVertical size={16} />
+                  </button>
                 </div>
-                <button className="text-gray-300 hover:text-gray-500">
-                  <MoreVertical size={16} />
-                </button>
-              </div>
-              <button className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all">
-                <Plus size={20} strokeWidth={1.5} />
-              </button>
-              <button className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all">
-                <Plus size={20} strokeWidth={1.5} />
-              </button>
+              ))}
+
+              {/* 빈 슬롯 +버튼 생성 */}
+              {[...Array(Math.max(0, 3 - favoriteStores.length))].map(
+                (_, index) => (
+                  <button
+                    key={`add-btn-${index}`}
+                    onClick={() => navigate('/stampregistration2')}
+                    className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all"
+                  >
+                    <Plus size={20} strokeWidth={1.5} />
+                  </button>
+                )
+              )}
             </div>
           </div>
         </main>
 
-        {/* 저장 버튼 (이벤트 연결됨) */}
+        {/* 저장 버튼 */}
         <div className="absolute bottom-0 left-0 right-0 p-5 bg-white bg-opacity-90 backdrop-blur-sm">
           <button
             onClick={handleSave}
@@ -912,6 +887,14 @@ const ProfileSetting = () => {
             {isSaving ? '저장 중...' : '저장'}
           </button>
         </div>
+
+        {/* 주소 모달 */}
+        {isAddressModalOpen && (
+          <AddressModal
+            onClose={() => setIsAddressModalOpen(false)}
+            onSelect={handleAddressSelect}
+          />
+        )}
       </div>
     </div>
   );
