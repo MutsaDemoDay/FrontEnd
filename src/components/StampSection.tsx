@@ -1,6 +1,9 @@
 // import React, { useState, useRef, useCallback, useEffect } from 'react';
-// // import Plus from '../assets/plus.svg';
-// // import ThreeDots from '../assets/threedots.svg';
+// import Wallet1 from '../assets/wallet1.png';
+// import Wallet2 from '../assets/wallet2.png';
+// import Wallet3 from '../assets/wallet3.png';
+// import Wallet4 from '../assets/wallet4.png';
+// import Wallet5 from '../assets/wallet5.png';
 
 // // ==========================================
 // // ✅ 1. StampCard 컴포넌트 (UI 표시용)
@@ -15,8 +18,8 @@
 
 // interface StampCardProps {
 //   data: StampData | null;
-//   currentIndex?: number; // 페이지네이션 표시용 (선택사항)
-//   totalLength?: number; // 페이지네이션 표시용 (선택사항)
+//   currentIndex?: number;
+//   totalLength?: number;
 // }
 
 // const StampCard = ({
@@ -24,50 +27,47 @@
 //   currentIndex = 0,
 //   totalLength = 0,
 // }: StampCardProps) => {
-//   // 데이터가 없을 경우
 //   if (!data) {
 //     return (
-//       <div className="bg-white rounded-2xl p-5 shadow-sm h-[100px] flex items-center justify-center text-gray-400 text-sm border border-gray-100">
+//       <div className="bg-white rounded-[24px] p-6 shadow-sm h-[100px] flex items-center justify-center text-gray-400 text-sm border border-gray-100">
 //         적립된 스탬프 정보가 없습니다.
 //       </div>
 //     );
 //   }
 
-//   // 남은 개수 계산 (음수 방지)
 //   const remaining = Math.max(0, data.maxCount - data.currentCount);
 
 //   return (
-//     <div className="bg-white rounded-2xl p-5 shadow-[0_2px_15px_rgba(0,0,0,0.08)] relative overflow-hidden border border-gray-100">
-//       <div className="flex justify-between items-center pb-4">
-//         {/* Left Text Section */}
+//     <div className="bg-white rounded-[24px] px-6 py-5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] relative border border-gray-100/50">
+//       <div className="flex justify-between items-center pb-3">
 //         <div>
-//           <p className="text-gray-800 text-sm mb-1">
-//             {data.storeName}{' '}
-//             <span className="font-bold">
-//               {remaining > 0 ? `${remaining}잔 더` : '스탬프 완료!'}
-//             </span>
+//           <p className="text-gray-500 text-[13px] tracking-tight mb-0.5">
+//             이 카페{' '}
+//             <span className="font-bold text-gray-900">{remaining}잔 더</span>{' '}
+//             적립하면 스탬프 완성!
 //           </p>
-//           <div className="flex items-end gap-1">
-//             <span className="text-[#FF6B00] font-bold text-xl">
+//           <div className="flex items-baseline gap-1.5">
+//             <span className="text-[#FF6B00] font-bold text-[28px] leading-tight font-sans">
 //               {data.currentCount}/{data.maxCount}
 //             </span>
-//             <span className="text-gray-400 text-xs mb-1">개 현재 적립</span>
+//             <span className="text-gray-400 text-[13px] font-medium">
+//               개 현재 적립
+//             </span>
 //           </div>
 //         </div>
 
-//         {/* Right Arrow Button */}
-//         <button className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+//         <button className="w-10 h-10 bg-[#F2F4F6] rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0 ml-4">
 //           <svg
-//             width="6"
-//             height="10"
-//             viewBox="0 0 6 10"
+//             width="8"
+//             height="14"
+//             viewBox="0 0 8 14"
 //             fill="none"
 //             xmlns="http://www.w3.org/2000/svg"
 //           >
 //             <path
-//               d="M1 9L5 5L1 1"
-//               stroke="#9CA3AF"
-//               strokeWidth="1.5"
+//               d="M1 13L7 7L1 1"
+//               stroke="#6B7280"
+//               strokeWidth="2"
 //               strokeLinecap="round"
 //               strokeLinejoin="round"
 //             />
@@ -75,17 +75,15 @@
 //         </button>
 //       </div>
 
-//       {/* Pagination Dots (현재 위치 반영) */}
 //       {totalLength > 1 && (
-//         <div className="flex justify-center items-center space-x-1 absolute bottom-2 left-0 right-0">
+//         <div className="flex justify-center items-center gap-1.5 absolute bottom-3 left-0 right-0">
 //           {Array.from({ length: Math.min(5, totalLength) }).map((_, i) => (
 //             <div
 //               key={i}
 //               className={`rounded-full transition-all duration-300 ${
-//                 // 간단한 로직: 인덱스가 일치하면 활성화 (5개 이상일 경우 로직 고도화 필요하지만 여기선 단순화)
 //                 i === currentIndex % 5
-//                   ? 'w-3 h-1 bg-gray-600'
-//                   : 'w-1 h-1 bg-gray-200'
+//                   ? 'w-4 h-1.5 bg-gray-800'
+//                   : 'w-1.5 h-1.5 bg-gray-300'
 //               }`}
 //             ></div>
 //           ))}
@@ -99,12 +97,28 @@
 // // ✅ 2. StampSection 내부 로직
 // // ==========================================
 
-// // API 응답 타입
+// // [API 타입 정의] 스탬프 목록
 // interface StampResponse {
 //   storeName: string;
 //   currentCount: number;
 //   maxCount: number;
 //   stampImageUrl: string;
+// }
+
+// // [API 타입 정의] 대시보드 (지갑 레벨 확인용)
+// interface DashboardResponse {
+//   timestamp: string;
+//   code: number;
+//   message: string;
+//   data: {
+//     myInfo: {
+//       nickname: string;
+//       totalStampSum: number;
+//       topPercent: string;
+//       profileImageUrl: string;
+//     };
+//     topStampers: any[];
+//   };
 // }
 
 // // 내부 상태용 데이터 타입
@@ -115,12 +129,20 @@
 //   totalStamps: number;
 // }
 
-// // 환경 변수 설정
 // const API_BASE_URL = import.meta.env.VITE_API_URI || 'http://localhost:8080';
 // const SWIPE_THRESHOLD = 50;
 // const DAMPING_FACTOR = 0.7;
 
-// // 카드 내부 내용물 (스탬프 도장 찍히는 3D 카드)
+// // --- [헬퍼 함수] 스탬프 총 개수에 따른 지갑 이미지 결정 ---
+// const getWalletImage = (totalStampSum: number): string => {
+//   if (totalStampSum < 20) return Wallet1;
+//   if (totalStampSum < 40) return Wallet2;
+//   if (totalStampSum < 60) return Wallet3;
+//   if (totalStampSum < 80) return Wallet4;
+//   return Wallet5;
+// };
+
+// // 카드 내부 내용물
 // const StampCardContent = ({
 //   currentStamps,
 //   totalStamps,
@@ -241,8 +263,10 @@
 // const StampSection = () => {
 //   // --- 상태 관리 ---
 //   const [stampCards, setStampCards] = useState<StampCardData[]>([]);
+//   const [currentWallet, setCurrentWallet] = useState<string>(Wallet1);
 //   const [isLoading, setIsLoading] = useState(true);
 //   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
 //   const [activeIndex, setActiveIndex] = useState(0);
 //   const [currentY, setCurrentY] = useState(0);
 
@@ -250,39 +274,46 @@
 
 //   // --- 데이터 페칭 ---
 //   useEffect(() => {
-//     const fetchStamps = async () => {
+//     const fetchData = async () => {
 //       try {
 //         setIsLoading(true);
 //         setErrorMsg(null);
 //         const token =
 //           localStorage.getItem('accessToken') || localStorage.getItem('token');
+//         const headers = {
+//           'Content-Type': 'application/json',
+//           ...(token && { Authorization: `Bearer ${token}` }),
+//         };
 
-//         const response = await fetch(`${API_BASE_URL}/v1/users/stamps`, {
-//           method: 'GET',
-//           headers: {
-//             'Content-Type': 'application/json',
-//             ...(token && { Authorization: `Bearer ${token}` }),
-//           },
-//         });
+//         const [stampsRes, dashboardRes] = await Promise.all([
+//           fetch(`${API_BASE_URL}/v1/users/stamps`, { method: 'GET', headers }),
+//           fetch(`${API_BASE_URL}/v1/rewards/dashboard`, {
+//             method: 'GET',
+//             headers,
+//           }),
+//         ]);
 
-//         if (!response.ok) {
-//           const errorText = await response.text();
-//           throw new Error(`서버 에러 (${response.status}): ${errorText}`);
-//         }
+//         if (!stampsRes.ok) throw new Error(`스탬프 로딩 실패`);
+//         if (!dashboardRes.ok) throw new Error(`대시보드 로딩 실패`);
 
-//         const data: StampResponse[] = await response.json();
+//         const stampsData: StampResponse[] = await stampsRes.json();
+//         const dashboardData: DashboardResponse = await dashboardRes.json();
 
-//         const formattedData: StampCardData[] = data.map((item, index) => ({
-//           id: index,
-//           name: item.storeName,
-//           currentStamps: item.currentCount,
-//           totalStamps: item.maxCount,
-//         }));
-
+//         const formattedData: StampCardData[] = stampsData.map(
+//           (item, index) => ({
+//             id: index,
+//             name: item.storeName,
+//             currentStamps: item.currentCount,
+//             totalStamps: item.maxCount,
+//           })
+//         );
 //         setStampCards(formattedData);
 //         totalCardsRef.current = formattedData.length;
+
+//         const totalSum = dashboardData.data.myInfo.totalStampSum || 0;
+//         setCurrentWallet(getWalletImage(totalSum));
 //       } catch (error: any) {
-//         console.error('Failed to fetch stamps:', error);
+//         console.error('Failed to fetch data:', error);
 //         setErrorMsg(error.message);
 //         setStampCards([]);
 //         totalCardsRef.current = 0;
@@ -291,7 +322,7 @@
 //       }
 //     };
 
-//     fetchStamps();
+//     fetchData();
 //   }, []);
 
 //   useEffect(() => {
@@ -358,7 +389,6 @@
 //   };
 
 //   // --- 렌더링 준비 ---
-//   // ✅ 현재 활성화된 카드 데이터를 StampCard용 포맷으로 변환
 //   const currentStampData =
 //     stampCards.length > 0 ? stampCards[activeIndex] : null;
 
@@ -367,7 +397,7 @@
 //         storeName: currentStampData.name,
 //         currentCount: currentStampData.currentStamps,
 //         maxCount: currentStampData.totalStamps,
-//         stampImageUrl: '', // 이미지가 있다면 여기에 매핑
+//         stampImageUrl: '',
 //       }
 //     : null;
 
@@ -399,8 +429,6 @@
 
 //   return (
 //     <div className="rounded-lg pb-6 overflow-hidden">
-//       {' '}
-//       {/* bg-white 제거 (상위에서 처리하거나 필요시 추가) */}
 //       {/* 1. 3D 카드 스택 (드래그 영역) */}
 //       <div
 //         className="relative h-56 w-full flex items-center mb-4 touch-none"
@@ -409,9 +437,16 @@
 //           handleDragStart(e.touches[0].clientY)
 //         }
 //       >
-//         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[78px] h-[220px] bg-[#F60] rounded-r-[20px] z-0"></div>
-//         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[39px] h-[190px] bg-[#EF6000] rounded-r-[10px] border-r-[3px] border-r-[rgba(0,0,0,0.60)] z-20"></div>
+//         {/* ✅ 지갑 이미지 (배경) - left-0으로 수정 */}
+//         <div className="absolute left-0 top-1/2 -translate-y-1/2 z-0">
+//           <img
+//             src={currentWallet}
+//             alt="My Wallet Level"
+//             className="h-[240px] w-auto object-contain drop-shadow-xl"
+//           />
+//         </div>
 
+//         {/* 카드 스택 */}
 //         <div
 //           className={`relative w-[250px] h-[160px] ml-[39px] z-10 ${
 //             isDraggingRef.current ? 'cursor-grabbing' : 'cursor-grab'
@@ -499,9 +534,14 @@
 // export default StampSection;
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import Wallet1 from '../assets/wallet1.png';
+import Wallet2 from '../assets/wallet2.png';
+import Wallet3 from '../assets/wallet3.png';
+import Wallet4 from '../assets/wallet4.png';
+import Wallet5 from '../assets/wallet5.png';
 
 // ==========================================
-// ✅ 1. StampCard 컴포넌트 (UI 표시용 - 디자인 수정됨)
+// ✅ 1. StampCard 컴포넌트 (UI 표시용)
 // ==========================================
 
 export interface StampData {
@@ -513,8 +553,8 @@ export interface StampData {
 
 interface StampCardProps {
   data: StampData | null;
-  currentIndex?: number; // 페이지네이션 표시용
-  totalLength?: number; // 페이지네이션 표시용
+  currentIndex?: number;
+  totalLength?: number;
 }
 
 const StampCard = ({
@@ -522,7 +562,6 @@ const StampCard = ({
   currentIndex = 0,
   totalLength = 0,
 }: StampCardProps) => {
-  // 데이터가 없을 경우
   if (!data) {
     return (
       <div className="bg-white rounded-[24px] p-6 shadow-sm h-[100px] flex items-center justify-center text-gray-400 text-sm border border-gray-100">
@@ -531,13 +570,11 @@ const StampCard = ({
     );
   }
 
-  // 남은 개수 계산 (음수 방지)
   const remaining = Math.max(0, data.maxCount - data.currentCount);
 
   return (
     <div className="bg-white rounded-[24px] px-6 py-5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] relative border border-gray-100/50">
       <div className="flex justify-between items-center pb-3">
-        {/* Left Text Section */}
         <div>
           <p className="text-gray-500 text-[13px] tracking-tight mb-0.5">
             이 카페{' '}
@@ -554,7 +591,6 @@ const StampCard = ({
           </div>
         </div>
 
-        {/* Right Arrow Button */}
         <button className="w-10 h-10 bg-[#F2F4F6] rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0 ml-4">
           <svg
             width="8"
@@ -574,7 +610,6 @@ const StampCard = ({
         </button>
       </div>
 
-      {/* Pagination Dots */}
       {totalLength > 1 && (
         <div className="flex justify-center items-center gap-1.5 absolute bottom-3 left-0 right-0">
           {Array.from({ length: Math.min(5, totalLength) }).map((_, i) => (
@@ -582,8 +617,8 @@ const StampCard = ({
               key={i}
               className={`rounded-full transition-all duration-300 ${
                 i === currentIndex % 5
-                  ? 'w-4 h-1.5 bg-gray-800' // 활성화된 점 (길쭉하게)
-                  : 'w-1.5 h-1.5 bg-gray-300' // 비활성화된 점
+                  ? 'w-4 h-1.5 bg-gray-800'
+                  : 'w-1.5 h-1.5 bg-gray-300'
               }`}
             ></div>
           ))}
@@ -597,7 +632,6 @@ const StampCard = ({
 // ✅ 2. StampSection 내부 로직
 // ==========================================
 
-// API 응답 타입
 interface StampResponse {
   storeName: string;
   currentCount: number;
@@ -605,7 +639,21 @@ interface StampResponse {
   stampImageUrl: string;
 }
 
-// 내부 상태용 데이터 타입
+interface DashboardResponse {
+  timestamp: string;
+  code: number;
+  message: string;
+  data: {
+    myInfo: {
+      nickname: string;
+      totalStampSum: number;
+      topPercent: string;
+      profileImageUrl: string;
+    };
+    topStampers: any[];
+  };
+}
+
 interface StampCardData {
   id: number;
   name: string;
@@ -613,12 +661,18 @@ interface StampCardData {
   totalStamps: number;
 }
 
-// 환경 변수 설정
 const API_BASE_URL = import.meta.env.VITE_API_URI || 'http://localhost:8080';
 const SWIPE_THRESHOLD = 50;
 const DAMPING_FACTOR = 0.7;
 
-// 카드 내부 내용물 (스탬프 도장 찍히는 3D 카드)
+const getWalletImage = (totalStampSum: number): string => {
+  if (totalStampSum < 20) return Wallet1;
+  if (totalStampSum < 40) return Wallet2;
+  if (totalStampSum < 60) return Wallet3;
+  if (totalStampSum < 80) return Wallet4;
+  return Wallet5;
+};
+
 const StampCardContent = ({
   currentStamps,
   totalStamps,
@@ -739,8 +793,10 @@ const StampCardContent = ({
 const StampSection = () => {
   // --- 상태 관리 ---
   const [stampCards, setStampCards] = useState<StampCardData[]>([]);
+  const [currentWallet, setCurrentWallet] = useState<string>(Wallet1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [currentY, setCurrentY] = useState(0);
 
@@ -748,39 +804,46 @@ const StampSection = () => {
 
   // --- 데이터 페칭 ---
   useEffect(() => {
-    const fetchStamps = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
         setErrorMsg(null);
         const token =
           localStorage.getItem('accessToken') || localStorage.getItem('token');
+        const headers = {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        };
 
-        const response = await fetch(`${API_BASE_URL}/v1/users/stamps`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-        });
+        const [stampsRes, dashboardRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/v1/users/stamps`, { method: 'GET', headers }),
+          fetch(`${API_BASE_URL}/v1/rewards/dashboard`, {
+            method: 'GET',
+            headers,
+          }),
+        ]);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`서버 에러 (${response.status}): ${errorText}`);
-        }
+        if (!stampsRes.ok) throw new Error(`스탬프 로딩 실패`);
+        if (!dashboardRes.ok) throw new Error(`대시보드 로딩 실패`);
 
-        const data: StampResponse[] = await response.json();
+        const stampsData: StampResponse[] = await stampsRes.json();
+        const dashboardData: DashboardResponse = await dashboardRes.json();
 
-        const formattedData: StampCardData[] = data.map((item, index) => ({
-          id: index,
-          name: item.storeName,
-          currentStamps: item.currentCount,
-          totalStamps: item.maxCount,
-        }));
-
+        const formattedData: StampCardData[] = stampsData.map(
+          (item, index) => ({
+            id: index,
+            name: item.storeName,
+            currentStamps: item.currentCount,
+            totalStamps: item.maxCount,
+          })
+        );
         setStampCards(formattedData);
         totalCardsRef.current = formattedData.length;
+
+        const totalSum = dashboardData.data.myInfo.totalStampSum || 0;
+        setCurrentWallet(getWalletImage(totalSum));
       } catch (error: any) {
-        console.error('Failed to fetch stamps:', error);
+        console.error('Failed to fetch data:', error);
         setErrorMsg(error.message);
         setStampCards([]);
         totalCardsRef.current = 0;
@@ -789,7 +852,7 @@ const StampSection = () => {
       }
     };
 
-    fetchStamps();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -904,8 +967,13 @@ const StampSection = () => {
           handleDragStart(e.touches[0].clientY)
         }
       >
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[78px] h-[220px] bg-[#F60] rounded-r-[20px] z-0"></div>
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[39px] h-[190px] bg-[#EF6000] rounded-r-[10px] border-r-[3px] border-r-[rgba(0,0,0,0.60)] z-20"></div>
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 z-0">
+          <img
+            src={currentWallet}
+            alt="My Wallet Level"
+            className="h-[240px] w-auto object-contain drop-shadow-xl"
+          />
+        </div>
 
         <div
           className={`relative w-[250px] h-[160px] ml-[39px] z-10 ${
@@ -979,6 +1047,49 @@ const StampSection = () => {
           })}
         </div>
       </div>
+
+      {/* ✅ [추가됨] 중앙 정보 섹션 (가게 이름 + 스탬프 개수) */}
+      <div className="flex flex-col items-center justify-center py-2 mb-2">
+        {currentStampData && (
+          <>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              {/* 커피 아이콘 SVG */}
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-gray-600"
+              >
+                <path
+                  d="M18 8H19C20.1046 8 21 8.89543 21 10V12C21 13.1046 20.1046 14 19 14H18V8Z"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2 8H18V15C18 17.2091 16.2091 19 14 19H6C3.79086 19 2 17.2091 2 15V8Z"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              {/* 가게 이름 */}
+              <h3 className="text-[19px] font-bold text-gray-900 tracking-tight">
+                {currentStampData.name}
+              </h3>
+            </div>
+            {/* 스탬프 개수 */}
+            <p className="text-[15px] font-semibold text-gray-500">
+              {currentStampData.currentStamps}/{currentStampData.totalStamps}
+            </p>
+          </>
+        )}
+      </div>
+
       {/* 2. 하단 StampCard (현재 활성화된 카드 정보 연동) */}
       <div className="px-1">
         <StampCard

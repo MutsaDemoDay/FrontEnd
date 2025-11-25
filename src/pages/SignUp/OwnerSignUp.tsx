@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BackButton from '../../components/BackButton';
 import SignupInput, {
   type OwnerSignupFormData,
@@ -14,6 +14,11 @@ export const OwnerSignup = () => {
     Partial<Record<keyof OwnerSignupFormData, string>>
   >({});
 
+  useEffect(() => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  }, []);
+  
   const [formData, setFormData] = useState<OwnerSignupFormData>({
     loginId: '',
     password: '',
@@ -24,13 +29,13 @@ export const OwnerSignup = () => {
     location: '',
     latitude: 0,
     longitude: 0,
+    emailVerificationToken: '',
   });
 
   const validateForm = () => {
     const newErrors: Partial<Record<keyof OwnerSignupFormData, string>> = {};
     let isValid = true;
 
-    // 이메일 정규식 (간단한 예시)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!formData.loginId) {
@@ -49,7 +54,7 @@ export const OwnerSignup = () => {
     if (!formData.password) {
       newErrors.password = '필수 입력 사항입니다.';
       isValid = false;
-    } else if (formData.password.length <= 8) {
+    } else if (formData.password.length < 8) {
       newErrors.password = '비밀번호는 8자 이상이어야 합니다.';
       isValid = false;
     }
@@ -59,16 +64,32 @@ export const OwnerSignup = () => {
       isValid = false;
     }
 
+    // 이메일 인증 토큰이 없는 경우
+    if (!formData.emailVerificationToken) {
+      newErrors.emailConfirm = '이메일 인증을 완료해주세요.';
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
 
   const handleOwnerData = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    const { name, value } = e.target as HTMLInputElement;
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
+  };
+
+  // 이메일 인증 성공 시 콜백
+  const handleVerificationSuccess = (token: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      emailVerificationToken: token,
+    }));
+    setErrors((prev) => ({ ...prev, emailConfirm: undefined }));
+    console.log('토큰 저장 완료:', token);
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -96,6 +117,7 @@ export const OwnerSignup = () => {
             address: formData.location,
             latitude: formData.latitude,
             longitude: formData.longitude,
+            emailVerificationToken: formData.emailVerificationToken,
           }),
         }
       );
@@ -103,7 +125,10 @@ export const OwnerSignup = () => {
       if (!response.ok) {
         const errorData = await response.json();
         console.error('서버 에러 상세:', errorData);
-        throw new Error(errorData.message || '회원가입 요청이 거절되었습니다. 아이디 중복을 확인해주세요.');
+        throw new Error(
+          errorData.message ||
+            '회원가입 요청이 거절되었습니다. 아이디 중복을 확인해주세요.'
+        );
       }
 
       alert('가입이 완료되었습니다!');
@@ -173,6 +198,7 @@ export const OwnerSignup = () => {
           variant="emailConfirm"
           placeholder="인증번호"
           emailForVerification={formData.email}
+          onVerifySuccess={handleVerificationSuccess}
         />
         <SignupInput
           label="아이디"

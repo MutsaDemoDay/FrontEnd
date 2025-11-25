@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import main_logo from '../assets/main_logo.png';
 import kakako_logo from '../assets/kakao_logo.png';
@@ -9,6 +9,11 @@ export const FirstPage = () => {
     loginId: '',
     password: '',
   });
+
+  useEffect(() => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  }, []);
 
   const navigate = useNavigate();
 
@@ -64,7 +69,7 @@ export const FirstPage = () => {
     }
   };
 
-async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     try {
@@ -96,12 +101,12 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
         // 1. 토큰 저장
         localStorage.setItem('accessToken', resultData.accessToken);
         localStorage.setItem('refreshToken', resultData.refreshToken);
-        
+
         // 2. 온보딩 완료 여부 확인
         // (유저 타입에 상관없이 본인의 온보딩이 끝났으면 true라고 가정)
         const isUserOnboarded = resultData.userOnboarded;
         const isManagerOnboarded = resultData.managerOnboarded;
-        
+
         // 온보딩이 이미 완료된 경우 해당 페이지로 이동
         if (isUserOnboarded) {
           navigate('/stamp');
@@ -123,7 +128,6 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
           console.error('알 수 없는 유저 타입:', userType);
           alert('로그인 정보에 오류가 있습니다. 관리자에게 문의하세요.');
         }
-
       } else {
         console.error('토큰을 찾을 수 없습니다.', resultData);
         alert('로그인 처리에 실패했습니다. (토큰 없음)');
@@ -180,13 +184,17 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
 
       {/* 소셜 로그인 */}
       <div className="flex flex-row justify-center w-[300px] mt-7 space-x-5 text-sm text-(--fill-color7)">
-        <div className='flex flex-col items-center justify-center cursor-pointer gap-3' onClick={handleKakaoLogin}>
-          <img src={kakako_logo} alt="Kakao Logo" className='rounded-full w-[48px] h-[48px]' />
-          <p className="cursor-pointer text-[10px]">
-          카카오톡으로 로그인
-        </p>
+        <div
+          className="flex flex-col items-center justify-center cursor-pointer gap-3"
+          onClick={handleKakaoLogin}
+        >
+          <img
+            src={kakako_logo}
+            alt="Kakao Logo"
+            className="rounded-full w-[48px] h-[48px]"
+          />
+          <p className="cursor-pointer text-[10px]">카카오톡으로 로그인</p>
         </div>
-        
       </div>
 
       {/* 회원가입, 아이디/비밀번호 찾기 */}

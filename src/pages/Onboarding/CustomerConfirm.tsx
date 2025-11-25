@@ -12,7 +12,7 @@ import {
 type UserProfileProps = {
   nickname: string;
   gender: 'male' | 'female';
-  favStoreId: number[];
+  favStoreId?: number[];
   address: string;
   latitude: number;
   longitude: number;

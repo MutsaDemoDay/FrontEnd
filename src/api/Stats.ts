@@ -7,7 +7,7 @@ export interface ChartItemDto {
 }
 
 export interface StatsDataDto {
-  type: 'daily' | 'weekly' | 'monthly';
+  type: 'weekly' | 'monthly';
   totalOrAvgCount: number;
   periodText: string;
   chartData: ChartItemDto[];
@@ -21,15 +21,32 @@ export interface StatsResponse {
 }
 
 // 2. API 호출 함수
-// 스탬프 적립 통계
+
+// [수정됨] 스탬프 적립 통계(일간) - 링크 분리
+export const fetchDailyStats = async (storeName: string) => {
+  const apiUri = import.meta.env.VITE_API_URI;
+
+  const { data } = await axios.get<StatsResponse>(
+    `${apiUri}/v1/manager/stamps/statics/daily`,
+    {
+      params: {
+        storeName: storeName,
+      },
+    }
+  );
+
+  return data;
+}
+
+// 스탬프 적립 통계(주간, 월간) - 기존 유지
 export const fetchStats = async (
   storeName: string,
-  type: 'daily' | 'weekly' | 'monthly'
+  type: 'weekly' | 'monthly'
 ) => {
   const apiUri = import.meta.env.VITE_API_URI;
 
   const { data } = await axios.get<StatsResponse>(
-    `${apiUri}/v1/stamps/manager/statics`,
+    `${apiUri}/v1/manager/stamps/statics`,
     {
       params: {
         storeName: storeName,
@@ -49,7 +66,7 @@ export const fetchTotals = async (
   const apiUri = import.meta.env.VITE_API_URI;
 
   const { data } = await axios.get<StatsResponse>(
-    `${apiUri}/v1/stamps/manager/totals`,
+    `${apiUri}/v1/manager/customers/statics`,
     {
       params: {
         storeName: storeName,
@@ -86,7 +103,8 @@ export const fetchStoreName = async (): Promise<string | null> => {
 };
 
 export const fetchGenderStats = async (storeName: string, baseDate: string) => {
-  const response = await axios.get(`/api/v1/stamps/manager/gender/weekly`, {
+  const apiUri = import.meta.env.VITE_API_URI;
+  const response = await axios.get(`${apiUri}/v1/manager/gender/weekly`, {
     params: {
       storeName,
       baseDate,

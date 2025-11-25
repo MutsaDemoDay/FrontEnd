@@ -54,7 +54,7 @@ interface FavStoreApiData {
   favorite: boolean;
 }
 
-export const StampRegistration1 = () => {
+export const StampRegistration2 = () => {
   const navigate = useNavigate();
 
   // State
@@ -291,7 +291,7 @@ export const StampRegistration1 = () => {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 sticky top-0 bg-white z-10">
         <BackButton />
-        <h1 className="text-xl font-bold text-gray-800">스탬프 등록</h1>
+        {/* <h1 className="text-xl font-bold text-gray-800">스탬프 등록</h1> */}
         <div className="w-6" />
       </div>
 
@@ -423,4 +423,4 @@ export const StampRegistration1 = () => {
   );
 };
 
-export default StampRegistration1;
+export default StampRegistration2;

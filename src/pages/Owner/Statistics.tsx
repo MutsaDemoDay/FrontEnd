@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { BackButton3 } from '../../components/BackButton3';
-// [중요] fetchTotals 제거, fetchStats만 사용
 import {
+  fetchDailyStats,
   fetchStats,
   fetchStoreName,
   type StatsResponse,
@@ -25,7 +25,7 @@ interface ChartData {
   highlightValue: number;
 }
 
-// --- BarChart 컴포넌트 (UI는 그대로 유지) ---
+// --- BarChart 컴포넌트 ---
 const BarChart: React.FC<{ data: ChartData }> = ({ data }) => {
   const maxValue =
     data.bars.length > 0 ? Math.max(...data.bars.map((b) => b.value), 1) : 1;
@@ -125,37 +125,39 @@ const MemberStats: React.FC = () => {
     queryFn: fetchStoreName,
   });
 
-  // 1. React Query: fetchStats만 사용 ('totals' 관련 로직 완전 제거)
   const {
     data: apiResponse,
     isLoading,
     isError,
   } = useQuery<StatsResponse>({
-    // 탭이 바뀔 때마다 쿼리 키가 바뀌면서 데이터를 새로 가져옴
     queryKey: ['stats', storeName, activeTab],
-    queryFn: () => fetchStats(storeName!, activeTab),
+    queryFn: () => {
+      if (!storeName) return Promise.reject('No store name');
+
+      if (activeTab === 'daily') {
+        return fetchDailyStats(storeName);
+      } else {
+        return fetchStats(storeName, activeTab);
+      }
+    },
     enabled: !!storeName,
   });
 
-  // 2. 데이터 변환 (API Response -> ChartData)
   const chartData: ChartData | null = useMemo(() => {
-    // 유효성 검사
     if (!apiResponse || apiResponse.code !== 100 || !apiResponse.data)
       return null;
 
     const { data } = apiResponse;
 
-    // API의 chartData를 BarItem 형식으로 매핑
     const bars: BarItem[] = data.chartData.map((item) => ({
       label: item.label,
       value: item.count,
     }));
 
-    // 최댓값(Highlight) 찾기
     let maxIndex = 0;
     let maxValue = -1;
 
-    // 데이터가 하나도 없을 경우 처리
+    // 데이터가 0건이라도 그래프 틀은 보여주고 싶다면 아래 조건문 제거 고려
     if (bars.length === 0) {
       return null;
     }
@@ -167,21 +169,19 @@ const MemberStats: React.FC = () => {
       }
     });
 
-    // 적립 통계는 '합계'를 보여주는 것이 일반적이므로 '총'으로 통일
-    // (만약 기획상 주간/월간이 '평균'이어야 한다면 분기 처리 필요)
     const titleLabel = activeTab === 'daily' ? '총' : '평균';
 
     return {
       titleLabel,
-      totalLabel: `${data.totalOrAvgCount}건`, // API가 계산해준 총합/평균값 사용
-      subLabel: data.periodText, // API가 주는 기간 텍스트 사용
+      // [수정] 값이 없거나 null/undefined일 경우 0으로 처리
+      totalLabel: `${data.totalOrAvgCount ?? 0}건`,
+      subLabel: data.periodText,
       bars,
       highlightIndex: maxIndex,
       highlightValue: maxValue,
     };
-  }, [apiResponse]); // activeTab은 apiResponse에 이미 반영되므로 의존성 제거해도 됨
+  }, [apiResponse, activeTab]);
 
-  // 3. 하단 설명 텍스트 동적 생성
   const description = useMemo(() => {
     if (!chartData || chartData.highlightValue === 0) {
       return '적립 내역이 존재하지 않습니다.';
@@ -190,14 +190,11 @@ const MemberStats: React.FC = () => {
     const maxLabel = chartData.bars[chartData.highlightIndex].label;
 
     if (activeTab === 'daily') {
-      // 예: "14시" -> "오늘 14시에..."
       return `오늘 ${maxLabel}에 가장 많은 적립이 발생했습니다.`;
     } else if (activeTab === 'weekly') {
-      // 예: "월" -> "이번 주 월요일에..." (API 라벨이 '월요일' 전체가 아니라면 '요일' 붙임)
       const dayLabel = maxLabel.endsWith('요일') ? maxLabel : `${maxLabel}요일`;
       return `이번 주 ${dayLabel}에 적립이 가장 활발했습니다.`;
     } else {
-      // 예: "15일" -> "이번 달 15일에..."
       return `이번 달 ${maxLabel}에 가장 많은 적립이 있었습니다.`;
     }
   }, [chartData, activeTab]);
@@ -230,7 +227,6 @@ const MemberStats: React.FC = () => {
         적립 통계
       </h1>
 
-      {/* 탭 버튼 */}
       <div className="mb-4 flex rounded-full bg-(--fill-color1) p-1 text-xs">
         {(['daily', 'weekly', 'monthly'] as const).map((tab) => (
           <button
@@ -247,12 +243,10 @@ const MemberStats: React.FC = () => {
         ))}
       </div>
 
-      {/* 차트 영역 */}
       {chartData ? (
         <>
           <BarChart data={chartData} />
 
-          {/* 하단 설명 카드 */}
           <div className="mt-4 rounded-[24px] bg-(--fill-color1) px-6 py-5 shadow-sm">
             <div className="mb-2 text-xs font-semibold text-[#FF7A2E]">
               {activeTab === 'daily' ? '오늘의 리포트' : '기간별 분석'}

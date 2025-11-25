@@ -27,7 +27,7 @@ export const StampEarnConfirmWithId = () => {
     try {
       // API 요청: 쿼리 파라미터로 storeName과 userId 전달
       // 백엔드에서 스탬프 개수 처리가 아직 안 되었다고 하셨으므로 count는 UI에서만 보여주고 요청에는 포함하지 않거나, 필요시 params에 추가
-      await axios.post(`/api/v1/stamps/manager/addByNum`, null, {
+      await axios.post(`/api/v1/manager/addByNum`, null, {
         params: {
           storeName: storeName,
           userId: userId,
