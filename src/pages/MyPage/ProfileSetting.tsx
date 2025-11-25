@@ -16,7 +16,7 @@
 //   const [isSaving, setIsSaving] = useState(false);
 
 //   // 프로필 데이터
-//   const [nickname, setNickname] = useState('김멋사');
+//   const [nickname, setNickname] = useState('');
 //   const [gender, setGender] = useState('male');
 //   const [selectedTitle, setSelectedTitle] = useState(0);
 //   const [address, setAddress] = useState('');
@@ -24,6 +24,9 @@
 
 //   // 좌표 상태 관리
 //   const [coordinates, setCoordinates] = useState({ latitude: 0, longitude: 0 });
+
+//   // [추가] 단골 매장 목록 상태
+//   const [favoriteStores, setFavoriteStores] = useState<any[]>([]);
 
 //   // 모달 상태 관리
 //   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -37,57 +40,71 @@
 
 //   // --- [1] 초기 데이터 조회 (GET) ---
 //   useEffect(() => {
-//     const fetchProfileSettings = async () => {
+//     const fetchData = async () => {
 //       try {
 //         setLoading(true);
-//         // console.log(`Fetching from: ${apiUri}/v1/mypage/settings`);
+//         const token = localStorage.getItem('accessToken');
+//         const headers = {
+//           'Content-Type': 'application/json',
+//           Authorization: `Bearer ${token}`,
+//         };
 
-//         const response = await fetch(`${apiUri}/v1/mypage/settings`, {
-//           method: 'GET',
-//           headers: {
-//             'Content-Type': 'application/json',
-//             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-//           },
-//         });
+//         // 세 개의 API를 병렬로 호출 (설정 + 닉네임 + 단골매장)
+//         const [settingsRes, profileRes, favStoresRes] = await Promise.all([
+//           fetch(`${apiUri}/v1/mypage/settings`, { method: 'GET', headers }),
+//           fetch(`${apiUri}/v1/mypage/profile`, { method: 'GET', headers }),
+//           fetch(`${apiUri}/v1/favstores`, { method: 'GET', headers }), // [추가] 단골매장 조회
+//         ]);
 
-//         if (!response.ok) {
-//           throw new Error(`HTTP Status: ${response.status}`);
+//         // 응답 상태 확인 (하나라도 실패하면 에러 처리할지, 개별 처리할지 결정. 여기선 통칭 에러)
+//         if (!settingsRes.ok || !profileRes.ok || !favStoresRes.ok) {
+//           console.warn('일부 API 호출에 실패했을 수 있습니다.');
 //         }
 
-//         const result = await response.json();
-//         console.log('API Result:', result); // [디버깅] 실제 응답 구조 확인
+//         const settingsResult = await settingsRes.json();
+//         const profileResult = await profileRes.json();
+//         const favStoresResult = await favStoresRes.json();
 
-//         // [수정] 성공 조건 완화 (문자열/숫자 모두 허용, 메시지 확인 등)
-//         const isSuccess =
-//           result.code === 0 ||
-//           result.code === 200 ||
-//           String(result.code) === '0' ||
-//           String(result.code) === '200' ||
-//           result.message === '유저 설정 조회가 완료되었습니다.'; // 메시지가 성공이면 통과
+//         console.log('Settings API:', settingsResult);
+//         console.log('Profile API:', profileResult);
+//         console.log('FavStores API:', favStoresResult);
 
-//         if (isSuccess) {
-//           // 데이터가 있으면 적용, 없어도 성공 처리(초기 상태일 수 있음)
-//           if (result.data) {
-//             applyProfileData(result.data);
-//           } else {
-//             console.log('데이터가 비어있습니다 (초기 상태 가능성)');
-//           }
-//         } else {
-//           // 성공 조건이 아니면 에러로 던짐
-//           throw new Error(result.message || '데이터 조회 실패');
+//         // 1. 설정 데이터 적용
+//         if (checkSuccess(settingsResult) && settingsResult.data) {
+//           applySettingsData(settingsResult.data);
+//         }
+
+//         // 2. 닉네임 데이터 적용
+//         if (checkSuccess(profileResult) && profileResult.data?.nickname) {
+//           setNickname(profileResult.data.nickname);
+//         }
+
+//         // 3. [추가] 단골 매장 데이터 적용
+//         if (
+//           checkSuccess(favStoresResult) &&
+//           Array.isArray(favStoresResult.data)
+//         ) {
+//           setFavoriteStores(favStoresResult.data);
 //         }
 //       } catch (error) {
 //         console.error('API Error:', error);
-//         // 에러가 발생해도 화면이 멈추지 않게 기본값 유지 혹은 알림
-//         // alert('설정을 불러오는 중 문제가 발생했습니다.');
 //       } finally {
 //         setLoading(false);
 //       }
 //     };
 
-//     const applyProfileData = (data: any) => {
-//       if (!data) return;
+//     const checkSuccess = (result: any) => {
+//       return (
+//         result.code === 0 ||
+//         result.code === 200 ||
+//         String(result.code) === '0' ||
+//         String(result.code) === '200' ||
+//         result.message?.includes('성공') ||
+//         result.message?.includes('완료')
+//       );
+//     };
 
+//     const applySettingsData = (data: any) => {
 //       setProfileImage(data.profileImageUrl || '');
 
 //       const genderValue = data.gender ? data.gender.toUpperCase() : 'MALE';
@@ -107,7 +124,7 @@
 //       }
 //     };
 
-//     fetchProfileSettings();
+//     fetchData();
 //     // eslint-disable-next-line react-hooks/exhaustive-deps
 //   }, []);
 
@@ -139,9 +156,7 @@
 //       });
 
 //       const result = await response.json();
-//       console.log('Save Response:', result);
 
-//       // 저장 시에도 유연한 성공 체크
 //       const isSuccess =
 //         result.code === 0 ||
 //         result.code === 200 ||
@@ -231,13 +246,9 @@
 //               <input
 //                 type="text"
 //                 value={nickname}
-//                 onChange={(e) => setNickname(e.target.value)}
-//                 maxLength={10}
+//                 readOnly
 //                 className="flex-1 text-base font-medium text-gray-900 bg-transparent focus:outline-none placeholder-gray-300"
 //               />
-//               <span className="text-xs text-gray-400">
-//                 {nickname.length}/10
-//               </span>
 //             </div>
 //           </div>
 
@@ -352,39 +363,44 @@
 //             </div>
 //           </div>
 
-//           {/* 단골 가게 등록 */}
+//           {/* 단골 가게 등록 (API 데이터 연동) */}
 //           <div className="mb-8">
 //             <label className="block text-xs font-medium text-gray-500 mb-2">
 //               단골 가게 등록
 //             </label>
 //             <div className="space-y-2">
-//               <div className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white hover:border-orange-300 transition-colors cursor-pointer">
-//                 <div className="flex flex-col">
-//                   <span className="text-xs font-bold text-gray-900">
-//                     카페나무
-//                   </span>
-//                   <span className="text-[10px] text-gray-400 mt-0.5">
-//                     서울 마포구 와우산로 94 롯폰기 1층 (상수동)
-//                   </span>
+//               {/* 1. 조회된 단골 매장 목록 렌더링 */}
+//               {favoriteStores.map((store) => (
+//                 <div
+//                   key={store.storeId}
+//                   className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white hover:border-orange-300 transition-colors cursor-pointer"
+//                 >
+//                   <div className="flex flex-col">
+//                     <span className="text-xs font-bold text-gray-900">
+//                       {store.storeName}
+//                     </span>
+//                     <span className="text-[10px] text-gray-400 mt-0.5 truncate max-w-[200px]">
+//                       {store.storeAddress}
+//                     </span>
+//                   </div>
+//                   <button className="text-gray-300 hover:text-gray-500">
+//                     <MoreVertical size={16} />
+//                   </button>
 //                 </div>
-//                 <button className="text-gray-300 hover:text-gray-500">
-//                   <MoreVertical size={16} />
-//                 </button>
-//               </div>
+//               ))}
 
-//               <button
-//                 onClick={() => navigate('/stampregistration2')}
-//                 className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all"
-//               >
-//                 <Plus size={20} strokeWidth={1.5} />
-//               </button>
-
-//               <button
-//                 onClick={() => navigate('/stampregistration2')}
-//                 className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all"
-//               >
-//                 <Plus size={20} strokeWidth={1.5} />
-//               </button>
+//               {/* 2. 빈 슬롯 채우기 (최대 3개 슬롯 기준, 부족한 만큼 + 버튼 표시) */}
+//               {[...Array(Math.max(0, 3 - favoriteStores.length))].map(
+//                 (_, index) => (
+//                   <button
+//                     key={`add-btn-${index}`}
+//                     onClick={() => navigate('/stampregistration2')}
+//                     className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all"
+//                   >
+//                     <Plus size={20} strokeWidth={1.5} />
+//                   </button>
+//                 )
+//               )}
 //             </div>
 //           </div>
 //         </main>
@@ -420,7 +436,7 @@
 // export default ProfileSetting;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pencil, MoreVertical, Plus, Star } from 'lucide-react';
 import BackButton from '../../components/BackButton';
@@ -437,19 +453,21 @@ const ProfileSetting = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   // 프로필 데이터
-  const [nickname, setNickname] = useState(''); // 초기값 비워둠 (API로 채움)
+  const [nickname, setNickname] = useState('');
   const [gender, setGender] = useState('male');
   const [selectedTitle, setSelectedTitle] = useState(0);
   const [address, setAddress] = useState('');
-  const [profileImage, setProfileImage] = useState('');
 
-  // 좌표 상태 관리
+  // 이미지 관리
+  const [profileImage, setProfileImage] = useState(''); // 화면 표시용 URL
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null); // 전송용 파일 객체
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 좌표 및 기타 데이터
   const [coordinates, setCoordinates] = useState({ latitude: 0, longitude: 0 });
-
-  // 모달 상태 관리
+  const [favoriteStores, setFavoriteStores] = useState<any[]>([]);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  // 칭호 리스트
   const titles = [
     { id: 0, name: '전설의 바리스타', icon: '☕' },
     { id: 1, name: '테이크아웃 장인', icon: '🏃' },
@@ -467,34 +485,37 @@ const ProfileSetting = () => {
           Authorization: `Bearer ${token}`,
         };
 
-        // 두 개의 API를 병렬로 호출 (설정 데이터 + 닉네임 데이터)
-        const [settingsRes, profileRes] = await Promise.all([
+        const [settingsRes, profileRes, favStoresRes] = await Promise.all([
           fetch(`${apiUri}/v1/mypage/settings`, { method: 'GET', headers }),
           fetch(`${apiUri}/v1/mypage/profile`, { method: 'GET', headers }),
+          fetch(`${apiUri}/v1/favstores`, { method: 'GET', headers }),
         ]);
-
-        if (!settingsRes.ok || !profileRes.ok) {
-          throw new Error('API 호출 중 오류가 발생했습니다.');
-        }
 
         const settingsResult = await settingsRes.json();
         const profileResult = await profileRes.json();
+        const favStoresResult = await favStoresRes.json();
 
-        console.log('Settings API Result:', settingsResult);
-        console.log('Profile API Result:', profileResult);
-
-        // 1. 설정 데이터 적용 (이미지, 주소, 성별, 칭호)
-        if (checkSuccess(settingsResult)) {
-          if (settingsResult.data) {
-            applySettingsData(settingsResult.data);
-          }
+        // 1. 설정 데이터 적용
+        if (checkSuccess(settingsResult) && settingsResult.data) {
+          applySettingsData(settingsResult.data);
         }
 
-        // 2. 프로필 데이터 적용 (닉네임)
-        if (checkSuccess(profileResult)) {
-          if (profileResult.data && profileResult.data.nickname) {
-            setNickname(profileResult.data.nickname);
-          }
+        // 2. 닉네임 데이터 적용 (프로필 API 혹은 설정 API 데이터 활용)
+        if (settingsResult.data?.nickname) {
+          setNickname(settingsResult.data.nickname);
+        } else if (
+          checkSuccess(profileResult) &&
+          profileResult.data?.nickname
+        ) {
+          setNickname(profileResult.data.nickname);
+        }
+
+        // 3. 단골 매장 데이터 적용
+        if (
+          checkSuccess(favStoresResult) &&
+          Array.isArray(favStoresResult.data)
+        ) {
+          setFavoriteStores(favStoresResult.data);
         }
       } catch (error) {
         console.error('API Error:', error);
@@ -503,7 +524,6 @@ const ProfileSetting = () => {
       }
     };
 
-    // 성공 여부 판단 헬퍼 함수
     const checkSuccess = (result: any) => {
       return (
         result.code === 0 ||
@@ -515,7 +535,6 @@ const ProfileSetting = () => {
       );
     };
 
-    // 설정 데이터 적용 함수
     const applySettingsData = (data: any) => {
       setProfileImage(data.profileImageUrl || '');
 
@@ -540,32 +559,50 @@ const ProfileSetting = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // --- [2] 프로필 저장 함수 (POST) ---
+  // 이미지 변경 핸들러
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setProfileImage(previewUrl);
+    }
+  };
+
+  // --- [2] 저장 함수 (PATCH + FormData) ---
   const handleSave = async () => {
     if (isSaving) return;
 
     try {
       setIsSaving(true);
+      const formData = new FormData();
 
-      // 저장 시 닉네임도 포함해야 하는지 서버 스펙 확인 필요 (현재 페이로드에는 닉네임 없음)
-      const payload = {
-        profileImageUrl: profileImage,
-        representativeBadgeName: titles[selectedTitle].name,
-        gender: gender.toUpperCase(),
-        address: address,
-        latitude: coordinates.latitude,
-        longitude: coordinates.longitude,
-      };
+      // 닉네임 (API 명세에 따라 필수)
+      formData.append('nickname', nickname);
 
-      console.log('Sending Payload:', payload);
+      // 이미지 파일 (변경된 경우에만 추가)
+      if (profileImageFile) {
+        formData.append('profileImageUrl', profileImageFile);
+      }
 
-      const response = await fetch(`${apiUri}/v1/mypage`, {
-        method: 'POST',
+      // 기타 데이터
+      formData.append('representativeBadgeName', titles[selectedTitle].name);
+      formData.append('gender', gender.toUpperCase());
+      formData.append('address', address);
+      formData.append('latitude', String(coordinates.latitude || 0));
+      formData.append('longitude', String(coordinates.longitude || 0));
+
+      const endpoint = `${apiUri}/v1/mypage/settings`;
+
+      console.log(`Sending PATCH request to: ${endpoint}`);
+
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
+          // Content-Type 제거 (브라우저가 boundary 자동 설정)
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       const result = await response.json();
@@ -578,7 +615,7 @@ const ProfileSetting = () => {
         String(result.code) === '200';
 
       if (isSuccess) {
-        alert('프로필이 성공적으로 저장되었습니다.');
+        alert('프로필이 성공적으로 수정되었습니다.');
       } else {
         alert(`저장 실패: ${result.message}`);
       }
@@ -630,9 +667,12 @@ const ProfileSetting = () => {
 
         {/* 메인 영역 */}
         <main className="flex-1 px-5 overflow-y-auto scrollbar-hide pb-24">
-          {/* 프로필 이미지 */}
+          {/* 이미지 변경 */}
           <div className="flex justify-center mb-8">
-            <div className="relative">
+            <div
+              className="relative group cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <div className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
                 {profileImage && (
                   <img
@@ -645,13 +685,23 @@ const ProfileSetting = () => {
                   />
                 )}
               </div>
-              <button className="absolute top-0 right-0 bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm hover:bg-gray-500 transition-colors">
+              <button
+                type="button"
+                className="absolute top-0 right-0 bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-gray-500 transition-colors"
+              >
                 <Pencil size={14} fill="white" />
               </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="hidden"
+                accept="image/*"
+              />
             </div>
           </div>
 
-          {/* 닉네임 */}
+          {/* 닉네임 수정 */}
           <div className="mb-8">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               닉네임
@@ -660,17 +710,17 @@ const ProfileSetting = () => {
               <input
                 type="text"
                 value={nickname}
-                readOnly // 닉네임 수정 API가 별도로 없다면 readOnly 처리하거나, onChange 유지
-                // onChange={(e) => setNickname(e.target.value)}
+                onChange={(e) => setNickname(e.target.value)}
+                maxLength={10}
                 className="flex-1 text-base font-medium text-gray-900 bg-transparent focus:outline-none placeholder-gray-300"
               />
-              {/* <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-400">
                 {nickname.length}/10
-              </span> */}
+              </span>
             </div>
           </div>
 
-          {/* 대표 칭호 */}
+          {/* 칭호 */}
           <div className="mb-8">
             <label className="block text-xs font-medium text-gray-500 mb-3">
               대표 칭호
@@ -758,7 +808,7 @@ const ProfileSetting = () => {
             </div>
           </div>
 
-          {/* 주소지 영역 */}
+          {/* 주소지 */}
           <div className="mb-8">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               주소지
@@ -781,39 +831,43 @@ const ProfileSetting = () => {
             </div>
           </div>
 
-          {/* 단골 가게 등록 */}
+          {/* 단골 가게 */}
           <div className="mb-8">
             <label className="block text-xs font-medium text-gray-500 mb-2">
               단골 가게 등록
             </label>
             <div className="space-y-2">
-              <div className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white hover:border-orange-300 transition-colors cursor-pointer">
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-gray-900">
-                    카페나무
-                  </span>
-                  <span className="text-[10px] text-gray-400 mt-0.5">
-                    서울 마포구 와우산로 94 롯폰기 1층 (상수동)
-                  </span>
+              {favoriteStores.map((store) => (
+                <div
+                  key={store.storeId}
+                  className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 bg-white hover:border-orange-300 transition-colors cursor-pointer"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-900">
+                      {store.storeName}
+                    </span>
+                    <span className="text-[10px] text-gray-400 mt-0.5 truncate max-w-[200px]">
+                      {store.storeAddress}
+                    </span>
+                  </div>
+                  <button className="text-gray-300 hover:text-gray-500">
+                    <MoreVertical size={16} />
+                  </button>
                 </div>
-                <button className="text-gray-300 hover:text-gray-500">
-                  <MoreVertical size={16} />
-                </button>
-              </div>
+              ))}
 
-              <button
-                onClick={() => navigate('/stampregistration2')}
-                className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all"
-              >
-                <Plus size={20} strokeWidth={1.5} />
-              </button>
-
-              <button
-                onClick={() => navigate('/stampregistration2')}
-                className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all"
-              >
-                <Plus size={20} strokeWidth={1.5} />
-              </button>
+              {/* 빈 슬롯 +버튼 생성 */}
+              {[...Array(Math.max(0, 3 - favoriteStores.length))].map(
+                (_, index) => (
+                  <button
+                    key={`add-btn-${index}`}
+                    onClick={() => navigate('/stampregistration2')}
+                    className="w-full py-4 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-200 hover:text-orange-500 hover:border-orange-300 transition-all"
+                  >
+                    <Plus size={20} strokeWidth={1.5} />
+                  </button>
+                )
+              )}
             </div>
           </div>
         </main>
@@ -834,7 +888,7 @@ const ProfileSetting = () => {
           </button>
         </div>
 
-        {/* 주소 모달 연결 */}
+        {/* 주소 모달 */}
         {isAddressModalOpen && (
           <AddressModal
             onClose={() => setIsAddressModalOpen(false)}
