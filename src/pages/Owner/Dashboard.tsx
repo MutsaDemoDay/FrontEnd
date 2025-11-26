@@ -147,7 +147,7 @@ export const Dashboard = () => {
             </p>
             <div className="flex flex-row self-end items-center text-center">
               <p className="text-[34px] font-semibold text-(--fill-color7)">
-                5
+                0
               </p>
               <p className="text-[14px] font-medium mx-1 text-[#5B5B5B]">건</p>
             </div>
