@@ -39,7 +39,7 @@ export const FirstPage = () => {
 
   const handleKakaoLogin = async () => {
     try {
-      const frontendRedirectUri = 'http://localhost:3000/oauth/kakao/callback';
+      const frontendRedirectUri = `${window.location.origin}/oauth/kakao/callback`;
 
       const apiUri = import.meta.env.VITE_API_URI;
 
