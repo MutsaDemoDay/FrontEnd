@@ -257,30 +257,30 @@ const StampPage = () => {
               events.map((event, i) => (
                 <div
                   key={i}
-                  onClick={() => navigate('/stamp/event')}
+                  onClick={() => navigate('/event/' + event.eventType)}
                   className="bg-gray-100 rounded-2xl p-5 flex justify-between items-center cursor-pointer"
                 >
                   <div className="flex-1 pr-4">
-                    <h3 className="text-[#FF6B00] font-bold text-sm mb-1">
-                      {event.eventType.replace(/_/g, ' ')}
-                    </h3>
-                    <p className="text-xs text-gray-600 mb-2">
-                      {event.buttonDescription}
-                    </p>
-                    <p className="text-[10px] text-gray-400">
-                      {event.startDate || '기간 미정'} ~{' '}
-                      {event.endDate || '기간 미정'}
-                    </p>
+                  <h3 className="text-[#FF6B00] font-bold text-sm mb-1">
+                    {event.eventType.replace(/_/g, ' ')}
+                  </h3>
+                  <p className="text-xs text-gray-600 mb-2">
+                    {event.buttonDescription}
+                  </p>
+                  <p className="text-[10px] text-gray-400">
+                    {event.startDate || '기간 미정'} ~{' '}
+                    {event.endDate || '기간 미정'}
+                  </p>
                   </div>
                   <div className="w-20 h-20 bg-white rounded-lg overflow-hidden">
-                    {event.buttonImageUrl ? (
-                      <img
-                        src={event.buttonImageUrl}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs">IMG</span>
-                    )}
+                  {event.buttonImageUrl ? (
+                    <img
+                    src={event.buttonImageUrl}
+                    className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs">IMG</span>
+                  )}
                   </div>
                 </div>
               ))

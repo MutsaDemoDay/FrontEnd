@@ -529,7 +529,7 @@ export const MapPage: React.FC = () => {
         return (
           <FavoriteBottomSheet
             stores={sliderStores}
-            onStoreClick={(store: { lat: any; lng: any; }) => {
+            onStoreClick={(store: Store) => {
               if (mapRef.current) {
                 const moveLatLon = new window.kakao.maps.LatLng(
                   store.lat,
@@ -548,7 +548,7 @@ export const MapPage: React.FC = () => {
             stores={sliderStores}
             selectedStore={selectedStore}
             isOpen={isSliderOpen}
-            onStoreSelect={(store: { lat: any; lng: any; }) => {
+            onStoreSelect={(store: Store) => {
               setSelectedStore(store);
               setIsSliderOpen(true);
               if (mapRef.current) {

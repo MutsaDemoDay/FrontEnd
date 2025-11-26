@@ -25,7 +25,7 @@ export const Dashboard = () => {
 
   // 1. 적립 통계 탭 (State 타입 수정: daily 추가)
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly'>(
-    'weekly'
+    'daily'
   );
 
   // 2. 등록 고객 수 통계 탭
@@ -97,7 +97,7 @@ export const Dashboard = () => {
   const customerCount = customerStats?.data?.totalOrAvgCount ?? 0;
   const customerDateText = customerStats?.data?.periodText ?? '';
 
-  const labelText = '총';
+  const labelText = activeTab === 'daily' ? '총' : '평균';
 
   // 성별 데이터 가공
   const womanRatio = genderStats?.data?.womanRatio ?? 0;
