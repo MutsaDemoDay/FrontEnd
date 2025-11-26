@@ -194,11 +194,12 @@ export const StampRegistration4 = () => {
           `보상: ${data.reward}\n` +
           `현재 스탬프: ${data.currentCount}/${data.maxCount}`
       );
-      navigate('/stampsetting');
+      navigate('/stamp');
     } catch (error) {
       console.error('스탬프 등록 실패:', error);
       if (axios.isAxiosError(error) && error.response) {
         alert('이미 등록된 스탬프 카드입니다.');
+        navigate('/stamp');
       }
     }
   };
