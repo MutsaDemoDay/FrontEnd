@@ -287,7 +287,7 @@ export const StampRegistration1 = () => {
   const displayStores = stores;
 
   return (
-    <div className="w-[430px] min-h-screen bg-white flex flex-col relative pb-20 mx-auto shadow-lg">
+    <div className="w-full min-h-screen bg-white flex flex-col relative pb-20 mx-auto shadow-lg">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 sticky top-0 bg-white z-10">
         <BackButton />
