@@ -958,7 +958,7 @@ const StampSection = () => {
   }
 
   return (
-    <div className="rounded-lg pb-6 overflow-hidden">
+    <div className="rounded-lg pb-6 overflow-hidden relative z-0">
       {/* 1. 3D 카드 스택 (드래그 영역) */}
       <div
         className="relative h-56 w-full flex items-center mb-4 touch-none"
