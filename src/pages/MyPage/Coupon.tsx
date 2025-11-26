@@ -2,6 +2,7 @@ import React from 'react';
 import BackButton from '../../components/BackButton';
 import FilledStar from '../../assets/filledstar.svg';
 import { UserBottomBar } from '../../components/UserBottomBar';
+import Couponuse from '../../assets/couponuse.svg';
 
 const Coupon: React.FC = () => {
   return (
