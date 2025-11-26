@@ -349,6 +349,7 @@ const CouponBox: React.FC = () => {
               취소를 통해 복구된 쿠폰은 유효기간이 지날시 사용이 불가능합니다.
             </li>
           </ul>
+          <div className="pt-15"></div>
         </footer>
       </div>
       <UserBottomBar />
