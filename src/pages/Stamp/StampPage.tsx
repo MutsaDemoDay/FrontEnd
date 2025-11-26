@@ -9,6 +9,8 @@ import { type StampData } from '../../components/StampCard';
 import { UserBottomBar } from '../../components/UserBottomBar';
 import Window from '../../components/Window';
 import { fetchUserQr } from '../../api/UserQR';
+import hitory_icon from '../../assets/history_icon.png';
+import makeStamp_icon from '../../assets/makeStamp_icon.png';
 
 const apiUri = import.meta.env.VITE_API_URI;
 
@@ -229,7 +231,7 @@ const StampPage = () => {
             className="bg-white p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center space-y-2 hover:bg-gray-50 transition"
           >
             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <img src={ThreeDots} alt="History" className="w-6 h-6" />
+              <img src={hitory_icon} alt="History" className="w-6 h-6" />
             </div>
             <span className="text-sm font-medium text-gray-700">
               스탬프 히스토리
@@ -241,7 +243,7 @@ const StampPage = () => {
             className="bg-white p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center space-y-2 hover:bg-gray-50 transition"
           >
             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <img src={ThreeDots} alt="QR" className="w-6 h-6" />
+              <img src={makeStamp_icon} alt="QR" className="w-6 h-6" />
             </div>
             <span className="text-sm font-medium text-gray-700">
               스탬프 찍기
