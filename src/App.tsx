@@ -75,7 +75,7 @@ function App() {
           {/* 온보딩/인증 */}
           <Route path="/onboarding/customer" element={<CustomerOnboarding />} />
           <Route
-            path="/signup/customer-confirm"
+            path="/signup/customer-confirm:userId"
             element={<CustomerConfirm />}
           />
           {/* 리워드/스탬프 */}
