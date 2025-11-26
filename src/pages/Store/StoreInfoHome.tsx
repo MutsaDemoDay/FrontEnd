@@ -8,6 +8,7 @@ import internet_icon from '../../assets/internet_icon.png';
 import instagram_icon from '../../assets/instagram_icon.png';
 import default_store_stamp from '../../assets/store_stamp.png';
 import gift_icon from '../../assets/gift_icon.png';
+import { useNavigate } from 'react-router-dom';
 
 interface StoreInfoHomeProps {
   storeDetail: StoreDetail | null;
@@ -17,6 +18,8 @@ interface StoreInfoHomeProps {
 export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
   storeDetail,
 }) => {
+  const navigate = useNavigate();
+  
   return (
     <>
       <div className="flex flex-col w-full h-[120px]">
@@ -44,19 +47,17 @@ export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
           <div className="w-1/2 flex flex-row items-center gap-3">
             <img src={internet_icon} alt="" className="w-[20px] h-[20px]" />
             <a
-              href={storeDetail?.storeUrl || '#'}
               className="text-[14px] text-[var(--fill-color7)] font-medium truncate"
             >
-              {storeDetail?.storeUrl ? '홈페이지' : '정보 없음'}
+              {storeDetail?.storeUrl || '정보 없음'}
             </a>
           </div>
           <div className="w-1/2 flex flex-row items-center gap-3">
             <img src={instagram_icon} alt="" className="w-[20px] h-[20px]" />
             <a
-              href={storeDetail?.sns || '#'}
               className="text-[14px] text-[var(--fill-color7)] font-medium truncate"
             >
-              {storeDetail?.sns ? 'SNS' : '정보 없음'}
+              {storeDetail?.sns || '정보 없음'}
             </a>
           </div>
         </div>
@@ -83,7 +84,7 @@ export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
               {storeDetail?.reward || '매장 보상 정보'}
             </p>
           </div>
-          <button className="w-[292px] h-[52px] bg-[var(--main-color)] text-[var(--fill-color1)] text-[16px] font-semibold rounded-[30px] mt-6 cursor-pointer">
+          <button className="w-[292px] h-[52px] bg-[var(--main-color)] text-[var(--fill-color1)] text-[16px] font-semibold rounded-[30px] mt-6 cursor-pointer" onClick={() => navigate('/stampregistration1')}>
             스탬프 등록하기
           </button>
         </div>
