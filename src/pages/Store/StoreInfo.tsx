@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom'; // useLocation은 이제 필요 없을 수도 있습니다
+import { useParams } from 'react-router-dom';
 import { BackButton2 } from '../../components/BackButton2';
 
 // 컴포넌트 & 타입 import
 import { StoreInfoHome } from './StoreInfoHome';
 import { StoreInfoReview } from './StoreInfoReview';
-import { type StoreDetail } from '../../type/Store'; // 타입 경로 확인
+import { type StoreDetail } from '../../type/Store';
 
 // 이미지 import
 import heart_empty_icon from '../../assets/heart_empty_icon.png';
@@ -16,8 +16,9 @@ import share_icon from '../../assets/share_icon.png';
 export const StoreInfo = () => {
   const [selectedTab, setSelectedTab] = useState<'home' | 'review'>('home');
   const [isFavorited, setIsFavorited] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // 가게 상세 정보 State
   const [storeDetail, setStoreDetail] = useState<StoreDetail | null>(null);
 
@@ -30,10 +31,10 @@ export const StoreInfo = () => {
 
     const fetchStoreDetail = async (lat: number, lng: number) => {
       const token = localStorage.getItem('accessToken');
-      
+
       try {
         const response = await fetch(
-          `${apiUri}/v1/stores/${storeId}?latitude=${lat}&longitude=${lng}`, 
+          `${apiUri}/v1/stores/${storeId}?latitude=${lat}&longitude=${lng}`,
           {
             method: 'GET',
             headers: {
@@ -56,27 +57,24 @@ export const StoreInfo = () => {
       }
     };
 
-    // 2. 위치 정보 가져오기 로직
+    // 위치 정보 가져오기 로직
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          // 위치 허용 시: 현재 위치 좌표로 API 호출
           const { latitude, longitude } = position.coords;
           fetchStoreDetail(latitude, longitude);
         },
         (error) => {
           console.warn('Location access denied/error:', error);
-          // 위치 차단/에러 시: 기본값 (0.0, 0.0)으로 API 호출
           fetchStoreDetail(0.0, 0.0);
         }
       );
     } else {
-      // 브라우저가 위치 기능을 지원하지 않을 때
       fetchStoreDetail(0.0, 0.0);
     }
   }, [storeId, apiUri]);
 
-  // 2. 즐겨찾기 상태 확인 (기존 로직 유지)
+  // 2. 즐겨찾기 상태 확인
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       if (!storeId) {
@@ -85,7 +83,7 @@ export const StoreInfo = () => {
       }
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        setIsLoading(false); // 로딩 해제는 여기서도 필요할 수 있음
+        setIsLoading(false);
         return;
       }
       try {
@@ -95,7 +93,9 @@ export const StoreInfo = () => {
         if (response.ok) {
           const result = await response.json();
           if (result.data && Array.isArray(result.data)) {
-            const storeData = result.data.find((item: any) => item.storeId === Number(storeId));
+            const storeData = result.data.find(
+              (item: any) => item.storeId === Number(storeId)
+            );
             setIsFavorited(storeData ? storeData.favorite : false);
           }
         }
@@ -124,10 +124,60 @@ export const StoreInfo = () => {
       });
       if (response.ok) {
         setIsFavorited((prev) => !prev);
-        alert(isFavorited ? '즐겨찾기에서 해제되었습니다.' : '즐겨찾기에 추가되었습니다.');
+        alert(
+          isFavorited
+            ? '즐겨찾기에서 해제되었습니다.'
+            : '즐겨찾기에 추가되었습니다.'
+        );
       }
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  // --- [추가된 부분] 공유하기 핸들러 ---
+  const handleShare = async () => {
+    if (!storeId) return;
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${apiUri}/v1/stores/${storeId}/share`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const shareUrl = result.data; // 예: "https://daango.site/store/1"
+
+        // 1. 모바일 네이티브 공유 (지원하는 브라우저인 경우)
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: storeDetail?.name || '가게 정보 공유',
+              text: `${storeDetail?.name} 정보를 확인해보세요!`,
+              url: shareUrl,
+            });
+            // 공유 성공 시 별도 알림이 필요 없다면 생략 가능
+          } catch (shareError) {
+            console.log('Share canceled or failed', shareError);
+          }
+        }
+        // 2. 미지원 브라우저(PC 등)는 클립보드 복사
+        else {
+          await navigator.clipboard.writeText(shareUrl);
+          alert('공유 링크가 클립보드에 복사되었습니다!');
+        }
+      } else {
+        console.error('공유 링크 생성 실패:', response.status);
+        alert('공유 링크를 불러오는데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Share request failed:', error);
+      alert('오류가 발생했습니다.');
     }
   };
 
@@ -136,7 +186,11 @@ export const StoreInfo = () => {
       {/* 상단 이미지 및 헤더 */}
       <div className="w-full h-[220px] bg-amber-100 relative shrink-0">
         {storeDetail?.storeImageUrl && (
-          <img src={storeDetail.storeImageUrl} alt="가게 전경" className="absolute w-full h-full object-cover z-0" />
+          <img
+            src={storeDetail.storeImageUrl}
+            alt="가게 전경"
+            className="absolute w-full h-full object-cover z-0"
+          />
         )}
         <div className="absolute w-full h-full bg-black/10 z-0" />
         <div className="w-full flex justify-between items-start relative z-10 p-4">
@@ -148,7 +202,13 @@ export const StoreInfo = () => {
               className="w-[16px] h-[16px] m-3 cursor-pointer"
               onClick={handleToggleFavorite}
             />
-            <img src={share_icon} alt="공유하기" className="w-[16px] h-[16px] m-3 cursor-pointer" />
+            {/* onClick 이벤트 추가 */}
+            <img
+              src={share_icon}
+              alt="공유하기"
+              className="w-[16px] h-[16px] m-3 cursor-pointer"
+              onClick={handleShare}
+            />
           </div>
         </div>
       </div>
@@ -163,13 +223,17 @@ export const StoreInfo = () => {
             {storeDetail?.category || '카테고리'}
           </p>
         </div>
-        <p className="text-[var(--fill-color4)] text-[12px]">{storeDetail?.address || '주소 정보 없음'}</p>
+        <p className="text-[var(--fill-color4)] text-[12px]">
+          {storeDetail?.address || '주소 정보 없음'}
+        </p>
 
         <div className="flex flex-row justify-center items-center w-full h-[54px] bg-[var(--fill-color1)] rounded-[50px]">
           <div className="flex w-1/2 justify-center items-center">
             <button
               className={`w-[calc(100%-20px)] transition-all ${
-                selectedTab === 'home' ? 'bg-white h-[40px] rounded-[30px] shadow-sm' : 'h-[40px] text-gray-400'
+                selectedTab === 'home'
+                  ? 'bg-white h-[40px] rounded-[30px] shadow-sm'
+                  : 'h-[40px] text-gray-400'
               }`}
               onClick={() => setSelectedTab('home')}
             >
@@ -179,7 +243,9 @@ export const StoreInfo = () => {
           <div className="flex w-1/2 justify-center items-center">
             <button
               className={`w-[calc(100%-20px)] transition-all ${
-                selectedTab === 'review' ? 'bg-white h-[40px] rounded-[30px] shadow-sm' : 'h-[40px] text-gray-400'
+                selectedTab === 'review'
+                  ? 'bg-white h-[40px] rounded-[30px] shadow-sm'
+                  : 'h-[40px] text-gray-400'
               }`}
               onClick={() => setSelectedTab('review')}
             >
@@ -194,9 +260,9 @@ export const StoreInfo = () => {
         <StoreInfoHome storeDetail={storeDetail} />
       ) : (
         storeId && (
-          <StoreInfoReview 
+          <StoreInfoReview
             storeId={storeId}
-            reviewAvailable={storeDetail?.reviewAvailable || false} 
+            reviewAvailable={storeDetail?.reviewAvailable || false}
           />
         )
       )}

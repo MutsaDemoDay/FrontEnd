@@ -174,13 +174,14 @@ export const StoreInfoReview: React.FC<StoreInfoReviewProps> = ({
             {/* 정렬 옵션 등은 여기에 추가 가능 (레벨 순 v) */}
 
             {reviewData.reviews.map((review) => (
-              <div
-                key={review.reviewId}
-                className="w-full flex flex-col border-b border-[var(--fill-color2)] pb-6 last:border-0"
-              >
+              <div key={review.reviewId} className="w-full flex flex-col border-b border-[var(--fill-color2)] pb-6 last:border-0" onClick={() => navigate(`/reviewer/${review.reviewerId}`)}>
                 {/* 유저 정보 헤더 */}
                 <div className="flex flex-row justify-between items-start mb-2">
-                  <div className="flex flex-row gap-3 items-center">
+                  <div
+                    className="flex flex-row gap-3 items-center cursor-pointer" // 커서 포인터 추가
+                    // [추가] 클릭 시 해당 유저 프로필로 이동
+                    onClick={() => navigate(`/reviewer/${review.reviewerId}`)} // API에 review.userId가 포함되어 있어야 합니다.
+                  >
                     <img
                       src={review.profileImageUrl || user_default_profile}
                       alt="profile"
@@ -189,7 +190,7 @@ export const StoreInfoReview: React.FC<StoreInfoReviewProps> = ({
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
                         <span className="text-[14px] font-bold text-[#333]">
-                          {review.nickname}
+                          {review.reviewerNickname}
                         </span>
                         {/* 레벨 뱃지 (API에 있다면 추가) */}
                         <span className="text-[10px] text-[#999] bg-[#f0f0f0] px-1.5 py-0.5 rounded">
@@ -200,23 +201,23 @@ export const StoreInfoReview: React.FC<StoreInfoReviewProps> = ({
                       {/* <span className="text-[10px] text-white bg-[#8B6E60] px-2 py-0.5 rounded-full w-fit mt-1">카페 그랜드마스터</span> */}
 
                       <div className="flex gap-0.5 mt-1">
-                        {renderStars(review.rate)}
+                        {renderStars(Number(review.rate))}
                       </div>
                     </div>
                   </div>
                   <span className="text-[12px] text-[#999]">
-                    {formatDate(review.createdAt)}
+                    {formatDate(review.reviewDate)}
                   </span>
                 </div>
 
                 {/* 리뷰 내용 */}
                 <p className="text-[14px] text-[#555] leading-relaxed text-left whitespace-pre-wrap mt-2">
-                  {review.content}
+                  {review.reviewContent}
                 </p>
 
                 {/* 첨부 이미지 */}
                 {review.reviewImageUrl && (
-                  <div className="w-full h-[200px] rounded-[12px] overflow-hidden mt-3">
+                  <div className="w-full h-[200px] rounded-[12px] overflow-hidden mt-3" >
                     <img
                       src={review.reviewImageUrl}
                       alt="review-img"
