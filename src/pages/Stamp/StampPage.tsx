@@ -33,8 +33,8 @@ interface AccountApiResponse {
   code: number;
   message: string;
   data: {
-    email: string;    // QR 생성 요청용
-    loginId: string;  // 화면 표시용 (아이디)
+    email: string; // QR 생성 요청용
+    loginId: string; // 화면 표시용 (아이디)
     // userId: number; // (필요하다면 추가, 여기선 QR생성에 email만 씀)
     joinedAt: string;
   };
@@ -72,7 +72,7 @@ const StampPage = () => {
         const resData = response.data;
         if (resData.code === 0 || resData.code === 200 || resData.data) {
           console.log('✅ 유저 정보:', resData.data);
-          setUserEmail(resData.data.email);     // API용
+          setUserEmail(resData.data.email); // API용
           setUserLoginId(resData.data.loginId); // UI용
         }
       } catch (error) {
@@ -124,7 +124,11 @@ const StampPage = () => {
         });
         if (response.ok) {
           const json = await response.json();
-          if (json.code === 0 || json.code === 200 || json.message.includes('정상')) {
+          if (
+            json.code === 0 ||
+            json.code === 200 ||
+            json.message.includes('정상')
+          ) {
             setEvents(json.data);
           }
         }
@@ -171,7 +175,10 @@ const StampPage = () => {
       <header className="flex items-center justify-between px-5 py-4 bg-gray-50 sticky top-0 z-10">
         <h1 className="text-xl font-bold text-gray-800">My Stamp</h1>
         <div className="flex items-center space-x-3">
-          <button onClick={() => navigate('/stampregistration1')} className="p-1">
+          <button
+            onClick={() => navigate('/stampregistration1')}
+            className="p-1"
+          >
             <img src={Plus} alt="Plus" className="w-6 h-6" />
           </button>
           <button onClick={() => navigate('/stampsetting')} className="p-1">
@@ -206,25 +213,39 @@ const StampPage = () => {
 
         {/* 리스트/그리드 */}
         {viewMode === 'list' ? (
-          <div className="mb-6 flex justify-center"><StampSection /></div>
+          <div className="mb-6 flex justify-center">
+            <StampSection />
+          </div>
         ) : (
-          <div className="mb-6"><Window data={stamps} loading={isLoadingStamps} /></div>
+          <div className="mb-6">
+            <Window data={stamps} loading={isLoadingStamps} />
+          </div>
         )}
 
         {/* 버튼들 */}
         <div className="grid grid-cols-2 gap-4 mb-10">
-          <button onClick={() => navigate('/stamphistory')} className="bg-white p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center space-y-2 hover:bg-gray-50 transition">
+          <button
+            onClick={() => navigate('/stamphistory')}
+            className="bg-white p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center space-y-2 hover:bg-gray-50 transition"
+          >
             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
               <img src={ThreeDots} alt="History" className="w-6 h-6" />
             </div>
-            <span className="text-sm font-medium text-gray-700">스탬프 히스토리</span>
+            <span className="text-sm font-medium text-gray-700">
+              스탬프 히스토리
+            </span>
           </button>
 
-          <button onClick={handleQrClick} className="bg-white p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center space-y-2 hover:bg-gray-50 transition">
+          <button
+            onClick={handleQrClick}
+            className="bg-white p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center space-y-2 hover:bg-gray-50 transition"
+          >
             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
               <img src={ThreeDots} alt="QR" className="w-6 h-6" />
             </div>
-            <span className="text-sm font-medium text-gray-700">스탬프 찍기</span>
+            <span className="text-sm font-medium text-gray-700">
+              스탬프 찍기
+            </span>
           </button>
         </div>
 
@@ -234,19 +255,39 @@ const StampPage = () => {
           <div className="space-y-3">
             {events.length > 0 ? (
               events.map((event, i) => (
-                <div key={i} onClick={() => navigate('/stamp/event')} className="bg-gray-100 rounded-2xl p-5 flex justify-between items-center cursor-pointer">
+                <div
+                  key={i}
+                  onClick={() => navigate('/stamp/event')}
+                  className="bg-gray-100 rounded-2xl p-5 flex justify-between items-center cursor-pointer"
+                >
                   <div className="flex-1 pr-4">
-                    <h3 className="text-[#FF6B00] font-bold text-sm mb-1">{event.eventType.replace(/_/g, ' ')}</h3>
-                    <p className="text-xs text-gray-600 mb-2">{event.buttonDescription}</p>
-                    <p className="text-[10px] text-gray-400">{event.startDate} ~ {event.endDate}</p>
+                    <h3 className="text-[#FF6B00] font-bold text-sm mb-1">
+                      {event.eventType.replace(/_/g, ' ')}
+                    </h3>
+                    <p className="text-xs text-gray-600 mb-2">
+                      {event.buttonDescription}
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      {event.startDate || '기간 미정'} ~{' '}
+                      {event.endDate || '기간 미정'}
+                    </p>
                   </div>
                   <div className="w-20 h-20 bg-white rounded-lg overflow-hidden">
-                    {event.buttonImageUrl ? <img src={event.buttonImageUrl} className="w-full h-full object-cover" /> : <span className="text-xs">IMG</span>}
+                    {event.buttonImageUrl ? (
+                      <img
+                        src={event.buttonImageUrl}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs">IMG</span>
+                    )}
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-center text-gray-400 text-sm py-4">진행 중인 이벤트가 없습니다.</p>
+              <p className="text-center text-gray-400 text-sm py-4">
+                진행 중인 이벤트가 없습니다.
+              </p>
             )}
           </div>
         </section>
@@ -255,9 +296,15 @@ const StampPage = () => {
       {/* QR Modal */}
       {showQrModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-[2px]" onClick={() => setShowQrModal(false)}></div>
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-[2px]"
+            onClick={() => setShowQrModal(false)}
+          ></div>
           <div className="relative z-10 w-[393px] flex flex-col items-center pointer-events-none">
-            <button className="absolute top-[-60px] right-6 z-50 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center pointer-events-auto" onClick={() => setShowQrModal(false)}>
+            <button
+              className="absolute top-[-60px] right-6 z-50 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center pointer-events-auto"
+              onClick={() => setShowQrModal(false)}
+            >
               <span className="text-white font-bold text-lg">X</span>
             </button>
             <div className="pointer-events-auto flex flex-col items-center w-full">
@@ -265,14 +312,20 @@ const StampPage = () => {
                 {isLoadingQr ? (
                   <span className="text-gray-400 text-sm">QR 생성 중...</span>
                 ) : qrImage ? (
-                  <img src={qrImage} alt="QR" className="w-full h-full object-contain" />
+                  <img
+                    src={qrImage}
+                    alt="QR"
+                    className="w-full h-full object-contain"
+                  />
                 ) : (
                   <span className="text-red-400 text-sm">이미지 없음</span>
                 )}
               </div>
               <div className="text-center space-y-1">
                 {/* [UI] 유저는 자신의 LoginID를 확인 */}
-                <p className="text-white text-base font-medium">회원ID: {userLoginId}</p>
+                <p className="text-white text-base font-medium">
+                  회원ID: {userLoginId}
+                </p>
                 <p className="text-gray-300 text-xs">QR코드 유효시간 01:00</p>
               </div>
             </div>
@@ -280,7 +333,9 @@ const StampPage = () => {
         </div>
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 z-20"><UserBottomBar /></div>
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <UserBottomBar />
+      </div>
     </div>
   );
 };
