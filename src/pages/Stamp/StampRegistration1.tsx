@@ -407,10 +407,16 @@ export const StampRegistration1 = () => {
           ))
         ) : (
           <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-            <p>
-              {activeTab === 'liked'
-                ? '찜한 매장이 없습니다.'
-                : '표시할 매장이 없습니다.'}
+            <p className=" text-center">
+              {activeTab === 'liked' ? (
+                '찜한 매장이 없습니다.'
+              ) : (
+                <>
+                  아직 매장이 등록되지 않은 동네에요.
+                  <br />
+                  입점을 기다려주세요!
+                </>
+              )}
             </p>
           </div>
         )}
