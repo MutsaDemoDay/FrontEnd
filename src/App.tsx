@@ -71,7 +71,10 @@ function App() {
           <Route path="/myPage/profilesetting" element={<ProfileSetting />} />
           <Route path="/myPage/accountsetting" element={<AccountSetting />} />
           <Route path="/myPage/couponbox" element={<CouponBox />} />
-          <Route path="/myPage/coupon" element={<Coupon />} />
+          {/* <Route path="/myPage/coupon" element={<Coupon />} /> */}
+          <Route path="/mypage/coupon/:couponId" element={<Coupon />} />
+          <Route path="/mypage/coupon" element={<Coupon />} />
+
           {/* 온보딩/인증 */}
           <Route path="/onboarding/customer" element={<CustomerOnboarding />} />
           <Route
