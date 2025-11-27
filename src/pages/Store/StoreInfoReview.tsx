@@ -158,8 +158,8 @@ export const StoreInfoReview: React.FC<StoreInfoReviewProps> = ({
         ) : (
           // 리뷰 작성이 불가능한 경우 -> 회색 안내 박스
           <div className="w-full h-[52px] bg-[#F5F5F5] flex items-center justify-center text-[#999] text-[13px] rounded-[12px] text-center leading-tight">
-            해당 가게의 스탬프를 완성한 유저만 <br />
-            리뷰를 작성할 수 있어요!
+            해당 가게의 스탬프를 완성하지 못하셨거나 <br />
+            이미 리뷰를 작성하셨어요!
           </div>
         )}
       </div>

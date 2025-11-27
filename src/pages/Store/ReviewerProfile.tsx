@@ -109,7 +109,11 @@ export const ReviewerProfile = () => {
           }
         );
 
-        if (response.data.code === 0 || response.data.code === 200) {
+        if (
+          response.data.code === 100 ||
+          response.data.code === 200 ||
+          response.data.code === 0
+        ) {
           setProfile(response.data.data);
         }
       } catch (error) {
