@@ -29,7 +29,7 @@ export const OwnerStampSetting = () => {
   const [rewardType, setRewardType] = useState<'beverage' | 'other'>(
     'beverage'
   );
-  const [stampCount, setStampCount] = useState('');
+  const [stampCount, setStampCount] = useState('10');
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

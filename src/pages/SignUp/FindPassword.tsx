@@ -80,7 +80,6 @@ export const FindPassword = () => {
   const handleVerifyCode = async () => {
     try {
       await verifyEmailCode(email, code);
-      alert('인증에 성공했습니다.');
       setIsVerified(true);
     } catch (error) {
       console.error('Email verification error:', error);
