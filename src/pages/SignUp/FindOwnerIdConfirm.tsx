@@ -1,8 +1,13 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
 
 export const FindOwnerIdConfirm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // 이전 페이지(FindId)에서 넘겨준 state 받기
+  // state가 없거나(직접 접속 등) 비어있을 경우를 대비해 빈 객체 {} 할당
+  const { loginId, createdAt } = location.state || {};
 
   const handleLoginClick = () => {
     navigate('/');
@@ -23,10 +28,11 @@ export const FindOwnerIdConfirm = () => {
       <div className="w-screen h-px mt-3 bg-gray-200" />
 
       <div className="flex flex-row w-full justify-center items-center h-[60px] text-[12px]">
-        <div className="flex h-full items-center justify-center w-1/2 border-b border-gray-500">
+        {/* 점주 회원 결과 페이지이므로 탭 스타일 고정 */}
+        <div className="flex h-full items-center justify-center w-1/2 border-b border-gray-500 text-gray-500">
           개인회원
         </div>
-        <div className="flex h-full items-center justify-center w-1/2 border-b-2">
+        <div className="flex h-full items-center justify-center w-1/2 border-b-2 border-black font-semibold">
           점주회원
         </div>
       </div>
@@ -46,10 +52,13 @@ export const FindOwnerIdConfirm = () => {
       {/* 구분선 */}
       <div className="w-screen h-px mt-3 bg-gray-200" />
 
+      {/* 결과 표시 영역 */}
       <div className="flex flex-row w-full h-[100px] items-center gap-4">
-        <div className="flex items-center justify-center w-1/2">ABCDE1234</div>
+        <div className="flex items-center justify-center w-1/2 text-[18px] font-bold">
+          {loginId || '정보 없음'}
+        </div>
         <div className="flex items-center justify-center w-1/2 text-(--fill-color5)">
-          가입일: 2024-01-01
+          가입일: {createdAt || '-'}
         </div>
       </div>
 

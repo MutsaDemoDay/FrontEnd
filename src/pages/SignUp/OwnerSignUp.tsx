@@ -127,7 +127,7 @@ export const OwnerSignup = () => {
         console.error('서버 에러 상세:', errorData);
         throw new Error(
           errorData.message ||
-            '회원가입 요청이 거절되었습니다. 아이디 중복을 확인해주세요.'
+            '회원가입 요청이 거절되었습니다. 아이디나 이메일 중복을 확인해주세요.'
         );
       }
 
@@ -228,6 +228,7 @@ export const OwnerSignup = () => {
           label="사업자등록번호"
           name="businessNumber"
           type="text"
+          placeholder="꼭 하이픈('-')을 빼고 입력해주세요."
           value={formData.businessNumber}
           onChange={handleOwnerData}
           error={errors.businessNumber}

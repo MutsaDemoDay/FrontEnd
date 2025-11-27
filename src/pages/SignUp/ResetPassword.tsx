@@ -35,10 +35,9 @@ export const ResetPassword = () => {
       return;
     }
 
-    // 3. 비밀번호 유효성 검사 (10-20자, 영문 및 숫자 포함)
-    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{10,20}$/;
-    if (!passwordRegex.test(newPassword)) {
-      alert('비밀번호는 10-20자의 영문, 숫자를 포함해야 합니다.');
+    // 3. 비밀번호 유효성 검사 (8자 이상);
+    if (newPassword.length < 8) {
+      alert('비밀번호는 8자 이상이어야 합니다.');
       return;
     }
 
