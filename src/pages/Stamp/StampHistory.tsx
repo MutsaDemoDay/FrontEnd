@@ -504,10 +504,12 @@ const StampHistory = () => {
     return (
       <div className="min-h-screen bg-white flex flex-col font-sans">
         <div className="px-5 py-4 flex items-center">
-          <BackButton />
-          <h1 className="text-lg font-bold text-gray-800 ml-2">
-            스탬프 히스토리
-          </h1>
+          <div className="flex flex-col">
+            <BackButton />
+            <h1 className="text-lg font-bold text-gray-800 ml-6">
+              스탬프 히스토리
+            </h1>
+          </div>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-2">
           <p>아직 완성된 스탬프 카드가 없어요.</p>
@@ -518,7 +520,7 @@ const StampHistory = () => {
 
   // --- [렌더링: 메인] ---
   return (
-    <div className="min-h-screen bg-white flex flex-col relative overflow-hidden select-none font-sans">
+    <div className="min-h-screen w-full bg-white flex flex-col relative overflow-hidden select-none font-sans">
       {/* 배경 그래픽 */}
       <div className="absolute bottom-0 left-0 w-full h-[80%] bg-gradient-to-t from-[#FF9F65] via-[#FFF0EB] to-white z-0 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-full h-[80%] bg-[url('https://www.transparenttextures.com/patterns/noise.png')] opacity-10 z-0 pointer-events-none" />
