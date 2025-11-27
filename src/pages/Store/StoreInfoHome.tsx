@@ -1,4 +1,6 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // axios import 추가
 import { type StoreDetail } from '../../type/Store';
 
 // 이미지 import
@@ -8,22 +10,73 @@ import internet_icon from '../../assets/internet_icon.png';
 import instagram_icon from '../../assets/instagram_icon.png';
 import default_store_stamp from '../../assets/store_stamp.png';
 import gift_icon from '../../assets/gift_icon.png';
-import { useNavigate } from 'react-router-dom';
+
+// API 기본 주소 설정
+const apiUri = import.meta.env.VITE_API_URI || 'http://localhost:8080';
 
 interface StoreInfoHomeProps {
   storeDetail: StoreDetail | null;
 }
 
-
 export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
   storeDetail,
 }) => {
   const navigate = useNavigate();
-  
+
+  // ----------------------------------------------------------------
+  // 스탬프 등록 로직 (StampRegistration4에서 가져옴)
+  // ----------------------------------------------------------------
+  const handleRegisterStamp = async () => {
+    // 1. 매장 정보나 ID가 없으면 실행 불가
+    if (!storeDetail || !storeDetail.storeId) {
+      alert('매장 정보를 불러올 수 없습니다.');
+      return;
+    }
+
+    // 2. 토큰 확인
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      alert('로그인이 필요한 서비스입니다.');
+      // 필요하다면 로그인 페이지로 이동: navigate('/login');
+      return;
+    }
+
+    try {
+      // 3. API 호출 (POST /v1/stamps)
+      // storeDetail 타입 안에 storeId가 포함되어 있어야 합니다.
+      const response = await axios.post(
+        `${apiUri}/v1/stamps`,
+        { storeId: storeDetail.storeId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const data = response.data;
+
+      // 4. 성공 시 알림 및 이동
+      alert(
+        `[${data.storeName}] 스탬프 카드가 등록되었습니다!\n` +
+          `보상: ${data.reward}\n` +
+          `현재 스탬프: ${data.currentCount}/${data.maxCount}`
+      );
+      navigate('/stamp'); // 내 스탬프 목록 페이지로 이동
+    } catch (error) {
+      console.error('스탬프 등록 실패:', error);
+
+      // 5. 이미 등록된 경우 등 에러 처리
+      if (axios.isAxiosError(error) && error.response) {
+        // 서버에서 중복 등록 시 에러 코드를 보낸다면 여기서 처리
+        alert('이미 등록된 스탬프 카드이거나, 등록에 실패했습니다.');
+        navigate('/stamp'); // 이미 있다면 목록으로 이동
+      } else {
+        alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      }
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col w-full h-[120px]">
-        {/* 영업 시간 (API의 message 필드 사용) */}
+        {/* 영업 시간 */}
         <div className="flex flex-row w-full h-[40px] items-center gap-3 border-b border-t border-[var(--fill-color1)] px-6 ">
           <img src={clock} alt="" className="w-[20px] h-[20px]" />
           <p className="text-[14px] text-[var(--fill-color7)] font-medium">
@@ -46,17 +99,13 @@ export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
         <div className="flex flex-row w-full h-[40px] items-center border-b border-[var(--fill-color1)] px-6 ">
           <div className="w-1/2 flex flex-row items-center gap-3">
             <img src={internet_icon} alt="" className="w-[20px] h-[20px]" />
-            <a
-              className="text-[14px] text-[var(--fill-color7)] font-medium truncate"
-            >
+            <a className="text-[14px] text-[var(--fill-color7)] font-medium truncate">
               {storeDetail?.storeUrl || '정보 없음'}
             </a>
           </div>
           <div className="w-1/2 flex flex-row items-center gap-3">
             <img src={instagram_icon} alt="" className="w-[20px] h-[20px]" />
-            <a
-              className="text-[14px] text-[var(--fill-color7)] font-medium truncate"
-            >
+            <a className="text-[14px] text-[var(--fill-color7)] font-medium truncate">
               {storeDetail?.sns || '정보 없음'}
             </a>
           </div>
@@ -84,13 +133,18 @@ export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
               {storeDetail?.reward || '매장 보상 정보'}
             </p>
           </div>
-          <button className="w-[292px] h-[52px] bg-[var(--main-color)] text-[var(--fill-color1)] text-[16px] font-semibold rounded-[30px] mt-6 cursor-pointer" onClick={() => navigate('/stampregistration1')}>
+
+          {/* [수정] onClick에 handleRegisterStamp 연결 */}
+          <button
+            className="w-[292px] h-[52px] bg-[var(--main-color)] text-[var(--fill-color1)] text-[16px] font-semibold rounded-[30px] mt-6 cursor-pointer hover:bg-orange-600 transition-colors"
+            onClick={handleRegisterStamp}
+          >
             스탬프 등록하기
           </button>
         </div>
       </div>
 
-      {/* 시그니처 메뉴 (동적 렌더링) */}
+      {/* 시그니처 메뉴 */}
       <div className="w-full pb-10">
         <div className="w-full h-[54px] flex items-center px-6">
           <p className="text-[var(--main-color2)] font-semibold text-[18px]">
@@ -99,7 +153,6 @@ export const StoreInfoHome: React.FC<StoreInfoHomeProps> = ({
         </div>
         <div className="h-px bg-[var(--fill-color2)]" />
 
-        {/* 메뉴 리스트 매핑 */}
         {storeDetail?.signatureMenus &&
         storeDetail.signatureMenus.length > 0 ? (
           storeDetail.signatureMenus.map((menu, index) => (
