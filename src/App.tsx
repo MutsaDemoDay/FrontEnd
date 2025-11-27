@@ -118,7 +118,7 @@ function App() {
             element={<StampEarnWithId />}
           />
           <Route
-            path="/stamp-earn/confirm/:userId"
+            path="/stamp-earn/confirm/:loginId"
             element={<StampEarnConfirmWithId />}
           />
           <Route path="/owner/stampsetting" element={<OwnerStampSetting />} />
