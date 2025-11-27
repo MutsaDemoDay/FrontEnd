@@ -71,12 +71,22 @@ export const StoreReview: React.FC = () => {
     // 2. FormData 생성
     const formData = new FormData();
 
-    // 일반 필드 추가
-    formData.append('storeId', storeId); // 숫자형 변환이 필요하다면 Number(storeId)
-    formData.append('rate', score.toString());
-    formData.append('content', content);
+    // [수정된 부분] ---------------------------------------------------
+    // 개별 append가 아니라, 하나의 객체로 묶어서 'data' 키에 넣어야 합니다.
 
-    // 이미지 파일 추가 (선택된 경우에만)
+    const requestData = {
+      storeId: Number(storeId), // 숫자로 변환 (서버 스펙에 맞춤)
+      rate: score,
+      content: content,
+    };
+
+    // JSON 객체를 문자열로 변환하고, Blob을 사용하여 Content-Type을 application/json으로 명시
+    const jsonBlob = new Blob([JSON.stringify(requestData)], {
+      type: 'application/json',
+    });
+
+    formData.append('data', jsonBlob);
+    
     if (imageFile) {
       formData.append('reviewImage', imageFile);
     }
@@ -84,8 +94,7 @@ export const StoreReview: React.FC = () => {
     try {
       const response = await fetch(`${API_URI}/v1/reviews`, {
         method: 'POST',
-        // 주의: FormData 전송 시 Content-Type 헤더를 직접 설정하면 안 됩니다.
-        // 브라우저가 자동으로 boundary를 포함한 multipart/form-data로 설정합니다.
+        // header에 Content-Type을 직접 설정하지 않음 (브라우저가 boundary 자동 설정)
         body: formData,
       });
 

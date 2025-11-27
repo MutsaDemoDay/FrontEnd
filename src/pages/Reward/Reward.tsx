@@ -529,7 +529,6 @@ export const Reward = () => {
             <span className="text-3xl font-bold text-[#5A3A28]">
               {myInfo?.topPercent || '0'}
             </span>
-            <span className="text-lg font-bold text-[#5A3A28]">%</span>
           </div>
         </div>
 
