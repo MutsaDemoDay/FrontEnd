@@ -44,7 +44,7 @@ export const OwnerSettings = () => {
   };
 
   return (
-    <div className="flex flex-col w-full px-6 py-4">
+    <div className="flex flex-col items-center w-full px-6 py-4">
       <h1 className="text-[25px] text-(--fill-color6) font-normal mb-[160px]">
         Settings
       </h1>
