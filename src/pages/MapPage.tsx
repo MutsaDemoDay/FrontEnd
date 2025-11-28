@@ -279,7 +279,9 @@ export const MapPage: React.FC = () => {
       );
 
       // 거리순 정렬
-      validStores.sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0));
+      validStores.sort(
+        (a: any, b: any) => (a.distance || 0) - (b.distance || 0)
+      );
 
       setSliderStores(validStores);
 
@@ -373,7 +375,7 @@ export const MapPage: React.FC = () => {
       setSliderStores([]);
     }
   };
-  
+
   // --- 즐겨찾기 삭제 처리 ---
   const handleDeleteFavorite = async (storeId: number) => {
     if (!confirm('정말 즐겨찾기를 해제하시겠습니까?')) return;
@@ -413,21 +415,21 @@ export const MapPage: React.FC = () => {
     }
   };
 
-  // --- 탭 변경 핸들러 ---
   const updateSliderContent = (newMode: StoreListMode) => {
     setMode(newMode);
-    setSelectedStore(null);
-    setIsSliderOpen(true); // 탭 변경 시 하단 시트 다시 열기
+    setSelectedStore(null); // 기존 선택된 가게 해제
+    setIsSliderOpen(true); // 시트는 열어둠 (AI 시트를 보여주기 위함)
 
     if (newMode === 'ai') {
-      // AI 모드는 별도 컴포넌트가 뜨므로 지도 마커 정리
+      // [수정] AI 모드: 지도 마커 제거 + 슬라이더 데이터 초기화
+      // 지도는 이동하지 않고, 마커도 찍지 않음 (완전 격리)
       clearMarkers();
       setSliderStores([]);
-      // 지도 중심을 마포구 쪽으로 이동시키고 싶다면:
-      // if(mapRef.current) mapRef.current.panTo(new window.kakao.maps.LatLng(37.556, 126.904));
     } else if (newMode === 'nearby') {
+      // 내 주변: 마커 찍고 리스트 채움
       fetchAllStores(center.lat, center.lng);
     } else if (newMode === 'favorites') {
+      // 즐겨찾기: 마커 찍고 리스트 채움
       fetchFavorites();
     }
   };
@@ -524,6 +526,7 @@ export const MapPage: React.FC = () => {
 
     switch (mode) {
       case 'ai':
+        // [수정] AI 시트에는 지도 조작 함수를 전혀 전달하지 않음
         return <AiRecommendationSheet />;
       case 'favorites':
         return (
@@ -586,7 +589,11 @@ export const MapPage: React.FC = () => {
           <span className="text-gray-400 text-sm">지역, 건물, 주소 검색</span>
         </div>
         <button className="w-11 h-full flex items-center justify-center rounded-[10px] bg-[#FF6B00] cursor-pointer">
-          <img src={searchIcon} alt="search" className="w-5 h-5 brightness-0 invert" />
+          <img
+            src={searchIcon}
+            alt="search"
+            className="w-5 h-5 brightness-0 invert"
+          />
         </button>
       </div>
 
@@ -1072,7 +1079,7 @@ export const MapPage: React.FC = () => {
 //       setSliderStores([]); // 에러 시 빈 목록
 //     }
 //   };
-  
+
 //   // --- 즐겨찾기 삭제 처리 ---
 //   const handleDeleteFavorite = async (storeId: number) => {
 //     if (!confirm('정말 즐겨찾기를 해제하시겠습니까?')) return;
@@ -1312,5 +1319,3 @@ export const MapPage: React.FC = () => {
 //     </div>
 //   );
 // };
-
-
