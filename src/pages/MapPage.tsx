@@ -1229,7 +1229,7 @@ export const MapPage: React.FC = () => {
         onClick={() => setIsSearchModalOpen(true)}
       >
         <div className="flex-1 rounded-[10px] h-full bg-gray-100 flex items-center px-4 cursor-pointer">
-          <span className="text-gray-400 text-sm">카페 이름 검색</span>
+          <span className="text-gray-400 text-sm">지역, 건물, 주소 검색</span>
         </div>
         <button className="w-11 h-full flex items-center justify-center rounded-[10px] bg-[#FF6B00] cursor-pointer">
           <img
