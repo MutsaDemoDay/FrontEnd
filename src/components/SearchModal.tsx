@@ -68,7 +68,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         // [중요] 400 에러 방지: 파라미터 이름을 keyword로 통일하고 인코딩 적용
         // 만약 백엔드가 storeName을 강제한다면 ?storeName=${encodeURIComponent(query)} 로 변경하세요.
         const response = await fetch(
-          `/api/v1/stores/search?storeName=${encodeURIComponent(query)}`,
+          `/${apiUri}/v1/stores/search?storeName=${encodeURIComponent(query)}`,
           {
             method: 'GET',
             headers: {
