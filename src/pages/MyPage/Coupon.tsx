@@ -687,7 +687,7 @@ const Coupon: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col">
+    <div className="min-h-screen w-full bg-white text-gray-900 flex flex-col">
       {/* 헤더 */}
       <header
         className={`flex items-center p-4 h-14 ${
