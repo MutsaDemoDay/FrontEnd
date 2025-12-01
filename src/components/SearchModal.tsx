@@ -34,23 +34,9 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   const apiUri = import.meta.env.VITE_API_URI;
 
-  // 모달 열릴 때 스크롤 막기
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-      // 닫힐 때 상태 초기화 (필요시 주석 해제)
-      // setQuery('');
-      // setResults([]);
-      // setHasSearched(false);
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
 
-  // --- [핵심] 실시간 검색 로직 (디바운싱 적용) ---
+  
+  // 검색어 변경 시 디바운스 처리 및 API 호출
   useEffect(() => {
     // 1. 검색어가 없으면 결과 초기화
     if (!query.trim()) {
@@ -59,7 +45,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
       return;
     }
 
-    // 2. 0.3초 딜레이 후 API 호출
+    // 2. 0.2초 딜레이 후 API 호출
     const debounceTimer = setTimeout(async () => {
       setIsLoading(true);
       try {
@@ -68,7 +54,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         // [중요] 400 에러 방지: 파라미터 이름을 keyword로 통일하고 인코딩 적용
         // 만약 백엔드가 storeName을 강제한다면 ?storeName=${encodeURIComponent(query)} 로 변경하세요.
         const response = await fetch(
-          `/${apiUri}/v1/stores/search?storeName=${encodeURIComponent(query)}`,
+          `${apiUri}/v1/stores/search?storeName=${encodeURIComponent(query)}`,
           {
             method: 'GET',
             headers: {
@@ -80,7 +66,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
         if (response.ok) {
           const data = await response.json();
-          // 데이터 구조가 배열인지, {data: []} 형태인지 확인하여 처리
           const list = Array.isArray(data) ? data : data.data || [];
           setResults(list);
         } else {
@@ -93,10 +78,10 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         setIsLoading(false);
         setHasSearched(true);
       }
-    }, 300); // 300ms 딜레이
+    }, 200); // 200ms 딜레이
 
     return () => clearTimeout(debounceTimer);
-  }, [query]); // query가 변경될 때마다 실행
+  }, [query]);
 
   // 검색어 하이라이팅 함수
   const highlightText = (text: string, highlight: string) => {
@@ -106,7 +91,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
       <span>
         {parts.map((part, i) =>
           part.toLowerCase() === highlight.toLowerCase() ? (
-            <span key={i} className="text-[#FF6B00] font-bold">
+            <span key={i} className="text-(--main-color) font-bold">
               {part}
             </span>
           ) : (
@@ -121,7 +106,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col w-full h-full">
-      {/* --- [UI 수정] 헤더 영역 (고정) --- */}
       {/* 검색창을 헤더에 포함시켜 스크롤되지 않도록 변경 */}
       <div className="flex items-center gap-3 p-4 bg-white border-b border-gray-100 shrink-0">
         {/* 뒤로가기 버튼 */}

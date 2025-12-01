@@ -50,8 +50,7 @@ const LEVEL_BENEFITS = [
 
 
 export const RewardInfo = () => {
-  // 초기값을 2로 설정하여 스크린샷과 동일하게 시작하거나 1로 설정
-  const [selectedLevel, setSelectedLevel] = React.useState<number>(2);
+  const [selectedLevel, setSelectedLevel] = React.useState<number>(1);
 
   // 선택된 레벨의 데이터를 찾음
   const currentLevelData = useMemo(
@@ -166,7 +165,6 @@ export const RewardInfo = () => {
                     className="w-[27px] h-[27px] mr-4"
                   />
                   <span className="text-(--fill-color6) text-[14px] font-semibold">
-                    {/* 배열을 문자열로 합쳐서 보여줌 (따옴표 포함) */}
                     {currentLevelData.badges
                       .map((b) => `"${b}"`)
                       .join(' ')}{' '}

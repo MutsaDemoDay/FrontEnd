@@ -172,7 +172,7 @@ const StampPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-50 pb-[80px]">
+    <div className="relative w-full h-full bg-gray-50 pb-[80px]">
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-4 bg-gray-50 sticky top-0 z-10">
         <h1 className="text-xl font-bold text-gray-800">My Stamp</h1>
